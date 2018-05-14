@@ -1,0 +1,101 @@
+/*******************************************************************************
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+package com.ibm.wala.akkaTaskScheduler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import com.ibm.wala.ipa.callgraph.propagation.PointsToSetVariable;
+import com.ibm.wala.util.intset.MutableIntSet;
+
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.routing.BalancingPool;
+
+public class SchedulerForResetSetAndRecompute extends UntypedActor{
+  private final int nrOfWorkers;
+  private final MutableIntSet targets;
+  private ArrayList<Result> results;
+  private int nrOfResults;
+  private int nrOfChanges;
+  private int nrOfWorks;
+  private ArrayList<PointsToSetVariable> firstUsers;
+
+  private final ActorRef resultLister;
+  private final ActorRef workerRouter;
+
+  private final long start = System.currentTimeMillis();
+  private HashSet<PointsToSetVariable> processed = new HashSet<>();
+  private HashSet<PointsToSetVariable> scheduled = new HashSet<>();
+
+
+  public SchedulerForResetSetAndRecompute(final int nrOfWorkers, MutableIntSet targets,
+      ArrayList<PointsToSetVariable> firstUsers, ActorRef resultLister){
+    this.nrOfWorkers = nrOfWorkers;
+    this.targets = targets;
+    this.resultLister = resultLister;
+    this.firstUsers = firstUsers;
+    Props props = Props.create(Worker.class).withRouter(new BalancingPool(nrOfWorkers));
+        //new Props(Worker.class).withRouter(new RoundRobinRouter(nrOfWorkers));
+    workerRouter = this.getContext().actorOf(props, "workerRouter");
+  }//SmallestMailboxRouter   BalancingPool  RoundRobinRouter
+
+  @Override
+  public void onReceive(Object message){
+    if(message instanceof WorkStart){
+      Iterator<PointsToSetVariable> iterator = firstUsers.iterator();
+      while(iterator.hasNext()){
+        PointsToSetVariable first = iterator.next();
+        workerRouter.tell(new WorkContentForCheckChange(first, targets), getSelf());
+        nrOfWorks++;
+      }
+//      System.out.println("Initial distribution complete.");
+    }else if(message instanceof ResetResult){
+      ResetResult result = (ResetResult) message;
+      nrOfResults++;
+//      CollectResetResults.getInstance().addResetResult(result);
+      PointsToSetVariable presult = result.getUser();
+      MutableIntSet nTargets = result.getTargets();
+      ArrayList<PointsToSetVariable> nexts = result.getCheckNext();
+      if(!processed.contains(presult)){
+        processed.add(presult);
+        if(nexts != null)
+          if(!nexts.isEmpty()){
+            Iterator<PointsToSetVariable> iterator = nexts.iterator();
+            while(iterator.hasNext()){
+              PointsToSetVariable n = iterator.next();
+              if(!scheduled.contains(n) && !processed.contains(n) && n.getValue() != null){
+//              workerRouter.tell(new WorkContentForCheckChange(n, targets), getSelf());
+                workerRouter.tell(new WorkContentForCheckChange(n, nTargets), getSelf());
+//              System.out.println("Schedule check for: " + n.getGraphNodeId());
+                scheduled.add(n);
+                nrOfWorks++;
+              }
+            }
+        }
+      }
+//      System.out.println("result: "+ nrOfResults + " work: "+nrOfWorks);
+      if(nrOfResults == nrOfWorks){
+//        System.out.println("Duration(re & re): " + (System.currentTimeMillis() - start));
+        System.err.println("num of variable checked and changed para: " + nrOfResults);
+        resultLister.tell(CollectResetResults.getInstance(), getSelf());
+//        PropagationSystem.returnStatus(true);
+        getContext().stop(getSelf());
+      }
+    }
+    else {
+      unhandled(message);
+    }
+  }
+}

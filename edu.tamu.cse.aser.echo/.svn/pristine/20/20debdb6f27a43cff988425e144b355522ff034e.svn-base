@@ -1,0 +1,97 @@
+package edu.tamu.aser.tide;
+
+import com.microsoft.z3.BitVecSort;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.DatatypeSort;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Fixedpoint;
+import com.microsoft.z3.FuncDecl;
+import com.microsoft.z3.Params;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Sort;
+import com.microsoft.z3.Status;
+
+public class Hello {
+
+	public static void main(String[] args) {
+
+		Context ctx = new Context();
+//		Params params = ctx.mkParams();
+//		params.add("fixedpoint.engine", "datalog");
+		Fixedpoint fp = ctx.mkFixedpoint();
+//		fp.setParameters(params);
+
+		//		(set-option :fixedpoint.engine datalog)
+
+		BitVecSort btv = ctx.mkBitVecSort(3);
+		//Sort s = ctx.mkDatatypeSort("s", constructors);
+
+		Sort s = ctx.mkBitVecSort(3);
+
+		Sort bool = ctx.mkBoolSort();
+//		(define-sort s () (_ BitVec 3))
+		FuncDecl fedge = ctx.mkFuncDecl("edge", new Sort[]{s, s}, bool);
+		FuncDecl fpath = ctx.mkFuncDecl("path", new Sort[]{s, s}, bool);
+
+		fp.registerRelation(fedge);
+		fp.registerRelation(fpath);
+
+//		(declare-rel edge (s s))
+//		(declare-rel path (s s))
+
+		Expr a = ctx.mkBound(0, s);
+		Expr b = ctx.mkBound(1, s);
+		Expr c = ctx.mkBound(2, s);
+
+		BoolExpr rule1 = ctx.mkImplies((BoolExpr)fedge.apply(a,b), (BoolExpr)fpath.apply(a,b));
+		BoolExpr rule2 = ctx.mkImplies(ctx.mkAnd((BoolExpr)fedge.apply(a,b), (BoolExpr)fedge.apply(b,c)), (BoolExpr)fpath.apply(a,c));
+
+		fp.addRule(rule1,ctx.mkSymbol("r1"));
+		fp.addRule(rule2,ctx.mkSymbol("r2"));
+
+
+		Expr b1 = ctx.mkBV("1", 3);
+		Expr b2 = ctx.mkBV("2", 3);
+		Expr b3 = ctx.mkBV("3", 3);
+		Expr b4 = ctx.mkBV("4", 3);
+
+		fp.addRule((BoolExpr)fedge.apply(b1,b2), ctx.mkSymbol("e1"));
+		fp.addRule((BoolExpr)fedge.apply(b2,b3), ctx.mkSymbol("e2"));
+
+//		fp.add((BoolExpr)fedge.apply(b1,b2));
+//		fp.add((BoolExpr)fedge.apply(b2,b3));
+
+
+
+        Status result = fp.query((BoolExpr)fpath.apply(b1,b3));
+        System.out.println(result);
+
+//        Solver solver = ctx.mkSolver();
+        //solver.add((BoolExpr)fpath.apply(b1,b3));
+//        Status result =solver.check();
+
+        //NO WAY TO UPDATE RULES!!
+
+        //fp.updateRule((BoolExpr)fedge.apply(b2,b4), ctx.mkSymbol("e2"));
+
+        result = fp.query((BoolExpr)fpath.apply(b1,b4));
+
+        System.out.println(result);
+
+//		(declare-var a s)
+//		(declare-var b s)
+//		(declare-var c s)
+//
+//		(rule (=> (edge a b) (path a b)))
+//		(rule (=> (and (path a b) (path b c)) (path a c)))
+//
+//		(rule (edge #b001 #b010))
+//		(rule (edge #b001 #b011))
+//		(rule (edge #b010 #b100))
+//		(query (path #b001 #b100))
+//		(query (path #b001 b)
+//		  :print-answer true)
+	}
+
+}

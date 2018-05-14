@@ -1,0 +1,8 @@
+package edu.tamu.aser.tide.trace;
+
+public interface INode {
+	public int getGID();
+	public int getTID();
+	public String toString();
+	
+}

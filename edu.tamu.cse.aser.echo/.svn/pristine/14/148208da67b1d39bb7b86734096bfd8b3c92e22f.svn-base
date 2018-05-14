@@ -1,0 +1,4 @@
+package edu.tamu.aser.tide.engine;
+public interface ITIDEBug 
+{
+}

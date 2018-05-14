@@ -1,0 +1,29 @@
+package edu.tamu.aser.tide.trace;
+
+public class UnlockNode extends SyncNode{
+
+	final int GID, TID;
+	final String lock;
+	
+	public UnlockNode(int GID, int TID, String lock)
+	{
+		this.GID = GID;
+		this.TID = TID;
+		this.lock = lock;
+	}
+	public int getTID() {
+		return TID;
+	}
+	public int getGID() {
+		return GID;
+	}
+	public String getLockString()
+	{
+		return lock;
+	}
+	
+	public String toString()
+	{
+		return GID +" "+TID+" unlock "+lock;
+	}
+}

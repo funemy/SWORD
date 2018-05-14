@@ -1,0 +1,12 @@
+package edu.tamu.aser.tide.trace;
+
+public class WriteNode extends MemNode{	
+	public WriteNode(int GID, int TID, String addr, String sig, int line)
+	{
+		super(GID,TID, addr, sig, line);
+	}
+	public String toString()
+	{
+		return GID +" "+TID+" write "+addr +" "+ sig+" "+line;
+	}
+}

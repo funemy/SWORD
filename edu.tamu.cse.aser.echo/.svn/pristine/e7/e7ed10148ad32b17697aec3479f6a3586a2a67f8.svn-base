@@ -1,0 +1,15 @@
+package edu.tamu.aser.tide.engine;
+
+import edu.tamu.aser.tide.trace.DLLockPair;
+import edu.tamu.aser.tide.trace.MemNode;
+
+public class TIDEDeadlock implements ITIDEBug {
+
+	public final DLLockPair lp1;
+	  public final DLLockPair lp2;
+	TIDEDeadlock(DLLockPair lp1, DLLockPair lp2){
+		
+		this.lp1=lp1;
+		this.lp2=lp2;
+	}
+}

@@ -1,0 +1,810 @@
+package edu.tamu.aser.tide.engine;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+
+import com.ibm.wala.classLoader.CallSiteReference;
+import com.ibm.wala.classLoader.IBytecodeMethod;
+import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.NewSiteReference;
+import com.ibm.wala.dataflow.graph.BitVectorSolver;
+import com.ibm.wala.dataflow.graph.DataflowSolver;
+import com.ibm.wala.examples.analysis.dataflow.IntraprocReachingDefs;
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ipa.callgraph.propagation.NormalAllocationInNode;
+import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
+import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
+import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.ISSABasicBlock;
+import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
+import com.ibm.wala.ssa.SSAArrayLoadInstruction;
+import com.ibm.wala.ssa.SSAArrayReferenceInstruction;
+import com.ibm.wala.ssa.SSABinaryOpInstruction;
+import com.ibm.wala.ssa.SSACFG;
+import com.ibm.wala.ssa.SSAFieldAccessInstruction;
+import com.ibm.wala.ssa.SSAGetInstruction;
+import com.ibm.wala.ssa.SSAGotoInstruction;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAMonitorInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.ssa.SSACFG.BasicBlock;
+import com.ibm.wala.ssa.analysis.ExplodedControlFlowGraph;
+import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.util.collections.Pair;
+import com.ibm.wala.util.graph.dominators.NumberedDominators;
+import com.ibm.wala.util.intset.IntIterator;
+import com.ibm.wala.util.intset.IntSet;
+import com.ibm.wala.util.intset.OrdinalSet;
+
+import edu.tamu.aser.tide.graph.LockSetEngine;
+import edu.tamu.aser.tide.graph.ReachabilityEngine;
+import edu.tamu.aser.tide.trace.MemNode;
+import edu.tamu.aser.tide.trace.DLLockPair;
+import edu.tamu.aser.tide.trace.INode;
+import edu.tamu.aser.tide.trace.SyncNode;
+import edu.tamu.aser.tide.trace.JoinNode;
+import edu.tamu.aser.tide.trace.LockNode;
+import edu.tamu.aser.tide.trace.LockPair;
+import edu.tamu.aser.tide.trace.ReadNode;
+import edu.tamu.aser.tide.trace.StartNode;
+import edu.tamu.aser.tide.trace.UnlockNode;
+import edu.tamu.aser.tide.trace.WriteNode;
+
+public class TIDEDeadlockEngine {
+
+	private HashMap<String, HashMap<Integer,String>> variableReadMap= new HashMap<String, HashMap<Integer,String>>();
+	private HashMap<String, HashMap<Integer,String>> variableWriteMap= new HashMap<String, HashMap<Integer,String>>();
+	private HashSet<CGNode> alreadyProcessedNodes = new HashSet<CGNode>();
+	private LinkedList<CGNode> threadNodes = new LinkedList<CGNode>();
+	private LinkedList<CGNode> twiceProcessedNodes = new LinkedList<CGNode>();
+
+
+	private HashMap<TypeName,CGNode> threadSigNodeMap = new HashMap<TypeName,CGNode>();
+
+	private boolean hasSyncBetween = false;
+
+	public LinkedList<INode> trace = new LinkedList<INode>();
+
+	protected CallGraph callGraph;
+	protected PointerAnalysis<InstanceKey> pointerAnalysis;
+
+	//bz
+	public HashMap<Integer, SSAInstruction> newInstructions = new HashMap<>();
+	public HashMap<Integer, SSAInstruction> initialInstructions = new HashMap<>();
+	private int newinvokeindex;
+	private boolean rememberinvoke = false;
+
+	public int curTID,curGID;
+	public int getIncrementGID()
+	{
+		curGID++;
+		return curGID;
+	}
+	public TIDEDeadlockEngine(String entrySignature,CallGraph callGraph, PointerAnalysis<InstanceKey> pointerAnalysis)
+	{
+		this.callGraph = callGraph;
+		this.pointerAnalysis = pointerAnalysis;
+
+		threadSigNodeMap.clear();
+		threadNodes.clear();
+		twiceProcessedNodes.clear();
+
+
+		Collection<CGNode> cgnodes = callGraph.getEntrypointNodes();
+		for(CGNode n: cgnodes){
+			String sig = n.getMethod().getSignature();
+			//find the main node
+			if(sig.contains(entrySignature)){
+				threadNodes.add(n);//break;
+			}
+			else{
+				TypeName name  = n.getMethod().getDeclaringClass().getName();
+				threadSigNodeMap.put(name, n);//mr.getSignature()
+			}
+		}
+
+		while(!threadNodes.isEmpty())
+		{
+			CGNode n = threadNodes.removeFirst();
+
+			curTID = n.getGraphNodeId();
+
+			if(n instanceof AstCGNode2)
+				n = ((AstCGNode2)n).getCGNode();
+
+			//only twice at most for a node
+			if(alreadyProcessedNodes.contains(n))
+				if (twiceProcessedNodes.contains(n))
+				  continue;
+				else
+				  twiceProcessedNodes.add(n);
+
+			alreadyProcessedNodes.clear();//a new tid
+			hasSyncBetween = false;
+
+				traverseNode(n);
+
+				//once done, let save it for deadlock detection
+				ArrayList<DLLockPair> dLLockPairs = method2DLLocks.get(n);
+				threadDLLockPairs.put(curTID, dLLockPairs);
+		}
+	}
+	HashMap<Integer, ArrayList<DLLockPair>> threadDLLockPairs = new HashMap<Integer, ArrayList<DLLockPair>>();
+
+	//TODO: re-use data computed for data races to improver performance
+	//BUG: does not work for flow-insensitive case --  monitorexit may happen anywhere
+	public Set<TIDEDeadlock> detectDeadlock()
+	{
+		HashSet deadlocks = new HashSet();
+
+		threadDLLockPairs = filterCandidates(method2Locks);
+
+		//detect deadlocks
+		Object[] tids = threadDLLockPairs.keySet().toArray();
+		for(int index =0;index<tids.length-1;index++)
+		{
+			Object tid1 = tids[index];
+			ArrayList<DLLockPair> dLLockPairs = threadDLLockPairs.get(tid1);
+			for(int i=0;i<dLLockPairs.size();i++)
+			{
+				DLLockPair dllp1 = dLLockPairs.get(i);
+
+				for(int index2=index+1;index2<tids.length;index2++)
+				{
+					{
+						Object tid2 = tids[index2];
+
+						ArrayList<DLLockPair> dLLockPairs2 = threadDLLockPairs.get(tid2);
+
+						for(int j=0;j<dLLockPairs2.size();j++)
+						{
+							DLLockPair dllp2 = dLLockPairs2.get(j);
+							if(dllp2.lock1.equals(dllp1.lock2)
+									&&dllp2.lock2.equals(dllp1.lock1)
+									&&checkHappensBefore(dllp1,dllp2))
+								deadlocks.add(new TIDEDeadlock(dllp1,dllp2));
+						}
+					}
+				}
+			}
+		}
+
+		return deadlocks;
+	}
+
+	private HashMap<Integer, ArrayList<DLLockPair>> filterCandidates(HashMap<CGNode, HashMap<String, LockNode>> method2Locks) {
+		HashMap<Integer, ArrayList<DLLockPair>> answers = new HashMap<>();
+		Iterator<CGNode> iterator = method2Locks.keySet().iterator();
+		while(iterator.hasNext()){
+			CGNode node = iterator.next();
+			HashMap<String, LockNode> locks = method2Locks.get(node);
+			if(!locks.isEmpty()){
+				int threadID = node.getGraphNodeId();
+
+			}
+		}
+		return answers;
+	}
+
+	private boolean checkHappensBefore(DLLockPair dllp1, DLLockPair dllp2) {
+
+		//TODO: has to build a happens-before
+		//NOT EASY
+
+//		if(reachEngine.canReach(dllp1.lock2, dllp2.lock1)
+//				||reachEngine.canReach(dllp2.lock1, dllp1.lock2))
+//			return false;
+
+		return true;
+	}
+
+	ReachabilityEngine reachEngine = new ReachabilityEngine();
+
+	private HashMap<CGNode,HashMap<String,LockNode>> method2Locks = new HashMap<CGNode,HashMap<String,LockNode>>();
+	private HashMap<CGNode,ArrayList<DLLockPair>> method2DLLocks = new HashMap<CGNode,ArrayList<DLLockPair>>();
+
+	private String getLineSignature(CGNode node,SSAInstruction inst )
+	{
+		IMethod method = node.getMethod() ;
+
+		  int sourceLineNum=0;
+		try{//get source code line number of this inst
+      	if(node.getIR().getMethod() instanceof IBytecodeMethod)
+      	{
+      	IBytecodeMethod bmethod = (IBytecodeMethod)node.getIR().getMethod();
+      	int bytecodeIndex = bmethod.getBytecodeIndex(inst.iindex);
+      	sourceLineNum = bmethod.getLineNumber(bytecodeIndex);
+      	}
+      	else
+      	{
+              sourceLineNum = method.getSourcePosition(inst.iindex).getFirstLine();
+      	}
+      }catch(Exception e)
+      {
+        e.printStackTrace();
+      }
+
+		String typeclassname =  method.getDeclaringClass().getName().toString();
+		String instSig =typeclassname.substring(1)+":"+sourceLineNum;
+
+		return instSig;
+	}
+
+	private void processBasicBlock(CGNode node, Stack<LockNode> currentLS, ISSABasicBlock bb){
+		//process the instruction in this basic block
+		for(Iterator<SSAInstruction> it = bb.iterator();it.hasNext();){
+			SSAInstruction inst = it.next();
+			if(inst!=null){
+				if(inst instanceof SSAMonitorInstruction){
+					//lock node: GID, TID, LockID
+					SSAMonitorInstruction monitorInstruction = ((SSAMonitorInstruction) inst);
+					int lockValueNumber = monitorInstruction.getRef();
+
+					PointerKey lockPointer =pointerAnalysis.getHeapModel().getPointerKeyForLocal(node, lockValueNumber);
+					OrdinalSet<InstanceKey> lockObjects = pointerAnalysis.getPointsToSet(lockPointer);
+
+					if(lockObjects.size()>1)
+					{
+						//DEBUG
+						//why a lock variable can point to multiple locks??
+
+//						System.err.println("DEBUG LOCK: "+lockObjects);
+
+					}
+					else
+						if(lockObjects.size()==1)//lets use must alias analysis
+							for (InstanceKey instanceKey : lockObjects) {
+								//if (instanceKey instanceof NormalAllocationInNode)
+								{
+									handleMonitorInst(node, currentLS, inst, instanceKey);
+								}
+							}
+
+					hasSyncBetween = true;
+
+				}
+				else if (inst instanceof SSAAbstractInvokeInstruction){
+					if(rememberinvoke && inst.toString().contains("<init>")){
+						initialInstructions.put(newinvokeindex, inst);
+						rememberinvoke = false;
+					}
+
+					CallSiteReference csr = ((SSAAbstractInvokeInstruction)inst).getCallSite();
+					MethodReference mr = csr.getDeclaredTarget();
+
+					//if (AnalysisUtils.implementsRunnableInterface(iclass) || AnalysisUtils.extendsThreadClass(iclass))
+					{
+						com.ibm.wala.classLoader.IMethod imethod = callGraph.getClassHierarchy().resolveMethod(mr);
+						if(imethod!=null){
+							String sig = imethod.getSignature();
+							//System.out.println("Invoke Inst: "+sig);
+							if(sig.equals("java.lang.Thread.start()V")){
+
+								handleThreadStart(node, inst);
+								hasSyncBetween = true;//optimization
+							}
+							else if(sig.equals("java.lang.Thread.join()V")){
+								handleThreadJoin(node, inst);
+								hasSyncBetween = true;
+							}
+							else
+							{
+								//process NEW method call
+
+								Set<CGNode> set =callGraph.getPossibleTargets(node, csr);//this return type based list
+								for(CGNode newNode: set){
+									if(AnalysisUtils.isApplicationClass(newNode.getMethod().getDeclaringClass())
+											//&&node.getMethod().getName().toString().equals(csr.getDeclaredTarget().getName().toString())
+											)
+									{
+										//if synchronized method, add lock/unlock
+										if(newNode.getMethod().isSynchronized())
+										{
+											handleSynchronizedCall(node, currentLS, inst, newNode);
+
+										}
+										else
+										{
+											traverseNode(newNode);
+
+											HashMap<String,LockNode> lockMap = method2Locks.get(node);
+											ArrayList<DLLockPair> dllockMap = method2DLLocks.get(node);
+											updateCallingMethod(currentLS, newNode, lockMap, dllockMap);
+
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+//				else if(inst instanceof SSANewInstruction){
+//					newinvokeindex = ((SSANewInstruction)inst).getNewSite().getProgramCounter();
+//					rememberinvoke = true;
+//					newInstructions.put(inst.iindex, inst);
+//				}
+
+			}
+
+		}
+
+		//TODO: need to remove back edges
+		//process the successor basic blocks
+		SSACFG cfg = node.getIR().getControlFlowGraph();
+		Iterator<ISSABasicBlock> bbs = cfg.getSuccNodes(bb);
+		while(bbs.hasNext())
+		{
+			ISSABasicBlock bb2 = bbs.next();
+			//FIXME: use the bb id to check back edge
+			if(bb2.getNumber()>bb.getNumber())
+			{
+				Stack lockset = new Stack();
+				lockset.addAll(currentLS);
+				processBasicBlock(node,lockset,bb2);
+			}
+		}
+	}
+
+
+	private void handleSynchronizedCall(CGNode node, Stack<LockNode> currentLS, SSAInstruction inst, CGNode newNode) {
+		String instSig = getLineSignature(node,inst);
+
+		String lockString;
+		//static method call
+		if(newNode.getMethod().isStatic())
+		{
+			//use classname as lock name
+			lockString = newNode.getMethod().getDeclaringClass().getName().toString();
+			LockNode newLock = new LockNode(getIncrementGID(),curTID,lockString);
+
+			HashMap<String,LockNode> lockMap = method2Locks.get(node);
+			ArrayList<DLLockPair> dllockMap = method2DLLocks.get(node);
+
+			 if(!lockMap.containsKey(lockString))
+			 {
+
+					newLock.instSig = instSig;
+
+				 //add method to locks
+				 lockMap.put(lockString, newLock);
+
+				 //add method to deadlock pairs
+				 for(int index=0;index<currentLS.size();index++){
+					 LockNode lock = currentLS.get(index);
+					 dllockMap.add(new DLLockPair(lock,newLock));
+				 }
+			 }
+
+			 currentLS.push(newLock);
+
+			traverseNode(newNode);
+			updateCallingMethod(currentLS, newNode, lockMap, dllockMap);
+
+
+			currentLS.pop();
+		}
+		else
+		{
+			//instance
+			int objectValueNumber = inst.getUse(0);
+			PointerKey objectPointer =pointerAnalysis.getHeapModel().getPointerKeyForLocal(node, objectValueNumber);
+			OrdinalSet<InstanceKey> abstractObjects = pointerAnalysis.getPointsToSet(objectPointer);
+			if(abstractObjects.size()>0)//must be larger than 0
+			{
+
+				for (InstanceKey instanceKey : abstractObjects) {
+
+						lockString = instanceKey.getConcreteType().getName()+"."+instanceKey.hashCode();
+
+						LockNode newLock = new LockNode(getIncrementGID(),curTID,lockString);
+
+						HashMap<String,LockNode> lockMap = method2Locks.get(node);
+						ArrayList<DLLockPair> dllockMap = method2DLLocks.get(node);
+
+						 if(!lockMap.containsKey(lockString))
+						 {
+
+								newLock.instSig = instSig;
+
+							 //add method to locks
+							 lockMap.put(lockString, newLock);
+
+							 //add method to deadlock pairs
+							 for(int index=0;index<currentLS.size();index++){
+								 LockNode lock = currentLS.get(index);
+								 dllockMap.add(new DLLockPair(lock,newLock));
+							 }
+						 }
+
+						 currentLS.push(newLock);
+
+							traverseNode(newNode);
+							updateCallingMethod(currentLS, newNode, lockMap, dllockMap);
+
+						currentLS.pop();
+					}
+				}
+
+		}
+	}
+	private void updateCallingMethod(Stack<LockNode> currentLS, CGNode newNode,
+			HashMap<String, LockNode> lockMap, ArrayList<DLLockPair> dllockMap) {
+		//add the called new node's lock set to the calling node
+		HashMap<String,LockNode> newLockMap = method2Locks.get(newNode);
+		//add method to deadlock pairs
+		 for(int index=0;index<currentLS.size();index++){
+			 LockNode lock = currentLS.get(index);
+			 for(String newLockString: newLockMap.keySet()){
+				 if(newLockString.equals(lock.getLockString()))
+						 dllockMap.add(new DLLockPair(lock,newLockMap.get(newLockString)));
+			 }
+		 }
+
+		lockMap.putAll(newLockMap);
+		//
+		ArrayList<DLLockPair> newDLlockMap = method2DLLocks.get(newNode);
+		dllockMap.addAll(newDLlockMap);
+	}
+	private void handleThreadJoin(CGNode node, SSAInstruction inst) {
+		PointerKey key = pointerAnalysis.getHeapModel().getPointerKeyForLocal(node, ((SSAAbstractInvokeInstruction) inst).getReceiver());
+		OrdinalSet<InstanceKey> instances = pointerAnalysis.getPointsToSet(key);
+		for(InstanceKey ins: instances)
+		{
+			TypeName name = ins.getConcreteType().getName();
+			CGNode threadNode = threadSigNodeMap.get(name);
+
+			if(threadNode==null)//could be a runnable class
+				threadNode = handleRunnable(node, ins);
+
+			if(threadNode==null)
+			{
+				System.err.println("ERROR: joining new thread: "+ name +" "+threadSigNodeMap.keySet());
+				continue;
+			}
+
+			JoinNode joinNode = new JoinNode(getIncrementGID(),curTID,node.getGraphNodeId());
+			reachEngine.addEdge(joinNode.getTID_End()+"e",joinNode.getGID()+"");
+
+
+			boolean isInLoop = isInLoop(node,inst);
+			if(isInLoop)
+			{
+				AstCGNode2 node2 = new AstCGNode2(threadNode.getMethod(),threadNode.getContext());
+				//threadNodes.add(node2);
+				int newID = threadNode.getGraphNodeId()+1;
+
+				JoinNode joinNode2 = new JoinNode(getIncrementGID(),curTID,newID);//thread id +1
+				reachEngine.addEdge(joinNode2.getTID_End()+"e",joinNode2.getGID()+"");
+
+				node2.setGraphNodeId(newID);
+				node2.setIR(threadNode.getIR());
+				node2.setCGNode(threadNode);
+			}
+
+		}
+	}
+	private void handleThreadStart(CGNode node, SSAInstruction inst) {
+		PointerKey key = pointerAnalysis.getHeapModel().getPointerKeyForLocal(node, ((SSAAbstractInvokeInstruction) inst).getReceiver());
+		OrdinalSet<InstanceKey> instances = pointerAnalysis.getPointsToSet(key);
+		for(InstanceKey ins: instances)
+		{
+			TypeName name = ins.getConcreteType().getName();
+			CGNode threadNode = threadSigNodeMap.get(name);
+			//FIXME: BUG
+			if(threadNode==null)
+			{
+				//could be runnable instances
+				//TODO: find out which runnable object -- need data flow analysis
+
+				threadNode = handleRunnable(node, ins);
+//			  if(threadNode==null)
+//			  {
+//				System.err.println("ERROR: starting new thread: "+ name +"//"+threadSigNodeMap.keySet());
+//				continue;
+//			  }
+			}
+
+			threadNodes.add(threadNode);
+
+			int tid_child = threadNode.getGraphNodeId();
+
+			StartNode startNode = new StartNode(getIncrementGID(),curTID,tid_child);
+			reachEngine.addEdge(startNode.getGID()+"", tid_child+"s");
+			//add the child thread's
+			reachEngine.addEdge(tid_child+"s",tid_child+"e");
+
+
+			//check if it is in a simple loop
+			boolean isInLoop = isInLoop(node,inst);
+			if(isInLoop)
+			{
+				AstCGNode2 node2 = new AstCGNode2(threadNode.getMethod(),threadNode.getContext());
+				threadNodes.add(node2);
+				int newID = threadNode.getGraphNodeId()+1;
+
+				StartNode startNode2 = new StartNode(getIncrementGID(),curTID,newID);
+				reachEngine.addEdge(startNode2.getGID()+"", newID+"s");
+				//add the child thread's
+				reachEngine.addEdge(newID+"s",newID+"e");
+
+				node2.setGraphNodeId(newID);
+				node2.setIR(threadNode.getIR());
+				node2.setCGNode(threadNode);
+
+
+			}
+		}
+	}
+	private void handleMonitorInst(CGNode node, Stack<LockNode> currentLS, SSAInstruction inst,
+			InstanceKey instanceKey) {
+		String lockString = instanceKey.getConcreteType().getName()+"."+instanceKey.hashCode();
+		 if(((SSAMonitorInstruction) inst).isMonitorEnter())
+		 {
+			 LockNode newLock = new LockNode(getIncrementGID(),curTID,lockString);
+
+			 HashMap<String,LockNode> lockMap = method2Locks.get(node);
+
+			 if(!lockMap.containsKey(lockString))
+			 {
+
+					newLock.instSig = getLineSignature(node,inst);
+
+				 //add method to locks
+				 lockMap.put(lockString, newLock);
+
+				 ArrayList<DLLockPair> dllockMap = method2DLLocks.get(node);
+				 //add method to deadlock pairs
+				 for(int index=0;index<currentLS.size();index++){
+					 LockNode lock = currentLS.get(index);
+					 dllockMap.add(new DLLockPair(lock,newLock));
+				 }
+			 }
+
+			 currentLS.push(newLock);
+
+		 }
+		 else
+			 if(!currentLS.isEmpty())//this should always holds
+				 currentLS.pop();
+	}
+	private void traverseNode(CGNode n)
+	{
+		//System.out.println("Traverse Node: "+System.identityHashCode(n));
+		if(alreadyProcessedNodes.contains(n))
+		{
+			//allow multiple entries of a method if there exist sync in between
+			if(!hasSyncBetween)
+				return;
+			else
+				hasSyncBetween = false;
+		}
+
+		alreadyProcessedNodes.add(n);
+
+		//create method to locks map and DL map
+		 HashMap<String,LockNode> lockMap = method2Locks.get(n);
+
+		 if(lockMap==null)
+		 {
+			 lockMap = new HashMap<String,LockNode>();
+			 method2Locks.put(n, lockMap);
+
+			 method2DLLocks.put(n, new ArrayList<DLLockPair>());
+		 }
+		 if(n.getIR()==null)
+			 return;
+
+			SSACFG cfg = n.getIR().getControlFlowGraph();
+
+			BasicBlock bb0 = cfg.entry();
+			//create new current lock set
+			Stack<LockNode> currentLS = new Stack<LockNode>();
+			processBasicBlock(n,currentLS,bb0);
+
+	}
+
+	private static HashMap<CGNode,Collection<Loop>> nodeLoops = new HashMap<CGNode,Collection<Loop>>();
+
+	private boolean isInLoop(CGNode n, SSAInstruction inst) {
+
+		Collection<Loop> loops = nodeLoops.get(n);
+		if(loops==null)
+		{
+			IR ir = n.getIR();
+			if(ir!=null)
+				loops = findLoops(ir);
+			else
+				return false;
+		}
+
+		for(Loop loop: loops)
+		{
+			List insts = loop.getLoopInstructions();
+			if(insts.contains(inst))
+				return true;
+		}
+		return false;
+	}
+
+	private static Collection<Loop> findLoops(IR ir)
+	{
+		SSACFG cfg =  ir.getControlFlowGraph();
+
+
+		BasicBlock root = cfg.entry();
+		NumberedDominators dominator = new NumberedDominators(cfg,root);
+
+		Iterator<ISSABasicBlock> bbs = cfg.iterator();
+		HashSet domSet = new HashSet();
+		HashMap<BasicBlock, List<BasicBlock>> loops = new HashMap<BasicBlock, List<BasicBlock>>();
+
+		while(bbs.hasNext())
+		{
+			ISSABasicBlock bb = bbs.next();
+			Iterator<ISSABasicBlock> succs = cfg.getSuccNodes(bb);
+			Iterator<ISSABasicBlock> dominators = dominator.dominators(bb);
+
+
+			while(dominators.hasNext())
+				domSet.add(dominators.next());
+
+			ArrayList<ISSABasicBlock> headers=null;
+
+			while(succs.hasNext())
+			{
+				ISSABasicBlock succ = succs.next();
+
+				if (domSet.contains(succ)){
+                	//header succeeds and dominates s, we have a loop
+					if(headers==null)
+					 headers = new ArrayList<ISSABasicBlock>();
+                    headers.add(succ);
+                }
+			}
+			domSet.clear();
+			if(headers!=null)
+			{
+				Iterator<ISSABasicBlock> headersIt = headers.iterator();
+	            while (headersIt.hasNext()){
+	            	BasicBlock header = (BasicBlock) headersIt.next();
+	                List<BasicBlock> loopBody = getLoopBodyFor(cfg, header, bb);
+
+		                if (loops.containsKey(header)){
+		                    // merge bodies
+		                    List<BasicBlock> lb1 = loops.get(header);
+		                    loops.put(header, union(lb1, loopBody));
+		                }
+		                else {
+		                    loops.put(header, loopBody);
+		                }
+	            }
+			}
+		}
+
+		Collection<Loop> result = new HashSet<Loop>();
+        for (Map.Entry<BasicBlock,List<BasicBlock>> entry : loops.entrySet()) {
+            result.add(new Loop(entry.getKey(),entry.getValue(),cfg));
+        }
+        return result;
+	}
+
+	private static List<BasicBlock> getLoopBodyFor(SSACFG cfg, BasicBlock header, ISSABasicBlock node){
+
+        ArrayList<BasicBlock> loopBody = new ArrayList<BasicBlock>();
+        Stack<ISSABasicBlock> stack = new Stack<ISSABasicBlock>();
+
+        loopBody.add(header);
+        stack.push(node);
+
+        while (!stack.isEmpty()){
+        	BasicBlock next = (BasicBlock)stack.pop();
+            if (!loopBody.contains(next)){
+                // add next to loop body
+                loopBody.add(0, next);
+                // put all preds of next on stack
+                Iterator<ISSABasicBlock> it = cfg.getPredNodes(next);
+                while (it.hasNext()){
+                    stack.push(it.next());
+                }
+            }
+        }
+
+        assert (node==header && loopBody.size()==1) || loopBody.get(loopBody.size()-2)==node;
+        assert loopBody.get(loopBody.size()-1)==header;
+
+        return loopBody;
+    }
+
+	private static List<BasicBlock> union(List<BasicBlock> l1, List<BasicBlock> l2){
+        Iterator<BasicBlock> it = l2.iterator();
+        while (it.hasNext()){
+        	BasicBlock next = it.next();
+            if (!l1.contains(next)){
+                l1.add(next);
+            }
+        }
+        return l1;
+    }
+
+	private CGNode handleRunnable(CGNode n, InstanceKey instKey) {
+		CGNode answer = null;
+		NewSiteReference nsr = findNewSiteR(instKey);
+		if(nsr != null){
+			SSANewInstruction media = n.getIR().getNew(nsr);
+			int defIdx = media.getDef();
+			Iterator<SSAInstruction> useIter = n.getDU().getUses(defIdx);
+			while(useIter.hasNext()){
+				SSAInstruction initNode = useIter.next();
+				if(initNode.toString().contains("Ljava/lang/Thread, <init>(Ljava/lang/Runnable")){
+					int runThread = initNode.getUse(1);
+					PointerKey key = pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, runThread);
+					OrdinalSet<InstanceKey> instances = pointerAnalysis.getPointsToSet(key);
+					for(InstanceKey ins: instances)
+					{
+						TypeName name = ins.getConcreteType().getName();
+						CGNode node = threadSigNodeMap.get(name);
+						if(node!=null)
+							answer = node;
+					}
+				}
+			}
+		}
+
+		if(answer == null){
+//			int pcounter = findProgramCounter(instKey);
+//			SSAInstruction initial = initialInstructions.get(pcounter);
+//			if(initial!= null){
+//				int param = initial.getUse(1);
+//				SSANewInstruction newInst = (SSANewInstruction) newInstructions.get(param);
+//				TypeName name = newInst.getConcreteType().getName();
+//				answer = threadSigNodeMap.get(name);
+//			}
+			System.err.println("not found runnable");
+		}
+
+	    return answer;
+	}
+
+	private int findProgramCounter(InstanceKey instKey) {
+		Iterator<Pair<CGNode, NewSiteReference>> createsite = instKey.getCreationSites(callGraph);
+		int pcounter = -1;
+		int counter = 0;
+		while (createsite.hasNext()) {
+			Pair<CGNode, NewSiteReference> pair = (Pair<CGNode, NewSiteReference>) createsite.next();
+			pcounter = pair.snd.getProgramCounter();
+			counter++;
+		}
+		if(counter >1)
+			System.err.println("CREATION SITE IS MORE THAN 1");
+		return pcounter;
+	}
+
+	private NewSiteReference findNewSiteR(InstanceKey instKey) {
+		Iterator<Pair<CGNode, NewSiteReference>> createsite = instKey.getCreationSites(callGraph);
+		NewSiteReference nsr = null;
+		int counter = 0;
+		while (createsite.hasNext()) {
+			Pair<CGNode, NewSiteReference> pair = (Pair<CGNode, NewSiteReference>) createsite.next();
+			nsr = pair.snd;
+			counter++;
+		}
+		if(counter >1)
+			System.err.println("CREATION SITE IS MORE THAN 1");
+		return nsr;
+	}
+
+
+}

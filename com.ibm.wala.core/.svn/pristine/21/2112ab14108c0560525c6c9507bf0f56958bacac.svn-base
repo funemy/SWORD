@@ -1,0 +1,57 @@
+/*******************************************************************************
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+package com.ibm.wala.akkaTaskScheduler;
+
+import java.util.ArrayList;
+
+import com.ibm.wala.ipa.callgraph.propagation.AssignOperator;
+import com.ibm.wala.ipa.callgraph.propagation.PointsToSetVariable;
+import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
+
+import akka.actor.UntypedActor;
+
+public class WorkerMultiRhs extends UntypedActor{
+
+  @Override
+  public void onReceive(Object message) throws Throwable {
+    if(message instanceof MultiRhs){
+      MultiRhs s = (MultiRhs) message;
+      PFResult finished = processMultiRhs(s);
+      getSender().tell(finished, getSelf());
+    }else{
+      unhandled(message);
+    }
+
+  }
+
+  private PFResult processMultiRhs(MultiRhs s) {
+    PointsToSetVariable lhs = s.getLhs();
+    PointsToSetVariable rhs = s.getRhs();
+    boolean isAddition = s.getIsAddition();
+    AssignOperator assignOperator = new AssignOperator();
+    ArrayList<PointsToSetVariable> results = new ArrayList<>();
+    if(isAddition){
+      PropagationCallGraphBuilder.system.addStatement(lhs, assignOperator, rhs, true, true);
+      lhs.addAll(rhs);
+    }else{
+      PropagationCallGraphBuilder.system.delStatementS(lhs, assignOperator, rhs, true, true);
+      if(rhs.getValue() != null)
+        lhs.removeSome(rhs.getValue());
+    }
+    results.add(lhs);
+
+    return new PFResult(results);
+  }
+
+
+
+
+}

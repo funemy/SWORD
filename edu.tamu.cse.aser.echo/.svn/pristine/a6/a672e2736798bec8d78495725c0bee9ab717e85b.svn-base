@@ -1,0 +1,11 @@
+javax\/.*
+java\/.*
+sun\/.*
+sunw\/.*
+com\/sun\/.*
+com\/ibm\/.*
+com\/apple\/.*
+com\/oracle\/.*
+apple\/.*
+org\/xml\/.*
+jdbm\/.*

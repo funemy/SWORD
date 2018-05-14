@@ -1,0 +1,151 @@
+WALA exclude jdk library -- too slow on call graph constructions
+
+
+Slow deletion (1015): return 3
+Slow deletion (9765): 12 = arrayload 5[11]
+Slow deletion (14757): 12 = arrayload 5[11]
+Slow deletion (11597): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16461): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (12183): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16609): 28 = arrayload 3[53]
+Slow deletion (13984): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (10828): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16238): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (13268): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16391): 28 = arrayload 3[53]
+Slow deletion (13134): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (10841): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16007): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (13386): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16143): 28 = arrayload 3[53]
+Slow deletion (13130): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (11388): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16441): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (10595): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16244): 28 = arrayload 3[53]
+Slow deletion (13112): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (13960): return 5
+Slow deletion (13803): return 5
+Slow deletion (13883): return 5
+Slow deletion (10742): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16100): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (11674): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16199): 28 = arrayload 3[53]
+Slow deletion (13289): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (10823): return 5
+Slow deletion (16746): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16393): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16797): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16396): 28 = arrayload 3[53]
+Slow deletion (9760): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (13682): return 5
+Slow deletion (13700): return 5
+Slow deletion (10855): putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (16127): putfield 42.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40
+Slow deletion (13064): 31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40
+Slow deletion (16297): 28 = arrayload 3[53]
+Slow deletion (13356): putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13
+Slow deletion (12274): return 5
+Slow deletion (14628): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (15845): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (12298): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14906): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (12789): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (14742): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14760): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (11041): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (14602): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (15759): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (9745): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14667): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14505): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (9461): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14548): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (15353): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (14562): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (15652): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (13077): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14666): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14565): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (11099): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14539): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (15560): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (9299): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (15662): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (14552): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (9485): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14768): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (13761): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14619): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (15613): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (9275): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (15617): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (14576): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14717): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14681): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (9494): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14558): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (10292): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (14544): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (13789): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (14567): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (13183): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14686): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (13296): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (14706): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (12609): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (14492): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 2,33 @217 exception:38
+Slow deletion (12974): 31 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 35,36 @199 exception:30
+Slow deletion (14658): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (9752): putfield 28.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 36
+Slow deletion (14741): putfield 36.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 28
+Slow deletion (9489): 25 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (12915): 24 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 28
+Slow deletion (15708): 5 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 34
+Slow deletion (11945): putfield 27.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (11824): putfield 25.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (15622): 9 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 30
+Slow deletion (14379): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 3,55 @306 exception:56
+Slow deletion (12342): 55 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 13,52 @303 exception:54
+Slow deletion (14680): putfield 52.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 43
+Slow deletion (14162): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 52
+Slow deletion (10157): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (13512): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (10038): 50 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 43
+Slow deletion (9592): 39 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9688): 38 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (10276): 29 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (11300): 26 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (13714): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 3,55 @306 exception:56
+Slow deletion (14979): 55 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 13,52 @303 exception:54
+Slow deletion (13860): putfield 52.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 43
+Slow deletion (14342): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 52
+Slow deletion (13684): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (8738): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (10190): 50 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 43
+Slow deletion (10383): 39 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (12770): 38 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (10756): 29 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9639): 26 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9846): putfield 27.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (12469): putfield 25.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (10357): 9 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 30
+Slow deletion (12187): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 3,55 @306 exception:56
+Slow deletion (12020): 55 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 13,52 @303 exception:54
+Slow deletion (9714): putfield 52.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 43
+Slow deletion (10670): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 52
+Slow deletion (8758): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (11819): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
+Slow deletion (10261): 50 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 43
+Slow deletion (9706): 39 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9737): 38 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9613): 29 = getfield < Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9624): 26 = getfield < Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > 43
+Slow deletion (9987): putfield 27.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (10002): putfield 25.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 30
+Slow deletion (10255): 9 = getfield < Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > 30
+Slow deletion (9558): invokestatic < Primordial, Ljava/util/HashMap$TreeNode, moveRootToFront([Ljava/util/HashMap$Node;Ljava/util/HashMap$TreeNode;)V > 3,55 @306 exception:56
+Slow deletion (10261): 55 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 13,52 @303 exception:54
+Slow deletion (9570): putfield 52.< Primordial, Ljava/util/HashMap$TreeNode, parent, <Primordial,Ljava/util/HashMap$TreeNode> > = 43
+Slow deletion (9221): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 52
+Slow deletion (9366): putfield 43.< Primordial, Ljava/util/HashMap$TreeNode, right, <Primordial,Ljava/util/HashMap$TreeNode> > = 52
