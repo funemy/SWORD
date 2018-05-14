@@ -1,6 +1,7 @@
 # ECHO: A Fast Concurrency Bug Detection for The Whole Program
 ### Introduction
 ECHO is an interactive Eclipse Plugin to detect data races and deadlocks in Java programs. The fundamental techniques (i.e., points-to analysis and static happens-before analysis) that ECHO adopts are in: 
+
 [PLDI'18] "[D4: Fast Concurrency Debugging with Parallel Differential Analysis](https://parasol.tamu.edu/~jeff/d4.pdf)"
 
 ### Software Dependencies
