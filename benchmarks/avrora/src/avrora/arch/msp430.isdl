@@ -1,0 +1,1701 @@
+
+//
+//  instruction set description of the Texas Instruments MSP430 microcontroller
+//
+architecture msp430 {
+
+//---------------------------------------------------------------------------
+//  ENCODING FORMATS OF INSTRUCTIONS
+//---------------------------------------------------------------------------
+
+    format SINGLE_OP = { opcode[8:0], bw[0], As[1:0], sreg[3:0] }
+    format SINGLE_OP_X = { opcode[8:0], bw[0], As[1:0], sreg[3:0], X[15:0] }
+    format DOUBLE_OP = { opcode[3:0], sreg[3:0], Ad[0], bw[0], As[1:0], dreg[3:0] }
+    format DOUBLE_OP_X = { opcode[3:0], sreg[3:0], Ad[0], bw[0], As[1:0], dreg[3:0], X[15:0] }
+    format DOUBLE_OP_XY = { opcode[3:0], sreg[3:0], Ad[0], bw[0], As[1:0], dreg[3:0], X[15:0], Y[15:0] }
+    format JUMP_OP = { opcode[5:0], target[9:0] }
+
+//---------------------------------------------------------------------------
+//  MEMORY ALLOWED TO INSTRUCTIONS
+//---------------------------------------------------------------------------
+    global regs: map<int, +int.16>;
+    global data: map<+int.16, +int.8>; // a "view" of the memory as bytes
+
+    global C: boolean;
+    global N: boolean;
+    global Z: boolean;
+    global V: boolean;
+    global sreg: +int.16;
+
+    global nextpc: int;
+    global cyclesConsumed: int;
+
+//----------------------------------------------------------------------------------
+//  OPERANDS ALLOWED FOR INSTRUCTIONS
+//----------------------------------------------------------------------------------
+
+    // all registers
+    enum GPR {
+        pc  = 0,  sp   = 1,  sr  = 2,  // aliases for the first three registers
+        r0  = 0,  r1   = 1,  r2  = 2,  r3  = 3,
+        r4  = 4,  r5   = 5,  r6  = 6,  r7  = 7,
+        r8  = 8,  r9   = 9,  r10 = 10, r11 = 11,
+        r12 = 12, r13  = 13, r14 = 14, r15 = 15
+    }
+
+    operand-type SREG[4]: GPR {
+	    read: +int.16 { return regs[this:int]; }
+	    write: +int.16 { regs[this:int] = value; }
+	    read: int.8 { return regs[this:int]:int.8; }
+	    write: int.8 { regs[this:int][7:0] = value; }
+	}
+
+    operand-type AIREG_B[4]: GPR {                    //Indirect AutoIncrement mode
+	    read: int.8 {
+	        local addr: +int.16 = regs[this:int];
+	        regs[this:int] = addr + 1;
+	        return data[addr];
+	    }
+	    write: int.8 { }
+	}
+
+    operand-type AIREG_W[4]: GPR {
+	    read: +int.16 {
+	        local addr: +int.16 = regs[this:int];
+	        regs[this:int] = addr + 2;
+	        return get_word(addr);
+	    }
+	    write: +int.16 { }
+	}
+
+    operand-type IREG[4]: GPR {                    //Indirect register mode
+	    read: int.8 {
+	        local addr: +int.16 = regs[this:int];
+	        return data[addr];
+	    }
+	    read: +int.16 {
+	        return get_word(regs[this:int]);
+	    }
+	    write: int.8 { }
+	    write: +int.16 { }
+	}
+
+    operand-type IMM[16]: int [-32768,65536] {
+	    read: int.8 {
+	        return this:int.8;
+	    }
+	    read: +int.16 {
+	        return this:+int.16;
+	    }
+	    write: int.8 { }
+	    write: +int.16 { }
+    }
+
+    operand-type IMML[16]: int [-32768, 65536] {
+	    read: int.8 {
+            bumpPC();
+	        return this:int.8;
+	    }
+	    read: +int.16 {
+            bumpPC();
+	        return this:+int.16;
+	    }
+	    write: int.8 { }
+	    write: +int.16 { }
+    }
+
+    operand-type INDX {
+        sub-operand reg: SREG;
+        sub-operand index: IMM;
+	    read: int.8 {
+            bumpPC();
+	        return data[read:+int.16(reg) + read:+int.16(index)];
+	    }
+	    write: int.8 {
+	        data[read:+int.16(reg) + read:+int.16(index)] = value;
+	    }
+	    read: +int.16 {
+            bumpPC();
+	        return get_word(read:+int.16(reg) + read:+int.16(index));
+	    }
+	    write: +int.16 {
+	        set_word(read:+int.16(reg) + read:+int.16(index), value);
+	    }
+    }
+
+    operand-type SYMB[16]: -address.1 [-32768,65535] {
+        read: int.8 {
+            bumpPC();
+            return data[this:int];
+        }
+        write: int.8 {
+            data[this:int] = value;
+        }
+        read: +int.16 {
+            bumpPC();
+            return get_word(this:int);
+        }
+        write: +int.16 {
+            set_word(this:int, value);
+        }
+    }
+
+    operand-type ABSO[16]: address.1 [-32768,65535] {
+	    read: int.8 {
+            bumpPC();
+	        return data[this:int];
+	    }
+	    write: int.8 {
+	        data[this:int] = value;
+	    }
+        read: +int.16 {
+            bumpPC();
+            return get_word(this:int);
+        }
+        write: +int.16 {
+            set_word(this:int, value);
+        }
+    }
+
+    operand-type JUMP[10]: -address.2 [-512,511] {
+        read: +int.16 {
+            return this:+int.16;
+        }
+    }
+
+    inline subroutine get_word(addr: +int.17): +int.16 {
+	     return uword(data[addr], data[addr+1]);
+    }
+
+    inline subroutine set_word(addr: +int.17, value: +int.16): void {
+	     data[addr] = low(value);
+	     data[addr+1] = high(value);
+    }
+
+//-------------------------------------------------------------------------- 
+//   ADDRESSING MODES ALLOWED FOR SINGLE OPERAND/DOUBLE OPERAND/JUMP INSTRUCTIONS
+//-------------------------------------------------------------------------   
+    addr-mode REG source: SREG {
+        encoding = priority 5 SINGLE_OP where { As = 0b00, sreg = source }
+	    property syntax: String = "%source";
+	    property cycles: int = 1;
+    }
+
+    addr-mode REGREG source: SREG, dest: SREG {         //addressing modes like REGREG, REGIND_W, etc are double operand
+        encoding = priority 5 DOUBLE_OP where { As = 0b00, Ad = 0, sreg = source, dreg = dest }
+        property syntax: String = "%source, %dest";
+        property cycles: int = 1;
+    }
+
+    addr-mode REGIND source: SREG, dest: INDX {
+        encoding = priority 5 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = source, dreg = dest.reg, X = dest.index }
+	    property syntax: String = "%source, %dest.index(%dest.reg)";
+	    property cycles: int = 4;
+    }
+
+    addr-mode REGSYM source: SREG, dest: SYMB {
+        // SYMolic mode is encoded as indexing off of the PC register
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = source, dreg = 0b0000, X = dest }
+	    property syntax: String = "%source, %dest";
+	    property cycles: int = 4;
+    }
+
+    addr-mode REGABS source: SREG, dest: ABSO {
+        // absolute mode (as destination) is encoded as indexing off of dreg = R2
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = source, dreg = 0b0010, X = dest }
+	    property syntax: String = "%source, &%dest";
+       	property cycles: int = 4;
+    }
+
+    addr-mode IND source: INDX {
+        encoding = priority 5 SINGLE_OP_X where { As = 0b01, sreg = source.reg, X = source.index }
+        property syntax: String = "%source.index(%source.reg)";
+        property cycles: int = 4;
+    }
+
+    addr-mode INDREG source: INDX, dest: SREG {
+        encoding = priority 5 DOUBLE_OP_X where { As = 0b01, Ad = 0, sreg = source.reg, dreg = dest, X = source.index }
+        property syntax: String = "%source.index(%source.reg), %dest";
+        property cycles: int = 3;
+    }
+
+    addr-mode INDIND source: INDX, dest: INDX {
+        encoding = priority 5 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = source.reg, dreg = dest.reg, X = source.index, Y = dest.index }
+        property syntax: String = "%source.index(%source.reg), %dest.index(%dest.reg)";
+        property cycles: int = 6;
+    }
+
+    addr-mode SYM source: SYMB {
+        encoding = priority 2 SINGLE_OP_X where { As = 0b01, sreg = 0b0000, X = source }
+        property syntax: String = "%source";
+        property cycles: int = 4;
+    }
+
+    addr-mode SYMREG source: SYMB, dest: SREG {
+        encoding = priority 3 DOUBLE_OP_X where { As = 0b01, Ad = 0, sreg = 0b0000, dreg = dest, X = source }
+        property syntax: String = "%source, %dest";
+        property cycles: int = 3;
+    }
+
+    addr-mode INDSYM source: INDX, dest: SYMB {
+        encoding = priority 4 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = source.reg, dreg = 0b0000, X = source.index, Y = dest }
+        property syntax: String = "%source.index(%source.reg), %dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode INDABS source: INDX, dest: ABSO {
+        encoding = priority 4 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = source.reg, dreg = 0b0010, X = source.index, Y = dest }
+        property syntax: String = "%source.index(%source.reg), &%dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode SYMABS source: SYMB, dest: ABSO {
+        encoding = priority 2 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0000, dreg = 0b0010, X = source, Y = dest }
+        property syntax: String = "%source, &%dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode SYMIND source: SYMB, dest: INDX {
+        encoding = priority 3 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0000, dreg = dest.reg, X = source, Y = dest.index }
+        property syntax: String = "%source, %dest.index(%dest.reg)";
+        property cycles: int = 6;
+    }
+
+    addr-mode SYMSYM source : SYMB, dest: SYMB {
+        encoding = priority 2 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0000, dreg = 0b0000, X = source, Y = dest }
+        property syntax: String = "%source, %dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode ABSSYM source: ABSO, dest: SYMB {
+        encoding = priority 2 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0010, dreg = 0b0000, X = source, Y = dest }
+        property syntax: String = "&%source, %dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode ABS source: ABSO {
+        encoding = priority 2 SINGLE_OP_X where { As = 0b01, sreg = 0b0010, X = source }
+        property syntax: String = "&%source";
+        property cycles: int = 4;
+    }
+
+    addr-mode ABSREG source: ABSO, dest: SREG {
+        encoding = priority 3 DOUBLE_OP_X where { As = 0b01, Ad = 0, sreg = 0b0010, dreg = dest, X = source }
+        property syntax: String = "&%source, %dest";
+        property cycles: int = 3;
+    }
+
+    addr-mode ABSIND source: ABSO, dest: INDX {
+        encoding = priority 3 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0010, dreg = dest.reg, X = source, Y = dest.index }
+        property syntax: String = "&%source, %dest.index(%dest.reg)";
+        property cycles: int = 6;
+    }
+
+    addr-mode ABSABS source: ABSO, dest: ABSO {
+        encoding = priority 2 DOUBLE_OP_XY where { As = 0b01, Ad = 1, sreg = 0b0010, dreg = 0b0010, X = source, Y = dest }
+        property syntax: String = "&%source, &%dest";
+        property cycles: int = 6;
+    }
+
+    addr-mode IREGSYM source: IREG, dest: SYMB {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = source, dreg = 0b0000, X = dest }
+        property syntax: String = "@%source, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode IREG source: IREG {
+        encoding = priority 5 SINGLE_OP_X where { As = 0b10, sreg = source }
+        property syntax: String = "@%source";
+        property cycles: int = 3;
+    }
+
+    addr-mode IREGREG source: IREG, dest: SREG {
+        encoding = priority 5 DOUBLE_OP where { As = 0b10, Ad = 0, sreg = source, dreg = dest }
+        property syntax: String = "@%source, %dest";
+        property cycles: int = 2;
+    }
+
+    addr-mode IREGIND source: IREG, dest: INDX {
+        encoding = priority 5 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = source, dreg = dest.reg, X = dest.index }
+        property syntax: String = "@%source, %dest.index(%dest.reg)";
+        property cycles: int = 5;
+    }
+
+    addr-mode IREGABS source: IREG, dest: ABSO {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = source, dreg = 0b0010, X = dest }
+        property syntax: String = "@%source, &%dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMM source: IMM {
+        encoding = priority 0 SINGLE_OP where { As = 0b11, sreg = 0b0011 } when source == -1 // encodes as R3, As = 0b11
+        encoding = priority 0 SINGLE_OP where { As = 0b00, sreg = 0b0011 } when source == 0  // encodes as R2, As = 0b10
+        encoding = priority 0 SINGLE_OP where { As = 0b01, sreg = 0b0011 } when source == 1  // encodes as R3, As = 0b01
+        encoding = priority 0 SINGLE_OP where { As = 0b10, sreg = 0b0011 } when source == 2
+        encoding = priority 0 SINGLE_OP where { As = 0b10, sreg = 0b0010 } when source == 4
+        encoding = priority 0 SINGLE_OP where { As = 0b11, sreg = 0b0010 } when source == 8
+        property syntax: String = "#%source";
+        property cycles: int = 4;
+    }
+
+    addr-mode IMMREG source: IMM, dest: SREG {
+        encoding = priority 1 DOUBLE_OP where { As = 0b11, Ad = 0, sreg = 0b0011, dreg = dest } when source == -1 // encodes as R3, As = 0b11
+        encoding = priority 1 DOUBLE_OP where { As = 0b00, Ad = 0, sreg = 0b0011, dreg = dest } when source == 0  // encodes as R2, As = 0b10
+        encoding = priority 1 DOUBLE_OP where { As = 0b01, Ad = 0, sreg = 0b0011, dreg = dest } when source == 1  // encodes as R3, As = 0b01
+        encoding = priority 1 DOUBLE_OP where { As = 0b10, Ad = 0, sreg = 0b0011, dreg = dest } when source == 2
+        encoding = priority 1 DOUBLE_OP where { As = 0b10, Ad = 0, sreg = 0b0010, dreg = dest } when source == 4
+        encoding = priority 1 DOUBLE_OP where { As = 0b11, Ad = 0, sreg = 0b0010, dreg = dest } when source == 8
+        property syntax: String = "#%source, %dest";
+        property cycles: int = 2;
+    }
+
+    addr-mode IMMIND source: IMM, dest: INDX {
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0011, dreg = dest.reg, X = dest.index } when source == -1 // encodes as R3, As = 0b11
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = 0b0011, dreg = dest.reg, X = dest.index } when source == 0  // encodes as R2, As = 0b10
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b01, Ad = 1, sreg = 0b0011, dreg = dest.reg, X = dest.index } when source == 1  // encodes as R3, As = 0b01
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0011, dreg = dest.reg, X = dest.index } when source == 2
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0010, dreg = dest.reg, X = dest.index } when source == 4
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0010, dreg = dest.reg, X = dest.index } when source == 8
+        property syntax: String = "#%source, %dest.index(%dest.reg)";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMMSYM source: IMM, dest: SYMB {
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0011, dreg = 0b0000, X = dest } when source == -1 // encodes as R3, As = 0b11
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = 0b0011, dreg = 0b0000, X = dest } when source == 0  // encodes as R2, As = 0b10
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b01, Ad = 1, sreg = 0b0011, dreg = 0b0000, X = dest } when source == 1  // encodes as R3, As = 0b01
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0011, dreg = 0b0000, X = dest } when source == 2
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0010, dreg = 0b0000, X = dest } when source == 4
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0010, dreg = 0b0000, X = dest } when source == 8
+        property syntax: String = "#%source, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMMABS source: IMM, dest: ABSO {
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0011, dreg = 0b0010, X = dest } when source == -1 // encodes as R3, As = 0b11
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b00, Ad = 1, sreg = 0b0011, dreg = 0b0010, X = dest } when source == 0  // encodes as R2, As = 0b10
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b01, Ad = 1, sreg = 0b0011, dreg = 0b0010, X = dest } when source == 1  // encodes as R3, As = 0b01
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0011, dreg = 0b0010, X = dest } when source == 2
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b10, Ad = 1, sreg = 0b0010, dreg = 0b0010, X = dest } when source == 4
+        encoding = priority 0 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = 0b0010, dreg = 0b0010, X = dest } when source == 8
+        property syntax: String = "#%source, &%dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMML source: IMML {
+        encoding = priority 1 SINGLE_OP_X where { As = 0b11, sreg = 0b0000, X = source }
+        property syntax: String = "#%source";
+        property cycles: int = 4;
+    }
+
+    addr-mode IMMLREG source: IMML, dest: SREG {
+        encoding = priority 1 DOUBLE_OP_X where { As = 0b11, Ad = 0, sreg = 0b0000, dreg = dest, X = source }
+        property syntax: String = "#%source, %dest";
+        property cycles: int = 2;
+    }
+
+    addr-mode IMMLIND source: IMML, dest: INDX {
+        encoding = priority 1 DOUBLE_OP_XY where { As = 0b11, Ad = 1, sreg = 0b0000, dreg = dest.reg, X = source, Y = dest.index }
+        property syntax: String = "#%source, %dest.index(%dest.reg)";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMMLSYM source: IMML, dest: SYMB {
+        encoding = priority 0 DOUBLE_OP_XY where { As = 0b11, Ad = 1, sreg = 0b0000, dreg = 0b0000, X = source, Y = dest }
+        property syntax: String = "#%source, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode IMMLABS source: IMML, dest: ABSO {
+        encoding = priority 0 DOUBLE_OP_XY where { As = 0b11, Ad = 1, sreg = 0b0000, dreg = 0b0010, X = source, Y = dest }
+        property syntax: String = "#%source, &%dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTO_B source: AIREG_B {
+        encoding = priority 5 SINGLE_OP where { As = 0b11, sreg = source }
+	    property syntax: String = "@%source+";
+	    property cycles: int = 3;
+    }
+
+    addr-mode AUTOREG_B source: AIREG_B, dest: SREG {
+        encoding = priority 5 DOUBLE_OP where { As = 0b11, Ad = 0, sreg = source, dreg = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 2;
+    }
+
+    addr-mode AUTOIND_B source: AIREG_B, dest: INDX {
+        encoding = priority 5 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = dest.reg, X = dest.index }
+        property syntax: String = "@%source+, %dest.index(%dest.reg)";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTOSYM_B source: AIREG_B, dest: SYMB {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = 0b0000, X = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTOABS_B source: AIREG_B, dest: ABSO {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = 0b0010, X = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTO_W source: AIREG_W {
+        encoding = priority 5 SINGLE_OP where { As = 0b11, sreg = source }
+	    property syntax: String = "@%source+";
+	    property cycles: int = 3;
+    }
+
+    addr-mode AUTOREG_W source: AIREG_W, dest: SREG {
+        encoding = priority 5 DOUBLE_OP where { As = 0b11, Ad = 0, sreg = source, dreg = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 2;
+    }
+
+    addr-mode AUTOIND_W source: AIREG_W, dest: INDX {
+        encoding = priority 5 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = dest.reg, X = dest.index }
+        property syntax: String = "@%source+, %dest.index(%dest.reg)";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTOSYM_W source: AIREG_W, dest: SYMB {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = 0b0000, X = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode AUTOABS_W source: AIREG_W, dest: ABSO {
+        encoding = priority 4 DOUBLE_OP_X where { As = 0b11, Ad = 1, sreg = source, dreg = 0b0010, X = dest }
+        property syntax: String = "@%source+, %dest";
+        property cycles: int = 5;
+    }
+
+    addr-mode JMP target: JUMP {
+        encoding = JUMP_OP;
+        property cycles: int = 2;
+    }
+
+    //--------------------------------------------------------------------------
+    //   Begin WORD addressing modes
+    //--------------------------------------------------------------------------
+
+    addr-set DOUBLE_W {
+        REGREG,
+        REGIND,
+        REGSYM,
+        REGABS,
+        INDREG,
+        INDIND,
+        INDSYM,
+        INDABS,
+        SYMREG,
+        SYMIND,
+        SYMSYM,
+        SYMABS,
+        ABSREG,
+        ABSIND,
+        ABSSYM,
+        ABSABS,
+        IREGREG,
+        IREGIND,
+        IREGSYM,
+        IREGABS,
+        AUTOREG_W,
+        AUTOIND_W,
+        AUTOSYM_W,
+        AUTOABS_W,
+        IMMREG,
+        IMMIND,
+        IMMSYM,
+        IMMABS,
+        IMMLREG,
+        IMMLIND,
+        IMMLSYM,
+        IMMLABS
+    }
+
+    addr-set SINGLE_W {
+        REG,
+        IND,
+        SYM,
+        ABS,
+        IREG,
+        AUTO_W,
+        IMM,
+        IMML
+    }
+
+    addr-set DOUBLE_B {
+        REGREG,
+        REGIND,
+        REGSYM,
+        REGABS,
+        INDREG,
+        INDIND,
+        INDSYM,
+        INDABS,
+        SYMREG,
+        SYMIND,
+        SYMSYM,
+        SYMABS,
+        ABSREG,
+        ABSIND,
+        ABSSYM,
+        ABSABS,
+        IREGREG,
+        IREGIND,
+        IREGSYM,
+        IREGABS,
+        AUTOREG_B,
+        AUTOIND_B,
+        AUTOSYM_B,
+        AUTOABS_B,
+        IMMREG,
+        IMMIND,
+        IMMSYM,
+        IMMABS,
+        IMMLREG,
+        IMMLIND,
+        IMMLSYM,
+        IMMLABS
+    }
+
+    addr-set SINGLE_B {
+        REG,
+        IND,
+        SYM,
+        ABS,
+        IREG,
+        AUTO_B,
+        IMM,
+        IMML
+    }
+
+//---------------------------------------------------------------------------
+//  SUBROUTINES
+//---------------------------------------------------------------------------
+    inline subroutine performAddition(r1: int.8, r2: int.8, carry: +int.1): int.8 {
+        local result: int = r1 + r2 + carry;
+
+        local Rd7: boolean = r1[7];
+        local Rr7: boolean = r2[7];
+        local R7: boolean = result[7];
+
+        // set the flags as per instruction set documentation.
+        C = result[8];
+        N = result[7];
+        Z = low(result) == 0;
+        V = (Rd7 and Rr7 and !R7) or (!Rd7 and !Rr7 and R7);
+
+        return low(result);
+    }
+
+    inline subroutine performAdditionW(r1: +int.16, r2: +int.16, carry: +int.1): +int.16 {
+        local result: int = r1 + r2 + carry;
+
+        local Rd15: boolean = r1[15];
+        local Rr15: boolean = r2[15];
+        local R15: boolean  = result[15];
+
+        C = result[16];
+        N = result[15];
+        Z = (result == 0);
+        V = (Rd15 and Rr15 and !R15) or (!Rd15 and !Rr15 and R15);
+
+        return result;
+    }
+	
+
+    inline subroutine performSubtraction(r1: int.8, r2: int.8, carry: +int.1): int.8 {
+        local result: int = r2 - r1 - carry;
+
+        local Rd7: boolean = r1[7];
+        local Rr7: boolean = r2[7];
+        local R7:  boolean = result[7];
+
+        // set the flags as per instruction set documentation.
+        C = (!Rd7 and Rr7) or (Rr7 and R7) or (R7 and !Rd7);
+        N = R7;
+        Z = low(result) == 0;
+        V = (Rd7 and !Rr7 and !R7) or (!Rd7 and Rr7 and R7);
+
+        return low(result);
+    }
+
+    inline subroutine performSubtractionW(r1: +int.16, r2: +int.16, carry: +int.1): +int.16 {
+        local result: int = r2 - r1 - carry;
+
+        local Rd15: boolean = r1[15];
+        local Rr15: boolean = r2[15];
+        local R15:  boolean = result[15];
+
+        // set the flags as per instruction set documentation.
+
+        C = (!Rd15 and Rr15) or (Rr15 and R15) or (R15 and !Rd15);
+        N = R15;
+        Z = (low(result) == 0 and high(result) == 0);
+        V = (Rd15 and !Rr15 and !R15) or (!Rd15 and Rr15 and R15);
+       
+        return result;
+    }
+
+
+    inline subroutine performAnd(r1: int, r2: int): int.8 {
+        local result: int = r1 & r2;
+
+        N = result[7];
+        Z = low(result) == 0;
+        V = false;
+        C = !N;
+
+        return low(result);
+    }
+
+    inline subroutine performAndW(r1: int, r2: int): +int.16 {
+        local result: int = r1 & r2;
+
+        N = result[15];
+        C = !N;
+        Z = (result == 0);
+        V = false;
+
+        return result;
+    }
+
+    subroutine performDeciAddCW(r1: int, r2: int, carry: int): +int.16 {
+        local reg1: int = r1;
+        local reg2: int = r2;
+        local result: int = 0;
+
+        // TODO: this code will not work: e.g. 9 + 9 = 18 (overflow)
+        reg1[3:0] = reg1[3:0] + carry;
+        result[3:0] = reg1[3:0] + reg2[3:0];
+        if (result[3:0] > 10) {
+            result[3:0] = result[3:0] - 10;
+            reg1[7:4] = reg1[7:4] + 1;
+        }
+        result[7:4] = reg1[7:4] + reg2[7:4];
+        if (result[7:4] > 10) {
+            result[7:4] = result[7:4] - 10;
+            reg1[11:8] = reg1[11:8] + 1;
+        }
+        result[11:8] = reg1[11:8] + reg2[11:8];
+        if (result[11:8] > 10) {
+            result[11:8] = result[11:8] - 10;
+            reg1[15:12] = reg1[15:12] + 1;
+        }
+        result[15:12] = reg1[15:12] + reg2[15:12];
+        if (result[15:12] > 10) {
+            result[15:12] = result[15:12] - 10;
+            C = true;
+        }
+        N = result[15];
+        Z = result == 0;
+        return result;
+    }
+
+    subroutine performDeciAddC(r1: int, r2: int, carry: int): int.8 {
+        local reg1: int = r1;
+        local reg2: int = r2;
+        local result: int = 0;
+
+        reg1[3:0] = reg1[3:0] + carry;
+        result[3:0] = reg1[3:0] + reg2[3:0];
+        if (result[3:0] > 10) {
+            result[3:0] = result[3:0] - 10;
+            reg1[7:4] = reg1[7:4] + 1;
+        }
+        result[7:4] = reg1[7:4] + reg2[7:4];
+        if (result[7:4] > 10) {
+            result[7:4] = result[7:4] - 10;
+            C = true;
+        }
+        N = result[7];
+        Z = result == 0;
+        return result[7:0];
+    }
+
+    inline subroutine low(v: int): int.8 {
+        return v: int.8;
+    }
+
+    inline subroutine high(v: int): int.8 {
+        return (v >> 8): int.8;
+    }
+
+    inline subroutine uword(low: int.8, high: int.8): int {
+        return ((high << 8) | +low)[15:0];
+    }
+
+    external subroutine bit(b: boolean): int;
+    external subroutine popByte(): int.8;
+    external subroutine pushByte(b: int.8): void;
+    external subroutine disableInterrupts(): void;
+    external subroutine enableInterrupts(): void;
+    external subroutine popWord(): +int.16;
+    external subroutine pushWord(b: +int.16): void;
+    external subroutine bumpPC(): void;
+
+
+//---------------------------------------------------------------------------
+//  BEGIN INSTRUCTION SET DESCRIPTION
+//---------------------------------------------------------------------------
+	
+    instruction "add": DOUBLE_W {
+	    property bw: int = 0;
+	    property opcode: int = 0b0101;
+        execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+            local result: +int.16 = performAdditionW(r1, r2, 0);
+            write:+int.16(dest, result);
+        }
+    }
+
+    instruction "add.b": DOUBLE_B {
+	    property bw: int = 1;
+        property opcode: int = 0b0101;
+        execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local result: int.8 = performAddition(r1, r2, 0);
+            write:int.8(dest, result);
+        }
+    }
+
+    instruction "addc": DOUBLE_W {
+	    property bw: int = 0;
+        property opcode: int = 0b0110;
+        execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+            local result: +int.16 = performAdditionW(r1, r2, bit(C));
+            write:+int.16(dest, result);
+        }
+    }
+
+    instruction "addc.b": DOUBLE_B {
+	    property bw: int = 1;
+        property opcode: int = 0b0110;
+    	execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local result: int.8 = performAddition(r1, r2, bit(C));
+            write:int.8(dest, result);
+   	    }
+    }
+
+    instruction "and": DOUBLE_W {
+	    property bw: int = 0;
+	    property opcode: int = 0b1111;
+	    execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+            local result: +int.16 = performAndW(r1, r2);
+            write:+int.16(dest, result);
+        }
+    }
+
+    instruction "and.b": DOUBLE_B {
+	    property bw: int = 1;
+	    property opcode: int = 0b1111;
+	    execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local result: int.8 = performAnd(r1, r2);
+            write:int.8(dest, result);
+        }
+    }
+
+    instruction "bic": DOUBLE_W {    //logical and on inverted source and dest
+	    property bw: int = 0;
+	    property opcode: int = 0b1100;                        //status bits are not affected
+	    execute {
+            write:+int.16(dest, ~(read:+int.16(source)) & read:+int.16(dest));
+        }
+    }
+
+    instruction "bic.b": DOUBLE_B {    //logical and on inverted source and dest
+	    property bw: int = 1;
+	    property opcode: int = 0b1100;                        //status bits are not affected
+	    execute {
+            write:int.8(dest, ~(read:int.8(source)) & read:int.8(dest));
+        }
+    }
+
+    instruction "bis": DOUBLE_W {   //logical or on source and dest
+	    property bw: int = 0;
+        property opcode: int = 0b1101;                       //status bits not affected
+        execute {
+            write:+int.16(dest, read:+int.16(source) | read:+int.16(dest));
+        }
+     }
+
+    instruction "bis.b": DOUBLE_B {   //logical or on source and dest
+	    property bw: int = 1;
+        property opcode: int = 0b1101;                       //status bits not affected
+        execute {
+            write:int.8(dest, read:int.8(source) | read:int.8(dest));
+        }
+     }
+
+    instruction "bit": DOUBLE_W {   //test bits in dest by anding source
+	    property bw: int = 0;
+	    property opcode: int = 0b1011;                         //with dest and affecting only status bits
+	    execute {
+	        performAndW(read:+int.16(source), read:+int.16(dest));
+        }
+    }
+
+    instruction "bit.b": DOUBLE_B {   //test bits in dest by anding source
+	    property bw: int = 1;
+	    property opcode: int = 0b1011;                         //with dest and affecting only status bits
+	    execute {
+	        performAndW(read:int.8(source), read:int.8(dest));
+        }
+    }
+
+    instruction "call": SINGLE_W {     //calls a subroutine from 64k address space
+        // TODO: double check this opcode
+	    property bw: int = 0;
+	    property opcode: int = 0b000100101;          //stores old pc on TOS while jumping to subroutine
+	    execute {
+            local temp: int = +read:+int.16(source);  //r1 is the SP, r0 is the PC
+            pushWord(nextpc);
+            nextpc = temp;
+        }
+    }
+
+    instruction "cmp": DOUBLE_W {      // compares 2 operands by
+	    property bw: int = 0;
+	    property opcode: int = 0b1001;                   // adding source with inverted dest
+	    execute {                        // and adding 1 to the result
+	        performAdditionW(read:+int.16(source), ~(read:+int.16(dest)), 1);
+        }
+    }
+
+    instruction "cmp.b": DOUBLE_B {    // compares 2 operands by
+	    property bw: int = 1;
+    	property opcode: int = 0b1001;                   // adding source with inverted dest
+	    execute {                        // and adding 1 to the result
+	        performAddition(read:int.8(source), ~(read:int.8(dest)), 1);
+        }
+    }
+
+    instruction "dadd": DOUBLE_W {  //source and carry added decimally to dest
+	    property bw: int = 0;
+	    property opcode: int = 0b1010;
+	    execute {
+	        write:+int.16(dest, performDeciAddCW(read:+int.16(source), read:+int.16(dest), bit(C)));
+	    }
+    }
+
+    instruction "dadd.b": DOUBLE_B {  //source and carry added decimally to dest
+	    property bw: int = 1;
+	    property opcode: int = 0b1010;
+	    execute {
+	        write:int.8(dest, performDeciAddC(read:int.8(source), read:int.8(dest), bit(C)));
+	    }
+    }
+
+    instruction "jc": JMP  {      //jump if carry set
+	    property opcode: int = 0b001011;
+	    execute {
+ 	        if ( C ) {
+ 	            nextpc = read(target);
+	        }
+        }
+    }
+
+    pseudo instruction "jhs": JMP  {      //jump if higher or same
+	    property opcode: int = 0b001011;
+	    execute {
+ 	        if ( C ) {
+ 	            nextpc = read(target);
+	        }
+        }
+    }
+
+    pseudo instruction "jeq": JMP {      //jump if equal
+	    property opcode: int = 0b001001;
+	    execute {
+	        if ( Z ) {
+ 	            nextpc = read(target);
+            }
+        }
+    }
+
+    instruction "jz": JMP {      //jump if zero
+	    property opcode: int = 0b001001;
+	    execute {
+	        if ( Z ) {
+ 	            nextpc = read(target);
+            }
+        }
+    }
+
+    instruction "jge": JMP {   //jump if greater or equal
+	    property opcode: int = 0b001101;
+	    execute {
+	        if ( Z xor N ) {
+ 	            nextpc = read(target);
+	        }
+	    }
+    }
+
+    instruction "jl": JMP {   //jump if less
+        property opcode: int = 0b001110;
+        execute {
+             if ( N xor V ) {
+ 	            nextpc = read(target);
+             }
+    	 }
+    }
+
+    instruction "jmp": JMP {  //jump unconditionally
+	    property opcode: int = 0b001111;
+	    execute {
+            //jump to address listed by 10 bit offset, unconditionally
+ 	        nextpc = read(target);
+	    }
+    }
+
+    instruction "jn": JMP {   //jump if negative
+	    property opcode: int = 0b001100;
+	    execute {
+	        if ( N ) {
+			    //if N = 1, jump to address listed by 10 bit offset
+ 	            nextpc = read(target);
+	        }
+        }
+    }
+
+    instruction "jnc": JMP {  //jump if carry not set
+	    property opcode: int = 0b001010;
+	    execute {
+	        if ( !C ) {
+			    //if C != 0, jump to address listed by 10 bit offset
+ 	            nextpc = read(target);
+	        }
+        }
+    }
+
+    pseudo instruction "jlo": JMP {  //jump if carry not set
+	    property opcode: int = 0b001010;
+	    execute {
+            if ( !C ) {
+                //if C != 0, jump to address listed by 10 bit offset
+ 	            nextpc = read(target);
+            }
+        }
+    }
+
+    pseudo instruction "jne": JMP {  //jump if not equal
+        property opcode: int = 0b001000;
+        execute {
+            if ( !Z ) {
+                //if Z != 0, jump to address listed by 10 bit offset
+ 	            nextpc = read(target);
+            }
+        }
+    }
+
+    instruction "jnz": JMP {  //jump if not equal
+	    property opcode: int = 0b001000;
+	    execute {
+	        if ( !Z ) {
+			    //if Z != 0, jump to address listed by 10 bit offset
+ 	            nextpc = read(target);
+	        }
+	    }
+    }
+
+    instruction "mov": DOUBLE_W {  //move source to dest
+	    property bw: int = 0;
+        property opcode: int = 0b0100;
+        execute {
+            write:+int.16(dest, read:+int.16(source));
+        }
+    }
+
+    instruction "mov.b": DOUBLE_B {  //move source to dest
+	    property bw: int = 1;
+        property opcode: int = 0b0100;
+        execute {
+            write:int.8(dest, read:int.8(source));
+        }
+    }
+
+    instruction "push": SINGLE_W {  //push +int.16 onto stack
+	    property bw: int = 0;
+        property opcode: int = 0b000100100;
+        execute {
+            pushWord(read:+int.16(source));
+        }
+    }
+
+    instruction "push.b": SINGLE_B {  //push int.8 onto stack
+	    property bw: int = 1;
+        property opcode: int = 0b000100100;
+        execute {
+            pushByte(read:int.8(source));
+        }
+    }
+
+    instruction "reti" {    //return from interrupt
+        encoding = { 0b00010011, 0b00000000 } // encodes 0x1300
+        execute {
+            sreg = popWord();
+            nextpc = popWord();
+        }
+    }
+
+    instruction "rra": SINGLE_W  {     //rotate right arithmetically
+	    property bw: int = 0;
+        property opcode: int = 0b000100010;
+        execute {
+            local temp: +int.16 = read:+int.16(source);
+            C = temp[0];             // move LSB into Carry
+            temp = temp >> 1;        // shift 1 right ( i think)
+            N = temp[15];
+            Z = (temp == 0);
+            V = false;                   // reset overflow bit
+            write:+int.16(source, temp);
+	    }
+    }
+
+    instruction "rra.b": SINGLE_B  {     //rotate right arithmetically
+	    property bw: int = 1;
+        property opcode: int = 0b000100010;
+        execute {
+            local temp: int.8 = read:int.8(source);
+            C = temp[0];            // move LSB into Carry
+            temp = temp >> 1;        // shift 1 right ( i think)
+            N = temp[7];
+            Z = (temp == 0);
+            V = false;                   // reset overflow bit
+            write:int.8(source, temp);
+        }
+    }
+
+    instruction "rrc": SINGLE_W  {    //rotate right through carry
+	    property bw: int = 0;
+        property opcode: int = 0b000100000;
+        execute {
+            local temp: +int.16 = read:+int.16(source);
+            local oldC: int = bit(C);
+            C = temp[0];          // carry loaded from original LSB
+            temp = temp >> 1 | oldC << 15;      //shift 1 bit right
+            N = temp[15];
+            Z = (temp == 0);
+            V = (!temp[14] and oldC == 1);  //set if inital dest pos. and inital carry was set
+            write:+int.16(source, temp);
+        }
+    }
+
+    instruction "rrc.b": SINGLE_B  {    //rotate right through carry
+	    property bw: int = 1;
+        property opcode: int = 0b000100000;
+        execute {
+            local temp: int.8 = read:int.8(source);
+            local oldC: int = bit(C);
+            C = temp[0];         //Carry loaded from original LSB
+            temp = temp >> 1 | oldC << 7;      //shift 1 bit right
+            N = temp[7];
+            Z = (temp == 0);
+            V = (!temp[6] and oldC == 1);  //set if inital dest pos. and inital carry was set
+            write:int.8(source, temp);
+        }
+    }
+
+
+    instruction "sub": DOUBLE_W {   //subtract source from dest
+	    property bw: int = 0;
+        property opcode: int = 0b1000;
+        execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+            local results: int = performSubtractionW(r1, r2, 0);
+            write:+int.16(dest, results: +int.16);
+    	}
+    }
+
+    instruction "sub.b": DOUBLE_B {   //subtract source from dest
+	    property bw: int = 1;
+        property opcode: int = 0b1000;
+        execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local results: int = performSubtraction(r1, r2, 0);
+            write:int.8(dest, low(results));
+    	}
+    }
+
+    instruction "subc": DOUBLE_W  {    //sub source and borrow/.NOT. carry from dest
+	    property bw: int = 0;
+        property opcode: int = 0b0111;
+        execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+            local results: int = performSubtractionW(r1, r2, bit(C));
+            write:+int.16(dest, results: +int.16);
+	    }
+    }
+
+    instruction "subc.b": DOUBLE_B {    //sub source and borrow/.NOT. carry from dest
+	    property bw: int = 1;
+        property opcode: int = 0b0111;
+        execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local results: int = performSubtraction(r1, r2, bit(C));
+            write:int.8(dest, low(results));
+ 	    }
+    }
+
+    instruction "swpb": SINGLE_W {   //swap bytes
+	    property bw: int = 0;
+        property opcode: int = 0b000100001;
+        execute {
+           local temp1: +int.16 = read:+int.16(source);   //contains original
+           local temp2: +int.16 = temp1;   //eventually contains swapped bytes
+           temp2[15:8] = temp1[7:0];
+           temp2[7:0] = temp1[15:8];
+           write:+int.16(source, temp2);
+        }
+    }
+
+    instruction "sxt": SINGLE_W {  //extend sign
+	    property bw: int = 0;
+        property opcode: int = 0b000100011;
+        execute {
+            local r1: +int.16 = read:+int.16(source) : -int.8;
+            N = r1[15];      // set if result is negative
+            Z = (r1 == 0);   // set if result is zero
+            C = !Z;          // set if result not zero
+            V = false;       // reset
+            write:+int.16(source, r1);
+        }
+    }
+
+    instruction "tst": SINGLE_W {  //test destination
+	    property bw: int = 0;
+        property opcode: int = 0b1001;
+        execute {
+            local r1: int = read:+int.16(source);
+            N = r1[15];       // if dest is negative, set
+            Z = (r1 == 0);    // if dest contains 0, set
+            C = true;         // set carry
+            V = false;        // reset overflow
+        }
+    }
+
+    instruction "tst.b": SINGLE_B {  //test destination
+	    property bw: int = 1;
+        property opcode: int = 0b1001;
+        execute {
+            local r1: int = read:int.8(source);
+            N = r1[7];       //if dest is negative, set
+            Z = (r1 == 0);   //if dest contains 0, set
+            C = true;   //set carry
+            V = false;   //reset overflow
+        }
+    }
+
+    instruction "xor": DOUBLE_W {  //Exclusive OR of source with dest
+	    property bw: int = 0;
+        property opcode: int = 0b1110;
+        execute {
+            local src: int = read:+int.16(source);
+            local res: int = read:+int.16(dest);
+            res = res ^ src;
+            N = res[15];
+            Z = (res == 0);
+            C = !Z;
+            V = ((src < 0) and (res < 0));
+            write:+int.16(dest, res: +int.16);
+        }
+    }
+
+    instruction "xor.b": DOUBLE_B {  //Exclusive OR of source with dest
+	    property bw: int = 1;
+	    property opcode: int = 0b1110;
+	    execute {
+            local src: int = read:int.8(source);
+            local res: int = read:int.8(dest);
+            res = res ^ src;
+            N = res[7];
+            Z = (res == 0);
+            C = !Z;
+            V = ((src < 0) and (res < 0));
+            write:int.8(dest, low(res));
+        }
+    }
+
+/***************** EMULATED INSTRUCTIONS **************************
+
+    instruction "adc": SINGLE_W {
+	    property bw: int = 0;
+        property opcode: int = 0b0110;                     //opcode for ADDC (6) emulated to ADC
+        execute {
+            local r1: int       = read:+int.16(source);
+            local result: int   = r1 + bit(C);
+                                    //+int.16 operation
+            local R15: boolean  = result[15];
+            local Rdh7: boolean = r1[15];
+            C = (!R15 and Rdh7);
+            N = (R15);
+            V = (!Rdh7 and R15);
+            Z = (result[15:0]  == 0);
+
+            write:+int.16(source, result: +int.16);
+        }
+    }
+
+    instruction "adc.b": SINGLE_B {
+	    property bw: int = 1;
+        property opcode: int = 0b0110;                     //opcode for ADDC (6) emulated to ADC
+        execute {
+            local r1: int       = read:int.8(source);
+            local result: int   = r1 + bit(C);
+
+            //int.8 operation
+            local R7: boolean   = result[7];
+            local Rdh1: boolean = r1[7];
+            C = (!R7 and Rdh1);
+            N = (R7);
+            V = (!Rdh1 and R7);
+            Z = (result[7:0]  == 0);
+
+            write:int.8(source, result: int.8);
+        }
+    }
+
+    pseudo instruction "br": SINGLE_W {  //uncondtional branch emulated by moving
+	    property bw: int = 0;
+	    property opcode: int = 0b0100;                     //operand to Program counter
+	    execute {
+		    // emulated by MOV instruction
+	        nextpc = +read:+int.16(source);
+	    }
+    }
+
+    pseudo instruction "clr": SINGLE_W {             //emulated by MOV instruction
+	    property bw: int = 0;
+    	property opcode: int = 0b0100;
+        execute {
+            // note: the read is necessary for the auto-increment operands
+            local b: int = read:+int.16(source);
+            write:+int.16(source, 0);
+        }
+    }
+
+    pseudo instruction "clr.b": SINGLE_B {           //emulated by MOV instruction
+	    property bw: int = 1;
+	    property opcode: int = 0b0100;
+	    execute {
+            // note: the read is necessary for the auto-increment operands
+            local b: int = read:int.8(source);
+            write:int.8(source, 0);
+	    }
+    }
+
+
+    pseudo instruction "clrc" {               //clear carry bit by anding with #1
+	    property bw: int = 0;
+	    property opcode: int = 0b1100;
+        execute {
+		    //emulated by BIC instruction
+            C = false;
+	    }
+    }
+
+    pseudo instruction "clrn" {             //clear neg. bit by anding with #4
+	    property bw: int = 0;
+	    property opcode: int = 0b1100;
+        execute {
+       		//emulated by BIC instruction
+            N = false;
+	    }
+    }
+
+    pseudo instruction "clrz" {
+	    property bw: int = 0;
+        property opcode: int = 0b1100;
+        execute {
+    		//emulated by BIC instruction
+            Z = false;
+	    }
+    }
+
+    pseudo instruction "dadc": SINGLE_W {   // add carry decimally to dest
+	    property bw: int = 0;
+	    property opcode: int = 0b1010;                 // emulated by DADD instruction
+	    execute {
+	        write:+int.16(source, performDeciAddCW(0, read:+int.16(source), bit(C)));
+	    }
+    }
+
+    pseudo instruction "dadc.b": SINGLE_B {   // add carry decimally to dest
+	    property bw: int = 1;
+	    property opcode: int = 0b1010;                   // emulated by DADD instruction
+	    execute {
+	        write:int.8(source, performDeciAddC(0, read:int.8(source), bit(C)));
+	    }
+    }
+
+    pseudo instruction "dec": SINGLE_W  {
+	    property bw: int = 0;
+	    property opcode: int = 0b1000;        // emulated by subtraction operation
+	    execute {
+	        local original: +int.16 = read:+int.16(source);
+	        write:+int.16(source, performSubtractionW(original, 1, 0));
+ 	        if (original == 1)
+ 	            N = true;    // if original value of dest was 1, set N bit
+        }
+    }
+
+    pseudo instruction "dec.b": SINGLE_B  {
+	    property bw: int = 1;
+	    property opcode: int = 0b1000;        //emulated by subtraction operation
+	    execute {
+	        local original: int.8 = read:int.8(source);
+	        write:int.8(source, performSubtraction(original, 1, 0));
+ 	        if (original == 1)
+ 	            N = true;    // if original value of dest was 1, set N bit
+        }
+    }
+
+    pseudo instruction "decd": SINGLE_W {
+	    property bw: int = 0;
+	    property opcode: int = 0b1000;         //emulated by subtraction  operation
+	    execute {
+ 	        local original: +int.16 = read:+int.16(source);
+            write:+int.16(source, performSubtractionW(original, 2, 0));
+	        if (original == 2)
+	            N = true;    //if original value of dest was 2, set N bit
+	    }
+    }
+
+    pseudo instruction "decd.b": SINGLE_B {
+	    property bw: int = 1;
+	    property opcode: int = 0b1000;         //emulated by subtraction  operation
+	    execute {
+ 	        local original: int.8 = read:int.8(source);
+            write:int.8(source, performSubtraction(original, 2, 0));
+	        if (original == 2)
+	            N = true;    //if original value of dest was 2, set N bit
+	    }
+    }
+
+    pseudo instruction "dint" {       // disable general interrupts
+	    property bw: int = 0;
+        property opcode: int = 0b1100;       // emulated by BIC operation
+	    execute {
+	        disableInterrupts();
+	    }
+    }
+
+    pseudo instruction "eint" {       // enable general interrupts
+	    property bw: int = 0;
+	    property opcode: int = 0b1101;       // emulated by BIS operation
+	    execute {
+	        enableInterrupts();
+	    }
+    }
+
+    pseudo instruction "inc": SINGLE_W {     // increment dest
+	    property bw: int = 0;
+	    property opcode: int = 0b0101;                  // emulated by ADD operation
+	    execute {
+	        write:+int.16(source, performAdditionW(read:+int.16(source), 1, 0));
+ 	    }
+    }
+
+    pseudo instruction "inc.b": SINGLE_B {     // increment dest
+	    property bw: int = 1;
+	    property opcode: int = 0b0101;                    // emulated by ADD operation
+	    execute {
+	        write:int.8(source, performAdditionW(read:int.8(source), 1, 0));
+ 	    }
+    }
+
+    pseudo instruction "incd": SINGLE_W {      //double increment dest
+	    property opcode: int = 0b0101;	    //emulated by ADD operation
+	    execute {
+	        write:+int.16(source, performAdditionW(read:+int.16(source), 2, 0));
+	    }
+    }
+
+    pseudo instruction "incd.b": SINGLE_B {      //double increment dest
+	    property bw: int = 1;
+	    property opcode: int = 0b0101;	    //emulated by ADD operation
+	    execute {
+	        write:int.8(source, performAdditionW(read:int.8(source), 2, 0));
+	    }
+    }
+
+    pseudo instruction "inv": SINGLE_W  {       //invert dest
+	    property bw: int = 0;
+	    property opcode: int = 0b1110;    //emulated by XOR operation
+	    execute {
+	        local val: int = read:+int.16(source);
+   	        local result: int = ~val;
+	        N = result[15];             //set if neg.
+	        Z = (result == 0xFFFF);  //set if contains 0FFFFh
+	        C = !(result == 0);      //set if result not 0
+	        V = (val < 0);     //set if original contents neg.
+	        write:+int.16(source, result:+int.16);
+	    }
+    }
+
+    pseudo instruction "inv.b": SINGLE_B  {       //invert dest
+	    property bw: int = 1;
+	    property opcode: int = 0b1110;    //emulated by XOR operation
+	    execute {
+	        local val: int = read:int.8(source);
+   	        local result: int = ~val;
+	        N = result[7];             //set if neg.
+	        Z = (result == 0xFF);  //set if contains 0FFh
+	        C = !(result == 0);      //set if result not 0
+	        V = (val < 0);     //set if original contents neg.
+	        write:int.8(source, low(result));
+	    }
+    }
+
+    pseudo instruction "nop" {   //no operation
+        property opcode: int = 0b0100;     //emulated by MOV operation
+        execute {
+        }
+    }
+
+    pseudo instruction "pop": SINGLE_W  {  // pop +int.16 from stack to dest
+	    property bw: int = 0;
+        property opcode: int = 0b0100;   // emulated by MOV operation
+        execute {
+            write:+int.16(source, popWord());         // move temp to dest
+        }
+    }
+
+    pseudo instruction "pop.b": SINGLE_B  {  //pop int.8 from stack to dest
+	    property bw: int = 1;
+        property opcode: int = 0b0100;   //emulated by MOV operation
+        execute {
+            write:int.8(source, popByte());         // move temp to dest
+        }
+    }
+
+    instruction "ret" {    //return from subroutine
+        property opcode: int = 0b0100;
+        execute {
+            nextpc = popWord();
+        }
+    }
+
+    pseudo instruction "rla": SINGLE_W {    // rotate left arithmetically
+	    property bw: int = 0;
+        property opcode: int = 0b0101;            // emulated by add instruction (add dst, dst)
+        execute {
+            local dest: +int.16 = read:+int.16(source);
+            C = dest[15];        // move MSB into carry
+            V = (dest > 0x3FFF and dest < 0xC000);  //overflow if >= 4000h and less than C000h
+            dest = dest << 1;    // shifting left 1 position
+            N = dest[15];        // setting Neg. bit
+            Z = (dest == 0);     // set Z bit if equal to zero
+            write:+int.16(source, dest);
+        }
+    }
+
+    pseudo instruction "rla.b": SINGLE_B {    // rotate left arithmetically
+	    property bw: int = 1;
+        property opcode: int = 0b0101;                   // emulated by add instruction (add dst, dst)
+        execute {
+            local dest: int = read:int.8(source);
+            C = dest[7];        // move MSB into carry
+            V = (dest > 0x3F and dest < 0xC0);  //overflow if >= 40h and less than C0h
+            dest = dest << 1;   // shifting left 1 position
+            N = dest[7];        // setting Neg. bit
+            Z = (dest == 0);    // set Z bit if equal to zero
+            write:int.8(source, low(dest));
+        }
+    }
+
+    pseudo instruction "rlc": SINGLE_W {    //rotate left through carry
+	    property bw: int = 0;
+        property opcode: int = 0b0110;       // emulated by addc instruction (addc dst, dst)
+        execute {
+            local dest: +int.16 = read:+int.16(source);
+            local tempC: int = bit(C);
+            C = dest[15];      // move MSB into carry
+            V = (dest > 0x3FFF and dest < 0xC000);  //overflow if >= 4000h and less than C000h
+            dest = dest << 1 | tempC;    //shifting left 1 position
+            N = dest[15];      // setting Neg. bit
+            Z = (dest == 0);   // set Z bit if equal to zero
+            write:+int.16(source, dest);
+        }
+     }
+
+    pseudo instruction "rlc.b": SINGLE_B {    //rotate left through carry
+	    property bw: int = 1;
+        property opcode: int = 0b0110;       // emulated by addc instruction (addc dst, dst)
+        execute {
+            local dest: int = read:int.8(source);
+            local tempC: int = bit(C);
+            C = dest[7];       // move MSB into carry
+            V = (dest > 0x3F and dest < 0xC0);  //overflow if >= 40h and less than C0h
+            dest = dest << 1 | tempC;    //shifting left 1 position
+            N = dest[7];       // setting Neg. bit
+            Z = (dest == 0);   // set Z bit if equal to zero
+            write:int.8(source, low(dest));
+        }
+     }
+
+    pseudo instruction "sbc": SINGLE_W {    // subtract source and borrow/.NOT. carry from dest
+	    property bw: int = 0;
+        property opcode: int = 0b0111;                 // emulated by SUBC instruction
+        execute {
+            local dest: +int.16 = read:+int.16(source);
+            local highbit: boolean = dest[15];
+            // TODO: why not emulate this with the performSubtraction method?
+            dest = dest + 0xFFFF + bit(C);  //carry bit is added to dest minus one
+            N = dest[15];
+            Z = (dest == 0);
+            C = ((highbit != dest[15]) and (bit(C) == 0));  //if and overflow occured in MSB, set carry
+            V = (dest > 0xFFFF);   //set overflow if arithmetic overflow occurs
+            write:+int.16(source, dest);
+	    }
+    }
+
+    pseudo instruction "sbc.b": SINGLE_B {    //subtract source and borrow/.NOT. carry from dest
+	    property bw: int = 1;
+        property opcode: int = 0b0111;      //emulated by SUBC instruction
+        execute {
+            local dest: int.8 = read:int.8(source);
+            local highbit: boolean = dest[7];
+            dest = dest + 0xFF + bit(C);  //carry bit is added to dest minus one
+            N = dest[7];
+            Z = (dest == 0);
+            C = ((highbit != dest[7]) and (bit(C) == 0));  //if and overflow occured in MSB, set carry
+            V = (dest > 0xFF);   //set overflow if arithmetic overflow occurs
+            write:int.8(source, dest);
+        }
+    }
+
+    pseudo instruction "sbb" : DOUBLE_W  {    //sub source and borrow/.NOT. carry from dest
+	    property bw: int = 0;
+	    property opcode: int = 0b0111;                         //same operation as SUBC, different syntax
+	    execute {
+            local r1: +int.16 = read:+int.16(source);
+            local r2: +int.16 = read:+int.16(dest);
+	        local results: int = performSubtractionW(r1, r2, bit(C));
+            write:+int.16(dest, results: +int.16);
+	    }
+    }
+
+    pseudo instruction "sbb.b": DOUBLE_B {    //sub source and borrow/.NOT. carry from dest
+	    property bw: int = 1;
+        property opcode: int = 0b0111;                            //same operation as SUBC, different syntax
+        execute {
+            local r1: int.8 = read:int.8(source);
+            local r2: int.8 = read:int.8(dest);
+            local results: int = performSubtraction(r1, r2, bit(C));
+            write:int.8(dest, low(results));
+ 	    }
+    }
+
+    pseudo instruction "setc"    {     //set carry bit
+        property opcode: int = 0b1101;    //emulated by the BIS operation
+        execute {
+            C = true;
+        }
+    }
+
+    pseudo instruction "setn"   {   //set Negative bit
+        property opcode: int = 0b1101;   //emulated by the BIS operation
+        execute {
+            N = true;
+        }
+    }
+
+    pseudo instruction "setz"  {   // set zero bit
+        property opcode: int = 0b1101;   //emulated by the BIS operation
+        execute {
+            Z = true;
+        }
+    }
+
+---------- the mythical match language ----------------------
+
+    type word = +int.16;
+    type byte = +int.8;
+
+    match operands(src: @REG, dst: *) =
+        (READ_REG(src.val), dest(dst, $pc+2))
+
+    match operands(src: @REG = r0, dst: *) =
+        (CONST($pc), dest(dst, $pc+2))
+
+    match operands(src: @INDX, dst: *) =
+        (READ_INDX(src.reg, src.index), dest(dst, $pc+4))
+
+    match operands(src: @ABS, dst: *) =
+        (READ_ADDR(src:word), dest(dst, $pc+4))
+
+    match operands(src: @SYM, dst: *) =
+        (READ_ADDR((src+pc+2):word, dest(dst, $pc+4))
+
+    match operands(src: @IREG, dst: *) =
+        (READ_INDX(src, 0), dest(dst, $pc+2))
+
+    match operands(src: @AUTO_W, dst: *) =
+        (READ_AUTO(src, 1), dest(dst, $pc+2))
+
+    match operands(src: @AUTO_B, dst: *) =
+        (READ_AUTO(src, 2), dest(dst, $pc+2))
+
+    match operands(src: @IMM in {-1, 0, 1, 2, 4, 8 }, dst: *) =
+        (CONST(src.val), dest(dst, $pc+2))
+
+    match operands(src: @IMM, dst: *) =
+        (CONST(src.val), dest(dst, $pc+4))
+
+
+    match dest(dst: @REG, vpc: int) =
+        (READ_REG(dst.val), WRITE_REG(dst.val))
+
+    match dest(dst: @INDX, vpc: int) =
+        (READ_INDX(dst.reg, dst.index), WRITE_INDX(dst.reg, dst.index))
+
+    match dest(dst: @SYM, vpc: int) =
+        (READ_ADDR((dst+vpc):word), WRITE_ADDR((dst+vpc):word))
+
+    match dest(dst: @ABS, vpc: int) =
+        (READ_ADDR(dst), WRITE_ADDR(dst))
+
+    match dest(dst: @REG = REG.r0, vpc: int) =
+        (CONST(vpc), WRITE_PC())
+
+    match dest(dst: @REG = REG.r2, vpc: int) =
+        (READ_REG(REG.r2), WRITE_SR())
+
+    CONST(c: word) = c
+    READ_REG(r: REG) = regs[r]
+    READ_ADDR(a: word) = data[a]
+    READ_INDX(r: REG, off: word) = data[(regs[r] + off): word]
+    READ_AUTO(r: REG, inc: int) = {
+        local v: word = regs[r];
+        regs[r] = regs[r] + inc;
+        return v;
+    }
+
+    WRITE_REG(r: REG) = regs[r] = val
+    WRITE_ADDR(a: word) = data[a] = val
+    WRITE_INDX(r: REG, off: word) = data[(regs[r] + off): word] = val
+    WRITE_PC() = nextpc = val
+    WRITE_SR() = writeSR(val)
+
+
+************************ END EMULATED INSTRUCTIONS *********************/
+}

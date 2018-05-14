@@ -1,0 +1,2482 @@
+architecture MIPS32 {
+  // Complaints: 
+  //   long constants
+  //   operand casting
+  //   loops, switch
+  //   named bitfields
+  //   (external) data structures?
+  //   shift right logical
+
+  //==========================//
+  // Main instruction formats //
+  //==========================//
+  format IType = { opcode[5:0], rs[4:0], rt[4:0], imm[15:0] }
+  format JType = { opcode[5:0], index[25:0] }
+  format RType = { opcode[5:0], rs[4:0], rt[4:0], rd[4:0], sa[4:0], func[5:0] }
+
+//----------------------------------------------------------------------------//
+// Main Operands                                                              //
+//----------------------------------------------------------------------------//
+  //=================//
+  // Program Counter //
+  //=================//
+  global PC: int;
+
+  //===================//
+  // Immediate Operand //
+  //===================//
+  operand-type IMM[16]: int.16 [-32768, 32767];
+
+  //==================//
+  // Register Operand //
+  //==================//
+  enum GPRName {
+    zero = 0, at = 1,  v0 = 2,  v1 = 3,
+    a0 = 4,   a1 = 5,  a2 = 6,  a3 = 7,
+    t0 = 8,   t1 = 9,  t2 = 10, t3 = 11,
+    t4 = 12,  t5 = 13, t6 = 14, t7 = 15,
+    s0 = 16,  s1 = 17, s2 = 18, s3 = 19,
+    s4 = 20,  s5 = 21, s6 = 22, s7 = 23,
+    t8 = 24,  t9 = 25, k0 = 26, k1 = 27,
+    gp = 28,  sp = 29, fp = 30, ra = 31
+  } 
+
+  global R31: GPRName;
+
+  global gprs: map<GPRName, int>;
+
+  operand-type GPR[5]: GPRName {
+    read: int { 
+      return gprs[this]; 
+    }
+
+    write: int { 
+      gprs[this] = value; 
+    }
+  }
+
+  //==========================//
+  // Memory Operand (aligned) //
+  //==========================//  
+  global mem: map<int, int.8>;
+
+  // Currently no address translation
+  inline subroutine translateAddress(vAddr: int, 
+                                     isData: boolean, 
+                                     isLoad: boolean): int {
+    return vAddr;
+  }
+
+  // Currently no cache coherence information
+  inline subroutine getCacheCoherenceAlgorithm(vAddr: int, 
+                                               isData: boolean, 
+                                               isLoad: boolean): int {
+    return 0;
+  }
+  
+  
+  inline subroutine loadData(CCA: int, pAddr: int, vAddr: int): int.8 {
+    return mem[pAddr];
+  }
+
+  inline subroutine storeData(CCA: int,
+                              pAddr: int, 
+                              vAddr: int, 
+                              value: int.8): int.8 {
+    mem[pAddr] = value;
+  }
+
+  inline subroutine CheckValidAddr(addr: int, isLoad: boolean): boolean {
+    local segment: +int.4 = addr[31:28];
+    if (inUserMode() and segment > 8) {
+      raiseAddrError(addr, isLoad);
+    } else if ((inSupervisorMode()) and 
+               (segment <= 7   or 
+                segment == 0xC or 
+                segment == 0xD)) {
+      raiseAddrError(addr, isLoad);
+    }
+  }
+
+  operand-type MEM {
+    sub-operand base: GPR;
+    sub-operand offset: IMM;
+
+    // Byte granularity
+    read: int.8 {
+      local vAddr: int = read(base) + offset:int.16;
+      local pAddr: int = translateAddress(vAddr, true, true);
+      local CCA: int = getCacheCoherenceAlgorithm(vAddr, true, true);
+
+      CheckValidAddr(vAddr, true);
+      return mem[pAddr];
+    }
+
+    write: int.8 {
+      local vAddr: int = read(base) + offset:int.16;
+
+      CheckValidAddr(vAddr, false);
+      mem[vAddr] = value: int.8;
+    }
+
+    // Halfword granularity
+    read: int.16 {
+      local addr: int = read(base) + offset:int;
+      local vAddr: int = read(base) + offset:int.16;
+
+      CheckValidAddr(vAddr, true);
+      if (!vAddr[0]) {
+        raiseAddrError(vAddr, true);
+      }
+      return ((mem[vAddr]:int.16 << 8) | mem[vAddr + 1]);
+    }
+
+    write: int.16 {
+      local addr: int = read(base) + offset:int;
+      local vAddr: int = read(base) + offset:int.16;
+
+      CheckValidAddr(vAddr, false);
+      if (!vAddr[0]) {
+        raiseAddrError(vAddr, false);
+      }
+      mem[addr]     = value[15:8];
+      mem[addr + 1] = value[7:0];
+    }
+
+    // Word granularity
+    read: int {
+      local vAddr: int = read(base) + offset:int.16;
+
+      CheckValidAddr(vAddr, false);
+      if (vAddr[1:0] != 0) {
+        raiseAddrError(vAddr, false);
+      }
+      return ((mem[vAddr]:int << 24) |
+              (mem[vAddr + 1]:int << 16) |
+	      (mem[vAddr + 2]:int.16 << 8) |
+	      (mem[vAddr + 3]));
+    }
+
+    write: int {
+      local vAddr: int = read(base) + offset:int.16;
+
+      CheckValidAddr(vAddr, false);
+      if (vAddr[1:0] != 0) {
+        raiseAddrError(vAddr, false);
+      }
+      mem[vAddr]     = value[31:24];
+      mem[vAddr + 1] = value[23:16];
+      mem[vAddr + 2] = value[15:8];
+      mem[vAddr + 3] = value[7:0];
+    }
+  }
+
+  //=============================//
+  // Load and Store Instructions //
+  //=============================//
+  
+  addr-mode RT_MEM rt: GPR, mem: MEM {
+    property syntax: String = "%rt, %mem.offset(%mem.base)";
+    encoding = IType where { rs = mem.base, imm = mem.offset }
+  }
+
+  instruction "LB": RT_MEM {
+    property opcode: int = 0b100000;
+
+    execute {
+      write(rt, read:int.8(mem));
+    }
+  }
+
+  instruction "LBU": RT_MEM {
+    property opcode: int = 0b100100;
+
+    execute {
+      write(rt, read:int.8(mem):int);
+    }
+  }
+
+  instruction "LH": RT_MEM {
+    property opcode: int = 0b100001;
+
+    execute {
+      write(rt, read:int.16(mem));
+    }
+  }
+
+  instruction "LHU": RT_MEM {
+    property opcode: int = 0b100101;
+
+    execute {
+      write(rt, read:int.16(mem):int);
+    }
+  }
+
+  instruction "LW": RT_MEM {
+    property opcode: int = 0b100011;
+
+    execute {
+      write(rt, read:int(mem));
+    }
+  }
+
+  instruction "SB": RT_MEM {
+    property opcode: int = 0b101000;
+
+    execute {
+      write:int.8(mem, read(rt)[7:0]);
+    }
+  }
+
+  instruction "SH": RT_MEM {
+    property opcode: int = 0b101001;
+
+    execute {
+      write:int.16(mem, read(rt)[15:0]);
+    }
+  }
+
+  instruction "SW": RT_MEM {
+    property opcode: int = 0b101011;
+
+    execute {
+      write:int(mem, read(rt));
+    }
+  }
+
+  //=======================================//
+  // Unaligned load and store instructions //
+  //=======================================//
+  addr-mode RT_UMEM rt: GPR, base: GPR, offset: IMM {
+    property syntax: String = "%rt, %offset(%base)";
+    encoding = IType where { rs = base, imm = offset }
+  }
+
+
+  instruction "LWL": RT_UMEM {
+    property opcode: int = 0b100010;
+
+    execute {
+      // Little Endian
+      local addr: int = read(base) + offset:int.16;
+      local alignment: +int.2 = addr[1:0];
+      local result: int = read(rt);
+      result[31:24] = mem[addr];
+   
+      if (alignment < 3) {
+        result[23:16] = mem[addr + 1];
+
+        if (alignment < 2) {
+          result[15:8] = mem[addr + 2];
+          
+	  if (alignment < 1) {
+            result[7:0] = mem[addr + 3];
+          }
+	}
+      }
+	
+      write(rt, result);
+    }
+  }
+
+  instruction "LWR": RT_UMEM {
+    property opcode: int = 0b100110;
+
+    execute {
+      // Little Endian
+      local addr: int = read(base) + offset:int;
+      local alignment: +int.2 = addr[1:0];
+      local result: int = read(rt);
+      result[7:0] = mem[addr + 3];
+   
+      if (alignment > 0) {
+        result[15:8] = mem[addr + 2];
+      
+        if (alignment > 1) {
+          result[23:16] = mem[addr + 1];
+      
+          if (alignment > 2) {
+            result[31:24] = mem[addr];
+          }
+        }
+      }
+      write(rt, result);
+    }
+  }
+
+  instruction "SWL": RT_UMEM {
+    property opcode: int = 0b101010;
+
+    execute {
+      // Little Endian
+      local addr: int = read(base) + offset:int.16;
+      local alignment: +int.2 = addr[1:0];
+      local result: int = read(rt);
+
+      mem[addr + 3] = result[7:0];
+   
+      if (alignment > 0) {
+        mem[addr + 2] = result[15:8];
+    	
+	if (alignment > 1) {
+          mem[addr + 1] = result[23:16];
+
+	  if (alignment > 2) {
+            mem[addr] = result[31:24];      	  
+	  }
+	}
+      }
+    }
+  }
+
+  instruction "SWR": RT_UMEM {
+    property opcode: int = 0b101110;
+
+    execute {
+      // Little Endian
+      local addr: int = read(base) + offset:int.16;
+      local alignment: +int.2 = addr[1:0];
+      local result: int = read(rt);
+
+      mem[addr] = result[31:24];
+   
+      if (alignment < 3) {
+        mem[addr + 1] = result[23:16];
+    	
+	if (alignment < 2) {
+          mem[addr + 2] = result[15:8];
+
+	  if (alignment < 1) {
+            mem[addr + 3] = result[7:0];      	  
+	  }
+	}
+      }
+    }
+  }
+
+  //=====================================//
+  // Loads and stores for atomic updates //
+  //=====================================//
+  global LLAddr: int;
+  global LLBit: boolean;
+
+  
+  instruction "LL": RT_MEM {
+    property opcode: int = 0b110000;
+
+    execute {
+      // TODO: implement
+    }    
+  }
+
+  instruction "SC": RT_MEM {
+    property opcode: int = 0b111000;
+
+    execute {
+      // TODO: implement
+    }
+  }
+
+  //================================//
+  // Coprocessor 1 loads and stores //
+  //================================//
+  
+  instruction "LDC1": RT_MEM {
+    property opcode: int = 0b110101;
+  }
+
+  instruction "LWC1": RT_MEM {
+    property opcode: int = 0b110001;
+  }
+
+  instruction "SDC1": RT_MEM {
+    property opcode: int = 0b111101;
+  }
+
+  instruction "SWC1": RT_MEM {
+    property opcode: int = 0b111001;
+  }
+
+  //================================//
+  // Coprocessor 2 loads and stores //
+  //================================//
+
+  instruction "LDC2": RT_MEM {
+    property opcode: int = 0b110110;
+  }
+
+  instruction "LWC2": RT_MEM {
+    property opcode: int = 0b110010;
+  }
+
+  instruction "SDC2": RT_MEM {
+    property opcode: int = 0b111110;
+  }
+
+  instruction "SWC2": RT_MEM {
+    property opcode: int = 0b111010;
+  }
+
+  //=================================//
+  // ALU with Immediate Instructions //
+  //=================================//
+  
+  addr-mode ALU_IMM rt: GPR, rs: GPR, imm: IMM {
+    property syntax: String = "%rt, %rs, %imm";
+    encoding = IType
+  }
+  
+  inline subroutine CheckAddOverflow(e1: int, e2: int, res: int): boolean {
+    local b1: boolean = e1[31];
+    local b2: boolean = e2[31];
+    local b3: boolean = res[31];
+
+    if ((b1 and b2) and (b1 and !b3)) {
+      raiseOverflow();
+    }
+  }
+  
+  inline subroutine CheckSubOverflow(e1: int, e2: int, res: int): boolean {
+    local b1: boolean = e1[31];
+    local b2: boolean = e2[31];
+    local b3: boolean = res[31];
+
+    if ((b1 and !b2) and (b1 and !b3)) {
+      raiseOverflow();
+    }
+  }
+
+  inline subroutine isLessThanUnsigned(e1: int, e2: int): boolean {
+    return ((e1:+int) < (e2:+int));
+    /*
+    local e1hi: int = e1[31]:+int.1;
+    local e2hi: int = e2[31]:+int.1;
+    local e1lo: int = e1[30:0];
+    local e2lo: int = e2[30:0];
+
+    return ((e1hi < e2hi) or ((e1hi == e2hi) and (e1lo < e2lo)));
+    */
+  }
+
+  instruction "ADDI": ALU_IMM {
+    property opcode: int = 0b001000;
+    execute {
+      local e1: int = read(rs);
+      local e2: int = imm:int.16;
+      local res: int = e1 + e2;
+
+      CheckAddOverflow(e1, e2, res);
+      write(rt, res);
+    }
+  }
+
+  instruction "ADDIU": ALU_IMM {
+    property opcode: int = 0b001001;
+    execute {
+      write(rt, read(rs) + imm:+int.16);
+    }
+  }
+
+  instruction "ANDI": ALU_IMM {
+    property opcode: int = 0b001100;
+    execute {
+      write(rt, read(rs) & imm:int.16);
+    }
+  }
+  
+  instruction "LUI": ALU_IMM { 
+    property opcode: int    = 0b001111;
+    property rs:     int    = 0b00000;
+    property syntax: String = "%rt, %imm";
+    execute {
+      write(rt, imm:int.16 << 16);
+    }
+  }
+
+  instruction "ORI": ALU_IMM {
+    property opcode: int = 0b001101;
+    execute {
+      write(rt, read(rs) | imm:int.16);
+    }
+  }
+
+  instruction "SLTI": ALU_IMM {
+    property opcode: int = 0b001010;
+    execute {
+      write(rt, (read(rs) < imm:int.16):+int.1);
+    }
+  }
+  
+  instruction "SLTIU": ALU_IMM {
+    property opcode: int = 0b001011;
+    execute {
+      write(rt, isLessThanUnsigned(read(rs), imm:+int.16):+int.1);
+    }
+  }
+
+  instruction "XORI": ALU_IMM {
+    property opcode: int = 0b001110;
+    execute {
+      write(rt, read(rs) ^ imm:int.16);
+    }
+  }
+
+  //================================//
+  // Three-Operand ALU Instructions //
+  //================================//
+  addr-mode ALU_OP3 rd: GPR, rs: GPR, rt: GPR {
+    property syntax: String = "%rd, %rs, %rt";
+    encoding = RType where { opcode = 0b000000, sa = 0b00000 }
+  }
+
+  instruction "ADD": ALU_OP3 {
+    property func: int = 0b100000;
+    execute {
+      local e1: int = read(rs);
+      local e2: int = read(rt);
+      local res: int = e1 + e2;
+
+      CheckAddOverflow(e1, e2, res);
+      write(rd, res);
+    }
+  }
+
+  instruction "ADDU": ALU_OP3 {
+    property func: int = 0b100001;
+    execute {
+      write(rd, read(rs) + read(rt));
+    }
+  }
+
+  instruction "AND": ALU_OP3 {
+    property func: int = 0b100100;
+    execute {
+      write(rd, read(rs) & read(rt));
+    }
+  }
+
+  instruction "NOR": ALU_OP3 {
+    property func: int = 0b100111;
+    execute {
+      write(rd, ~(read(rs) | read(rt)));
+    }
+  }
+
+  instruction "OR": ALU_OP3 {
+    property func: int = 0b100101;
+    execute {
+      write(rd, read(rs) | read(rt));
+    }
+  }
+
+  instruction "SLT": ALU_OP3 {
+    property func: int = 0b101010;
+    execute {
+      write(rd, (read(rs) < read(rt)):+int.1);
+    }
+  }
+
+  instruction "SLTU": ALU_OP3 {
+    property func: int = 0b101011;
+    execute {
+      write(rd, isLessThanUnsigned(read(rs), read(rt)):+int.1);
+    }
+  }
+
+  instruction "SUB": ALU_OP3 {
+    property func: int = 0b100010;
+    execute {
+      local e1: int = read(rs);
+      local e2: int = read(rt);
+      local res: int = e1 - e2;
+
+      CheckSubOverflow(e1, e2, res);
+      write(rd, res);
+    }
+  }
+
+  instruction "SUBU": ALU_OP3 {
+    property func: int = 0b100011;
+    execute {
+      write(rd, read(rs) - read(rt));
+    }
+  }
+
+  instruction "XOR": ALU_OP3 {
+    property func: int = 0b100110;
+    execute {
+      write(rd, read(rs) ^ read(rt));
+    }
+  }
+
+  //==============================//
+  // Two-Operand ALU Instructions //
+  //==============================//
+  addr-mode ALU_OP2 rd: GPR, rs: GPR {
+    property syntax: String = "%rd, %rs";
+    encoding = RType where { opcode = 0b011100, sa = 0b00000 }
+  }
+  
+  inline subroutine countLeadingZeros(e: int): int {
+    if (e == 0) {
+      return 32;
+    }
+    
+    local result: int = 0;
+    if (e[31:16] == 0) {
+      result = 16;
+      e = e << 16;
+    }	 
+
+    if (e[31:24] == 0) {
+      result = result + 8;
+      e = e << 8;
+    }
+
+    if (e[31:28] == 0) {
+      result = result + 4;
+      e = e << 4;
+    }
+
+    if (e[31:30] == 0) {
+      result = result + 2;
+      e = e << 2;
+    }
+
+    if (e[31] == true) {
+      result = result + 1;
+    }
+
+    return result;
+  }
+
+  instruction "CLO": ALU_OP2 {
+    property func: int = 0b100001;
+    execute {
+      write(rd, countLeadingZeros(read(rs)));
+    } 
+  }
+
+  instruction "CLZ": ALU_OP2 {
+    property func: int = 0b100000;
+    execute {
+      write(rd, countLeadingZeros(~read(rs)));
+    } 
+  }
+
+  //====================//
+  // Shift Instructions //
+  //====================//
+  operand-type SHIFT[5]: +int.5 [0, 31];
+
+  addr-mode SHIFTC rd: GPR, rt: GPR, sa: SHIFT {
+    property syntax: String = "%rd, %rt, %sa";
+    encoding = RType where { opcode = 0b000000, rs = 0b00000 }
+  }
+
+  addr-mode SHIFTV rd: GPR, rt: GPR, rs: GPR {
+    property syntax: String = "%rd, %rt, %rs";
+    encoding = RType where { opcode = 0b000000, sa = 0b00000 }
+  }
+
+  inline subroutine shiftRightLogical(e: int, shift: +int.5): int {
+    local hi: boolean = e[31];
+    local result: int = e[30:0] >> shift;
+    result[31 - shift] = hi;
+    return result;
+  }
+
+  instruction "SLL": SHIFTC {
+    property func: int = 0b000000;
+    execute {
+      write(rd, read(rt) << sa:+int.5);
+    }	
+  }
+
+  instruction "SLLV": SHIFTV {
+    property func: int = 0b000100;
+    execute {
+      write(rd, read(rt) << read(rs)[4:0]:+int.5);
+    }
+  }
+
+  instruction "SRA": SHIFTC {
+    property func: int = 0b000011;
+    execute {
+      write(rd, read(rt) >> sa:+int.5);
+    }
+  }
+
+  instruction "SRAV": SHIFTV {
+    property func: int = 0b000111;
+    execute { 
+      write(rd, read(rt) >> read(rs)[4:0]:+int.5);
+    }
+  }
+
+  instruction "SRL": SHIFTC {
+    property func: int = 0b000010;
+    execute {
+      write(rd, shiftRightLogical(read(rt), sa:+int.5));
+    }
+  }
+
+  instruction "SRLV": SHIFTV {
+    property func: int = 0b000110;
+    execute {
+      write(rd, shiftRightLogical(read(rt), read(rs)[4:0]:+int.5));
+    }
+  }
+
+  //==================================//
+  // Multiply and Divide Instructions //
+  //==================================//
+  global HiLo: int.64;
+
+  addr-mode MULT_RD rd: GPR {
+    property String: syntax = "%rd";
+    encoding = RType where { 
+      opcode = 0b000000, 
+      rs = 0b00000, 
+      rt = 0b00000, 
+      sa = 0b00000 
+    }
+  }
+
+  addr-mode MULT_RS rs: GPR {
+    property syntax: String = "%rs";
+    encoding = RType where { 
+      opcode = 0b000000, 
+      rt = 0b00000, 
+      rd = 0b00000, 
+      sa = 0b00000 
+    }
+  }
+
+  addr-mode MULT_OP2A rs: GPR, rt: GPR {
+    property syntax: String = "%rs, %rt";
+    encoding = RType where { opcode = 0b000000, rd = 0b00000, sa = 0b00000 }
+  }
+
+  addr-mode MULT_OP2B rs: GPR, rt: GPR {
+    property syntax: String = "%rs, %rt";
+    encoding = RType where { opcode = 0b011100, rd = 0b00000, sa = 0b00000 }
+  }
+
+  addr-mode MULT_OP3 rd: GPR, rs: GPR, rt: GPR {
+    property syntax: String = "%rd, %rs, %rt";
+    encoding = RType where { opcode = 0b011100, sa = 0b00000 }
+  }
+
+  inline subroutine readHi(): int {
+    return HiLo[63:32];
+  }
+
+  inline subroutine readLo(): int {
+    return HiLo[31:0];
+  }
+
+  inline subroutine writeHi(v: int): int {
+    HiLo[63:32] = v;
+  }
+
+  inline subroutine writeLo(v: int): int {
+    HiLo[31:0] = v;
+  }
+
+  instruction "DIV": MULT_OP2A {
+    property func: int = 0b011010;
+    execute {
+      local e1: int = read(rs);
+      local e2: int = read(rt);
+
+      writeHi(e1 % e2);
+      writeLo(e1 / e2);
+    }
+  }
+
+  instruction "DIVU": MULT_OP2A {
+    property func: int = 0b011011;
+    execute {
+      local e1: int.64 = read(rs);
+      local e2: int.64 = read(rt);
+      
+      writeHi(e1 % e2);
+      writeLo(e1 / e2);
+    }
+  }
+
+  instruction "MADD": MULT_OP2B {
+    property func: int = 0b000000;
+    execute {
+      local e1: int.64 = read(rs);
+      local e2: int.64 = read(rt);
+      HiLo = HiLo + (e1 * e2);
+    }	    
+  }
+  
+  instruction "MADDU": MULT_OP2B {
+    property func: int = 0b000001;
+    execute {
+      local e1: int.64 = read(rs):+int;
+      local e2: int.64 = read(rt):+int;
+      HiLo = HiLo + (e1 * e2);
+    }	    
+  }
+
+  instruction "MFHI": MULT_RD {
+    property func: int = 0b010000;
+    execute {
+      write(rd, readHi());
+    }
+  }
+
+  instruction "MFLO": MULT_RD {
+    property func: int = 0b010010;
+    execute {
+      write(rd, readLo());
+    }
+  }
+
+  instruction "MSUB": MULT_OP2B {
+    property func: int = 0b000100;
+    execute {
+      local e1: int.64 = read(rs);
+      local e2: int.64 = read(rt);
+      HiLo = (e1 * e2) - HiLo;
+    }	    
+  }
+
+  instruction "MSUBU": MULT_OP2B {
+    property func: int = 0b000101;
+    execute {
+      local e1: int.64 = read(rs):+int;
+      local e2: int.64 = read(rt):+int;
+      HiLo = (e1 * e2) - HiLo;
+    }	    
+  }
+
+  instruction "MTHI": MULT_RS {
+    property func: int = 0b010001;
+    execute {
+      writeHi(read(rs));
+    }
+  }
+
+  instruction "MTLO": MULT_RS {
+    property func: int = 0b010011;
+    execute {
+      writeLo(read(rs));
+    }
+  }
+
+  instruction "MUL": MULT_OP3 {
+    property func: int = 0b000010;
+    execute {
+      write(rd, read(rs) * read(rt));
+    }
+  }
+
+  instruction "MULT": MULT_OP2A {
+    property func: int = 0b011000;
+    execute {
+      local e1: int.64 = read(rs);
+      local e2: int.64 = read(rt);
+      HiLo = e1 * e2;
+    }
+  }
+
+  instruction "MUTLU": MULT_OP2A {
+    property func: int = 0b011001;
+    execute {
+      local e1: int.64 = read(rs):+int;
+      local e2: int.64 = read(rt):+int;
+      HiLo = e1 * e2;
+    }
+  }
+
+  //===================//
+  // Jump Instructions //
+  //===================//
+  operand-type INDEX[26]: +int.26 [0, 67108863]; // Fix bounds
+
+  addr-mode JUMP index: INDEX {
+    property syntax: String = "%index";
+    encoding = JType
+  }
+
+  addr-mode JREG rs: GPR {
+    property syntax: String = "%rs";   
+    encoding = RType where { opcode = 0b000000, rt = 0b00000 }
+  }
+
+  addr-mode JALR rs: GPR, rd: GPR {
+    property syntax: String = "%rd, %rs";
+    encoding = RType where { opcode = 0b000000, rt = 0b00000 }
+  }
+
+  inline subroutine step(): int {
+    inBranchDelaySlot = true;
+    stepInstruction();
+    inBranchDelaySlot = false;
+  }
+
+  // Need for the branch delay slot
+  external subroutine stepInstruction(): int;
+
+  instruction "J": JUMP {
+    property opcode: int = 0b000010;
+    execute {
+      step();
+      PC[27:0] = index:+int.26 << 2;
+    }
+  }
+
+  instruction "JAL": JUMP {
+    property opcode: int = 0b000011;
+    execute {
+      gprs[R31] = PC + 8;
+      step();
+      PC[27:0] = index:+int.26 << 2;
+    }
+  }
+
+  instruction "JALR": JALR {
+    property func: int = 0b001001;
+    execute {
+      local index: int = read(rs);
+      write(rd, PC + 8);
+      step();
+      PC = index;
+    }
+  }
+
+  instruction "JR": JREG {
+    property func: int = 0b001000;
+    execute {
+      local index: int = read(rs);
+      step();
+      PC = index;
+    }
+  }
+
+  //====================================================//
+  // Conditional Branch with two registers instructions //
+  //====================================================//
+  addr-mode BRANCH_OP2 rs: GPR, rt: GPR, offset: IMM {
+    property syntax: String = "%rs, %rt, %offset";
+    encoding = IType where { imm = offset }
+  }
+
+  instruction "BEQ": BRANCH_OP2 {
+    property opcode: int = 0b000100;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) == read(rt));
+      step();
+      if (cond) {
+        PC = PC + target;
+      } 
+    }
+  }
+
+  instruction "BNE": BRANCH_OP2 {
+    property opcode: int = 0b000101;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) != read(rt));
+      step();
+      if (cond) {
+        PC = PC + target;
+      } 
+    }
+  }
+
+  //====================================================//
+  // Conditional Branch on zero comparison instructions //
+  //====================================================//
+  addr-mode BRANCH_OP1A rs: GPR, offset: IMM {
+    property syntax: String = "%rs, %offset";
+    encoding = IType where { opcode = 0b000001, imm = offset }
+  }
+
+  addr-mode BRANCH_OP1B rs: GPR, offset: IMM {
+    property syntax: String = "%rs, %offset";
+    encoding = IType where { rt = 0b00000, imm = offset }
+  }
+
+  instruction "BGEZ": BRANCH_OP1A {
+    property rt: int = 0b00001;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) >= 0);
+      step();
+      if (cond) {
+        PC = PC + target;
+      }
+    }	    
+  }
+
+  instruction "BGEZAL": BRANCH_OP1A {
+    property rt: int = 0b10001;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) >= 0);
+      gprs[R31] = PC + 8;  
+      step();
+      if (cond) {
+        PC = PC + target;
+      }
+    }
+  }
+
+  instruction "BGTZ": BRANCH_OP1B {
+    property opcode: int = 0b000111;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) >= 0);
+      step();
+      if (cond) {
+        PC = PC + target;
+      }    
+    }
+  }
+
+  instruction "BLEZ": BRANCH_OP1B {
+    property opcode: int = 0b00110;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) <= 0);
+      step();
+      if (cond) {
+        PC = PC + target;
+      }    
+    }  
+  }
+
+  instruction "BLTZ": BRANCH_OP1A {
+    property rt: int = 0b00000;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) <= 0);
+      step();
+      if (cond) {
+        PC = PC + target;
+      }    
+    }    
+  }
+
+  instruction "BLTZAL": BRANCH_OP1A {
+    property rt: int = 0b10000;
+    execute {
+      local target: int = offset:int.16 << 2;
+      local cond: boolean = (read(rs) < 0);
+      gprs[R31] = PC + 8;  
+      step();
+      if (cond) {
+        PC = PC + target;
+      }
+    }
+  }
+
+  //========================================//
+  // Conditional Branch Likely (deprecated) //
+  //========================================//
+
+  instruction "BEQL": BRANCH_OP2 {
+    property opcode: int = 0b010100;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) == read(rt)) {
+        step();
+	PC = PC + target;
+      }      
+    }
+  }
+
+  instruction "BGEZALL": BRANCH_OP1A {
+    property rt: int = 0b10011;
+    execute {
+      local target: int = offset:int.16 << 2;
+      gprs[R31] = PC + 8;
+      if (read(rs) >= 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BGEZL": BRANCH_OP1A {
+    property rt: int = 0b00011;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) >= 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BGTZL": BRANCH_OP1B {
+    property opcode: int = 0b010111;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) > 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BLEZL": BRANCH_OP1B {
+    property opcode: int = 0b010110;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) <= 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BLTZALL": BRANCH_OP1A {
+    property rt: int = 0b10010;
+    execute {
+      local target: int = offset:int.16 << 2;
+      gprs[R31] = PC + 8;
+      if (read(rs) < 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BLTZL": BRANCH_OP1A {
+    property rt: int = 0b00010;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) < 0) {
+        step();
+	PC = PC + target;
+      }            
+    }
+  }
+
+  instruction "BNEL": BRANCH_OP2 {
+    property opcode: int = 0b010101;
+    execute {
+      local target: int = offset:int.16 << 2;
+      if (read(rs) != read(rt)) {
+        step();
+	PC = PC + target;
+      }      
+    }
+  }
+
+  //============================//
+  // Miscellaneous Instructions //
+  //============================//
+  addr-mode SYNC {
+    encoding = RType where { 
+      opcode = 0b000000,
+      rs     = 0b00000,
+      rt     = 0b00000,
+      rd     = 0b00000,
+      func   = 0b001111
+    }
+  }
+
+  instruction "SYNC": SYNC {
+    execute { }
+  }
+
+  //========================//
+  // Exception Instructions //
+  //========================//
+  addr-mode CTL_XFER {
+    encoding = RType where { opcode = 0b000000 }
+  }
+
+  addr-mode TRAP rs: GPR, rt: GPR {
+    property syntax: String = "%rs, %rt";
+    encoding = RType where { opcode = 0b000000 }
+  }
+
+  addr-mode TRAP_IMM rs: GPR, imm: IMM {
+    property syntax: String = "%rs, %imm";
+    encoding = IType where { opcode = 0b000001 }
+  }
+
+  addr-mode ERET {
+    encoding = { 0b010000, 0b1, 0b0000000000000000000, 0b011000 }
+  }
+
+  instruction "BREAK": CTL_XFER {
+    property func: int = 0b001101;
+    execute {
+      raiseBreakpoint();
+    }
+  }
+
+  instruction "SYSCALL": CTL_XFER {
+    property func: int = 0b001100;
+    execute {
+      raiseSyscall();
+    }
+  }
+
+  instruction "ERET": ERET {
+    execute {
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      }
+
+      if (EXL) {
+      	PC = ErrorEPC;
+	ERL = false;
+      } else {
+        PC = EPC;
+	EXL = false;
+      }
+    }
+  }
+
+  instruction "TEQ": TRAP {
+    property func: int = 0b110100;
+    execute {
+      if (read(rs) == read(rt)) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TGE": TRAP {
+    property func: int = 0b110000;
+    execute {
+      if (read(rs) >= read(rt)) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TGEU": TRAP {
+    property func: int = 0b110001;
+    execute {
+      if (!isLessThanUnsigned(read(rs), read(rt))) {
+        raiseTrap();
+      }
+    }
+
+  }
+
+  instruction "TLT": TRAP {
+    property func: int = 0b110010;
+    execute {
+      if (read(rs) < read(rt)) {
+        raiseTrap();
+      }
+    }
+
+  }
+
+  instruction "TLTU": TRAP {
+    property func: int = 0b110011;
+    execute {
+      if (isLessThanUnsigned(read(rs), read(rt))) {
+        raiseTrap();
+      }
+    }
+
+  }
+
+  instruction "TNE": TRAP {
+    property func: int = 0b110110;
+    execute {
+      if (read(rs) != read(rt)) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TEQI": TRAP_IMM {
+    property rt: int = 0b01100;
+    execute {
+      if (read(rs) == imm:int.16) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TGEI": TRAP_IMM {
+    property rt: int = 0b01000;
+    execute {
+      if (read(rs) >= imm:int.16) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TGEUI": TRAP_IMM {
+    property rt: int = 0b01001;
+    execute {
+      if (!isLessThanUnsigned(read(rs), imm:int)) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TLTI": TRAP_IMM {
+    property rt: int = 0b01010;
+    execute {
+      if (read(rs) < imm:int.16) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TLTUI": TRAP_IMM {
+    property rt: int = 0b01011;
+    execute {
+      if (isLessThanUnsigned(read(rs), imm:int)) {
+        raiseTrap();
+      }
+    }
+  }
+
+  instruction "TNEI": TRAP_IMM {
+    property rt: int = 0b01110;
+    execute {
+      if (read(rs) != imm:int.16) {
+        raiseTrap();
+      }
+    }
+  }
+
+  //==================//
+  // TLB Instructions //
+  //==================//
+
+  addr-mode TLB {
+    encoding = RType where { 
+      opcode = 0b010000,
+      rs = 0b10000,
+      rt = 0b00000,
+      rd = 0b00000,
+      sa = 0b00000
+    }
+  }
+
+  instruction "TLBP": TLB {
+    property func: int = 0b001000;
+    execute {
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      }
+    }
+  }
+
+  instruction "TLBR": TLB {
+    property func: int = 0b000001;
+    execute {
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      }
+    }
+  }
+
+  instruction "TLBWI": TLB {
+    property func: int = 0b000010;
+    execute {
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      }
+    }
+  }
+
+  instruction "TLBWR": TLB {
+    property func: int = 0b000110;
+    execute {
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      }
+    }
+  }
+
+  //==========================//
+  // Coprocessor Instructions //
+  //==========================//
+  
+  format CoMoveType = { 
+    opcode[5:0], 
+    func[4:0], 
+    rt[4:0], 
+    rd[4:0], 
+    0b00000000, 
+    sel[2:0] 
+  }
+
+  operand-type CREG[5]: +int.5 [0, 31];
+  operand-type SEL[3]: +int.3 [0, 7];
+
+  addr-mode COMVF rt: CREG, rd: GPR, sel: SEL {
+    property syntax: String = "%rt, %rd";
+    encoding = CoMoveType where { func = 0b00000 }
+  }
+
+  addr-mode COMVT rt: GPR, rd: CREG, sel: SEL {
+    property syntax: String = "%rt, %rd";
+    encoding = CoMoveType where { func = 0b00100 }
+  }	    
+
+  instruction "MFC0": COMVF {
+    property opcode: int = 0b010000;
+    execute {
+      local result: int = 0;
+      local select: +int.3 = sel:+int.3;
+      local reg: +int.5 = rt:+int.5;
+      
+      // Exception processing will be handled by the simulator...
+      raiseCoprocessorUnusable(0);
+      /*
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      } else if (select == 0) {
+        result = readC0S0Reg(reg);
+      } else if (select == 1) { 
+        result = readC0S1Reg(reg);
+      } else if (select == 2) {
+        result = readC0S2Reg(reg);
+      } else if (select == 3) {
+        result = readC0S3Reg(reg);
+      }
+      write(rd, result);
+      */
+    }
+  }
+
+  // Ugly, ugly, ugly... (language doesn't have case statements...)
+  inline subroutine readC0S0Reg(src: +int.5): int {
+    if (src <= 14) {
+      if (src <= 6) {
+        if (src < 3) {
+	  if (src == 0) {
+	    return readIndex(); 
+	  } else if (src == 2) {
+	    return readRandom();
+	  } else {
+	    return readEntryLo0();
+	  }
+	} else if (src == 3) {
+	  return readEntryLo1();
+	} else {
+	  if (src == 4) {
+	    return readContext();
+	  } else if (src == 5) {
+	    return readPageMask();
+	  } else {  
+	    return readWired();
+	  }
+	}
+      } else {
+        if (src < 11) {
+	  if (src == 8) {
+	    return readBadVAddr();
+	  } else if (src == 9) {
+	    return readCount();
+	  } else if (src == 10) {
+	    return readEntryHi();
+	  } else {
+	    return 0;
+	  } 
+	} else if (src == 11) {
+	  return readCompare();
+	} else {
+	  if (src == 12) {
+	    return readStatus();
+	  } else if (src == 13) {
+	    return readCause();
+	  } else {
+	    return readEPC();
+	  }
+	}
+      }
+    } else {
+      if (src <= 24) {
+        if (src < 18) {
+	  if (src == 15) {
+	    return readProcId();
+	  } else if (src == 16) {
+	    return readConfig0();
+	  } else {
+	    return readLLAddr();
+	  } 
+	} else if (src == 18) {
+	  return readWatchLo();
+	} else {
+	  if (src == 19) {
+	    return readWatchHi();
+	  } else if (src == 23) {
+	    return 0; // readDebug();
+	  } else if (src == 24) {
+	    return 0; // readDEPC();
+	  } else { 
+	    return 0;
+	  }
+	}
+      } else {
+        if (src < 28) {
+	  if (src == 25) {
+	    return readPerfCnt();
+	  } else if (src == 26) {
+	    return 0; // readErrCtl();
+	  } else {
+	    return 0; // readCacheErr();
+	  }
+	} else if (src == 28) {
+	  return readTagLo();
+	} else {
+	  if (src == 29) {
+	    return readTagHi();
+	  } else if (src == 30) {
+	    return readErrorEPC();
+	  } else {
+	    return 0; // readDESAVE();
+	  }
+	}
+      }
+    }
+  }
+
+  inline subroutine readC0S1Reg(src: +int.5): int {
+    if (src == 16) {
+      return readConfig1();
+    } else if (src == 28) {
+      return readDataLo();
+    } else if (src == 29) {
+      return readDataHi();
+    } else {
+      return 0;
+    }
+  }
+
+  inline subroutine readC0S2Reg(src: +int.5): int {
+    if (src == 16) {
+      return readConfig2();
+    } else {
+      return 0;
+    }
+  }
+
+  inline subroutine readC0S3Reg(src: +int.5): int {
+    if (src == 16) {
+      return readConfig2();
+    } else {
+      return 0;
+    }
+  }
+
+  instruction "MFC1": COMVF {
+    property opcode: int = 0b010001;
+    execute {
+      // Not implemented: coprocessor 1
+      raiseCoprocessorUnusable(1);
+    }
+  }
+
+  instruction "MFC2": COMVF {
+    property opcode: int = 0b010010;
+    execute {
+      // Not implemented: coprocessor 2
+      raiseCoprocessorUnusable(2);
+    }
+  }
+  
+  instruction "MTC0": COMVT {
+    property opcode: int = 0b010000;
+    execute {
+      local value: int = read(rt);
+      raiseCoprocessorUnusable(0);
+      /*
+      if (!inKernelMode() and !CU[0]) {
+        raiseCoprocessorUnusable(0);
+      } else if (sel:+int.3 == 0) {
+        writeC0S0Reg(rd:+int.5, read(rt));
+      } 
+      */
+    }
+  }
+
+  // Ugly, ugly, ugly
+  inline subroutine writeC0S0Reg(dst: +int.5, value: int): int {
+    if (dst <= 25) {
+      if (dst <= 10) {
+        if (dst <= 4) {
+	  if (dst <=2) {
+	    if (dst == 0) {
+	      writeIndex(value);
+	    } else if (dst == 2) {
+	      writeEntryLo0(value);
+	    }
+	  } else {
+	    if (dst == 3) {
+	      writeEntryLo1(value);
+	    } else {
+	      writeContext(value);
+	    }
+	  }
+	} else {
+          if (dst <= 6) {
+	    if (dst == 5) {
+	      writePageMask(value);
+	    } else if (dst == 6) {
+	      writeWired(value);
+	    }
+	  } else {
+	    if (dst == 9) {
+	      writeCount(value);
+	    } else if (dst == 10) {
+	      writeEntryHi(value);
+	    }
+	  }
+	}
+      } else {
+        if (dst <= 14) {
+	  if (dst <= 12) {
+	    if (dst == 11) {
+	      writeCompare(value);
+	    } else {
+	      writeStatus(value);
+	    }
+	  } else {
+	    if (dst == 13) {
+	      writeCause(value);
+	    } else {
+	      writeEPC(value);
+	    }
+	  }
+	} else {
+	  if (dst <= 18) {
+	    if (dst == 16) {
+	      writeConfig0(value);
+	    } else if (dst == 18) {
+	      writeWatchLo(value);
+	    }
+	  } else {
+	    if (dst == 19) {
+	      writeWatchHi(value);
+	    } else if (dst == 25) {
+	      writePerfCnt(value);
+	    }
+	  }
+	}
+      }
+    } else if (dst == 28) {
+      writeTagLo(value);
+    } else if (dst == 29) {
+      writeTagHi(value);
+    } else if (dst == 30) {
+      writeErrorEPC(value);
+    }
+  }
+
+  instruction "MTC1": COMVT {
+    property opcode: int = 0b010001;
+    execute {
+      raiseCoprocessorUnusable(1);
+    }
+  }
+
+  instruction "MTC2": COMVT {
+    property opcode: int = 0b010010;
+    execute {
+      raiseCoprocessorUnusable(2);
+    }
+  }
+
+  //==============================//
+  // Conditional Move instruction //
+  //==============================//
+  addr-mode CMOVE rs: GPR, rt: GPR, rd: GPR {
+    property syntax: String = "%rd, %rs, %rt";
+    encoding = RType where { opcode = 0b000000, sa = 0b00000 }  
+  }
+  
+  addr-mode CMOVEFP rs: GPR, cc: CC, rd: GPR {
+    property syntax: String = "%rd, %rs, %cc";
+    encoding = { 
+      0b000000, 
+      rs[4:0], 
+      cc[2:0], 
+      0b0, 
+      tf[0:0], 
+      rd[4:0], 
+      0b00000,
+      0b000001
+    }
+  }
+
+  operand-type CC[3]: +int.3 [0, 8];
+
+  instruction "MOVF": CMOVEFP {
+    property tf: int = 0b0;
+    execute {
+      // Not implemented: FP
+    }
+  }
+
+  instruction "MOVN": CMOVE {
+    property func: int = 0b001011;
+    execute {
+      if (read(rt) != 0) {
+        write(rd, read(rs));
+      }
+    }
+  }
+
+  instruction "MOVT": CMOVEFP {
+    property tf: int = 0b1;
+    execute {
+      // Not implemented: FP
+    }
+  }
+
+  instruction "MOVZ": CMOVE {
+    property func: int = 0b001010;
+    execute {
+      if (read(rt) != 0) {
+        write(rd, read(rs));
+      }
+    }
+  }
+
+  //======================//
+  // Prefetch Instruction //
+  //======================//
+
+  addr-mode PREFETCH hint: SHIFT, mem: MEM {
+    property syntax: String = "%hint, %mem.offset(%mem.base)";
+    encoding = IType where { 
+      opcode = 0b110011,  
+      rs = mem.base, 
+      rt = hint, 
+      imm = mem.offset 
+    }
+  }
+
+  instruction "PREF": PREFETCH {
+    execute {
+
+    }
+  }
+
+  //====================//
+  // No-op instructions //
+  //====================//
+  
+  addr-mode NOP {
+    encoding = { 0b000000, 0b00000, 0b00000, 0b00000, sa[4:0], 0b000000 }
+  }
+
+  pseudo instruction "NOP": NOP {
+    property sa: int = 0b00000;
+    execute { }
+  }
+
+  pseudo instruction "SSNOP": NOP {
+    property sa: int = 0b00001;
+    execute { }
+  }
+
+  //-------------------------//
+  // Coprocessor 0 Registers //
+  //-------------------------//
+  
+  //=================//
+  // Index Registers //
+  //=================//
+  global P: boolean;
+  global Index: int.6; // 64 TLB entries
+
+  inline subroutine readIndex(): int {
+    local result: int = 0;
+    result[31] = P;
+    result[5:0] = Index;
+    return result;
+  }
+
+  inline subroutine writeIndex(value: int): int {
+    P = value[31];
+    Index = value[5:0];
+  }
+
+  //=================//
+  // Random Register //
+  //=================//
+  global Random: int.6;  
+
+  external subroutine readRandom(): int;
+  
+  inline subroutine resetRandom(): int {
+    Random = 63; // TODO: change to TLBSize - 1
+  }
+  
+  //===================//
+  // EntryLo0 Register //
+  //===================//
+
+  global EntryLo0_PFN: int.24;
+  global EntryLo0_C: int.3;
+  global EntryLo0_D: boolean;
+  global EntryLo0_V: boolean;
+  global EntryLo0_G: boolean;
+
+  inline subroutine readEntryLo0(): int {
+    local result: int = 0;
+    result[29:6] = EntryLo0_PFN;
+    result[5:3]  = EntryLo0_C;
+    result[2]    = EntryLo0_D;
+    result[1]    = EntryLo0_V;
+    result[0]    = EntryLo0_G;
+    return result;
+  }
+
+  inline subroutine writeEntryLo0(value: int): int {
+    EntryLo0_PFN = value[29:6];
+    EntryLo0_C   = value[5:3];
+    EntryLo0_D   = value[2];
+    EntryLo0_V   = value[1];
+    EntryLo0_G   = value[0];
+  }
+
+  global EntryLo1_PFN: int.24;
+  global EntryLo1_C: int.3;
+  global EntryLo1_D: boolean;
+  global EntryLo1_V: boolean;
+  global EntryLo1_G: boolean;
+
+  inline subroutine readEntryLo1(): int {
+    local result: int = 0;
+    result[29:6] = EntryLo1_PFN;
+    result[5:3]  = EntryLo1_C;
+    result[2]    = EntryLo1_D;
+    result[1]    = EntryLo1_V;
+    result[0]    = EntryLo1_G;
+    return result;
+  }
+
+  inline subroutine writeEntryLo1(value: int): int {
+    EntryLo1_PFN = value[29:6];
+    EntryLo1_C   = value[5:3];
+    EntryLo1_D   = value[2];
+    EntryLo1_V   = value[1];
+    EntryLo1_G   = value[0];
+  }
+
+  //==================//
+  // Context Register //
+  //==================//
+  global PTEBase: int.9;
+  global BadVPN2: int.19;
+
+  inline subroutine readContext(): int {
+    local result: int = 0;
+    result[31:22] = PTEBase;
+    result[22:4]  = BadVPN2;
+    return result;
+  }
+
+  inline subroutine writeContext(value: int): int {
+    PTEBase = value[31:23];
+  }
+
+  //===================//
+  // PageMask Register // 
+  //===================//
+  global Mask: int.16;
+
+  inline subroutine readPageMask(): int {
+    local result: int = 0;
+    result[28:13] = Mask;
+  }
+
+  inline subroutine writePageMask(value: int): int {
+    Mask = value[28:13];
+  }
+
+  //================//
+  // Wired Register //
+  //================//
+  global Wired: int.6;
+
+  inline subroutine readWired(): int {
+    local result: int = 0;
+    result[5:0] = Wired;
+    return result;
+  }
+
+  inline subroutine writeWired(value: int): int {
+    Wired = value[7:0];
+  }
+  
+  inline subroutine resetWired(): int {
+    Wired = 0;
+  }
+
+  //===================//
+  // BadVAddr Register //
+  //===================//
+  global BadVAddr: int;
+
+  inline subroutine readBadVAddr(): int {
+    return BadVAddr;
+  }
+
+  //================//
+  // Count Register //
+  //================//
+  global Count: int;
+  
+  inline subroutine readCount(): int {
+    return Count;
+  }
+
+  inline subroutine writeCount(value: int): int {
+    Count = value;
+  }
+
+  //==================//
+  // EntryHi Register //
+  //==================//
+  global VPN2: int.19;
+  global ASID: int.8;
+
+  inline subroutine readEntryHi(): int {
+    local result: int = 0;
+    result[31:13] = VPN2;
+    result[7:0] = ASID;
+    return result;
+  }
+
+  inline subroutine writeEntryHi(value: int): int {
+    VPN2 = value[31:13];
+    ASID = value[7:0];
+  } 
+  
+  //==================//
+  // Compare Register //
+  //==================//
+  global Compare: int;
+  
+  inline subroutine readCompare(): int {
+    return Compare;
+  }
+
+  inline subroutine writeCompare(value: int): int {
+    Compare = value;
+  }  
+
+  //=================//
+  // Status Register //
+  //=================//
+  global CU: map<int.4, boolean>;
+  global BEV: boolean;
+  global TS: boolean;
+  global SR: boolean;
+  global NMI: boolean;
+  global IM: int.8;
+  global KSU: int.2;
+  global ERL: boolean;
+  global EXL: boolean;
+  global IE: boolean;
+
+  inline subroutine readStatus(): int {
+    local result: int = 0;
+    result[31] = CU[3];
+    result[30] = CU[2];
+    result[29] = CU[1];
+    result[28] = CU[0];
+    result[22] = BEV;
+    result[21] = TS;
+    result[20] = SR;
+    result[18] = NMI;
+    result[15:8] = IM;
+    result[4:3] = KSU;
+    result[2] = ERL;
+    result[1] = EXL;
+    result[0] = IE;
+    return result;
+  }
+
+  inline subroutine writeStatus(value: int): int {
+    CU[3] = value[31];
+    CU[2] = value[30];
+    CU[1] = value[29];
+    CU[0] = value[28];
+    BEV = value[22];
+    TS = value[21];
+    SR = value[20];
+    NMI = value[19];
+    IM = value[15:8];
+    KSU = value[4:3];
+    ERL = value[2];
+    EXL = value[1];
+    IE = value[0];
+  }   
+
+  inline subroutine resetStatus(): int {
+    BEV = true;
+    TS = false;
+    SR = false;
+    NMI = false;
+    ERL = true;
+  }
+
+  //================//
+  // Cause Register //
+  //================//
+  global BD: boolean;
+  global CE: int.2;
+  global IV: boolean;
+  global WP: boolean;
+  global IP: int.8;
+  global ExcCode: int.5;
+  
+  inline subroutine readCause(): int {
+    local result: int = 0;
+    result[31] = BD;
+    result[29:28] = CE;
+    result[23] = IV;
+    result[22] = WP;
+    result[15:8] = IP;
+    result[6:2] = ExcCode;
+  }
+  
+  inline subroutine writeCause(value: int): int {
+    IV = value[23];
+    WP = value[22];
+    IP[1:0] = value[9:8];
+  }
+ 
+  //===========================//
+  // Exception Program Counter //
+  //===========================//
+  global EPC: int;
+  
+  inline subroutine readEPC(): int {
+    return EPC;
+  }
+
+  inline subroutine writeEPC(value: int): int {
+    EPC = value;
+  }
+  
+  //===================================//
+  // Processor Identification Register //
+  //===================================//
+  inline subroutine readProcId(): int {
+    local result: int = 0;
+    local Options: int.8 = 0;
+    local CompanyId: int.8 = 1;
+    local ProcessorId: int.8 = 1;
+    local Revision: int.8 = 0;
+
+    result[31:24] = Options;
+    result[23:16] = CompanyId;
+    result[15:8] = ProcessorId;
+    result[7:0] = Revision;
+  }	 
+
+  //==================//
+  // Config0 Register //
+  //==================//
+  global K0: int.3;
+
+  inline subroutine readConfig0(): int {
+    // Preset values
+    local result: int = 0;
+    local M: boolean = true;
+    local BE: boolean = false;
+    local AT: int.2 = 0;
+    local AR: int.3 = 0;
+    local MT: int.3 = 0;
+    
+    result[31] = M;
+    result[15] = BE;
+    result[14:13] = AT;
+    result[12:10] = AR;
+    result[9:7] = MT;
+    result[2:0] = K0;
+
+    return result;
+  }
+
+  inline subroutine writeConfig0(value: int): int {
+    K0 = value[2:0];
+  }
+
+  inline subroutine resetConfig0(): int {
+    K0 = 2;
+  }
+  
+  //==================//
+  // Config1 Register //
+  //==================//
+  inline subroutine readConfig1(): int {
+    // Preset values
+    local result: int = 0;
+    local M: boolean = false;
+    local MMU: int.6 = 0;
+    local IS: int.3 = 0;
+    local IL: int.3 = 0;
+    local IA: int.3 = 0;
+    local DS: int.3 = 0;
+    local DL: int.3 = 0;
+    local DA: int.3 = 0;
+    local C2: boolean = false;
+    local PC: boolean = false;
+    local WR: boolean = false;
+    local CA: boolean = false;
+    local EP: boolean = false;
+    local FP: boolean = false;
+
+    result[31] = M;
+    result[30:25] = MMU;
+    result[24:22] = IS;
+    result[21:19] = IL;
+    result[18:16] = IA;
+    result[15:13] = DS;
+    result[12:10] = DL;
+    result[9:7] = DA;
+    result[6] = C2;
+    result[4] = PC;
+    result[3] = WR;
+    result[2] = CA;
+    result[1] = EP;
+    result[0] = FP;
+
+    return result;
+  }
+
+  //==================//
+  // Config2 Register //
+  //==================//
+  inline subroutine readConfig2(): int {
+    local result: int = 0;
+    local M: boolean = false;
+    local TBS: int.31 = 0;
+    
+    result[31] = M;
+  }
+  
+  //=================//
+  // LLAddr Register //
+  //=================//
+  global LLAddr: int;
+
+  inline subroutine readLLAddr(): int {
+    return LLAddr;
+  }
+
+  //==================//
+  // WatchLo Register //
+  //==================//
+  global VAddr: int.29;
+  global I: boolean;
+  global R: boolean;
+  global W: boolean;
+
+  inline subroutine readWatchLo(): int {
+    local result: int = 0;
+    result[31:3] = VAddr;
+    result[2] = I;
+    result[1] = R;
+    result[0] = W;
+    return result;
+  }
+
+  inline subroutine writeWatchLo(value: int): int {
+    VAddr = value[31:3];
+    I = value[2];
+    R = value[1];
+    W = value[0];
+  }
+
+  inline subroutine resetWatchLo(): int {
+    I = false;
+    R = false;
+    W = false;
+  }
+
+  //==================//
+  // WatchHi Register //
+  //==================//
+  inline subroutine readWatchHi(): int {
+    return 0;
+  }
+
+  inline subroutine writeWatchHi(value: int): int {
+
+  }
+
+  inline subroutine resetWatchHi(): int {
+
+  }
+
+  //==================//
+  // PerfCnt Register //
+  //==================//
+  inline subroutine readPerfCnt(): int {
+    return 0;
+  }
+
+  inline subroutine writePerfCnt(value: int): int {
+
+  }
+
+  inline subroutine resetPerfCnt(): int {
+
+  }
+
+  //================//
+  // TagLo Register //
+  //================//
+  inline subroutine readTagLo(): int {
+    return 0;
+  }
+
+  inline subroutine writeTagLo(value: int): int {
+
+  }
+
+  //=================//
+  // DataLo Register //
+  //=================//
+  inline subroutine readDataLo(): int {
+    return 0;
+  }
+
+  //================//
+  // TagHi Register //
+  //================//
+  inline subroutine readTagHi(): int {
+    return 0;
+  }
+
+  inline subroutine writeTagHi(value: int): int {
+
+  }
+
+  //=================//
+  // DataHi Register //
+  //=================//
+  inline subroutine readDataHi(): int {
+    return 0;
+  }
+
+
+  //===================//
+  // ErrorEPC Register //
+  //===================//
+  global ErrorEPC: int;
+
+  inline subroutine readErrorEPC(): int {
+    return ErrorEPC;
+  }
+
+  inline subroutine writeErrorEPC(value: int): int {
+    
+  }
+
+  //=======================//
+  // Exception Subroutines //
+  //=======================//
+  global inBranchDelaySlot: boolean;
+
+  // Stops instruction execution immediately
+  external subroutine stop(): int;
+
+  inline subroutine inKernelMode(): boolean {
+    return ((KSU == 0) or EXL or ERL);
+  }
+
+  inline subroutine inSupervisorMode(): boolean {
+    return ((KSU == 1) and !EXL and !ERL); 
+  }
+
+  inline subroutine inUserMode(): boolean {
+    return ((KSU == 2) and !EXL and !ERL); 
+  }
+
+  inline subroutine raiseException(code: int.5, coproc: int.2): int {
+    local offset: int = 0;
+    if (!EXL) {
+      if (inBranchDelaySlot) {
+        EPC = PC - 4;
+        BD = true;
+      } else {
+        EPC = PC;
+	BD = false;
+      }      
+
+      if ((code == 2) or (code == 3)) {  // TLB refill due to load or store
+      	offset = 0;
+      } else if ((code == 0) and (IV)) { // Interrupt
+      	offset = 0x200;
+      } else {
+        offset = 0x180;
+      }
+    } else {
+      offset = 0x180;
+    }
+
+    CE = coproc;
+    ExcCode = code;
+    EXL = true;
+    
+    if (BEV) {
+      PC = (0xBFC002 << 8) + offset; // 0xBFC00200 + offset
+    } else {
+      PC = (1 << 31) + offset; // 0x80000000 + offset;      
+    }
+    stop();
+  }
+
+  // Individual Exceptions
+
+  inline subroutine raiseReset(): int {
+    resetRandom();
+    resetWired();
+    resetStatus();
+    resetConfig0();
+    resetWatchLo();
+    resetWatchHi();
+    resetPerfCnt();
+    if (inBranchDelaySlot) {
+      ErrorEPC = PC - 4;
+    } else {
+      ErrorEPC = PC;
+    }
+    PC[31:16] = 0xBFC0;
+  }
+
+  inline subroutine raiseSoftReset(): int {
+    resetStatus();
+    resetWatchLo();
+    resetWatchHi();
+    resetPerfCnt();
+    if (inBranchDelaySlot) {
+      ErrorEPC = PC - 4;
+    } else {
+      ErrorEPC = PC;
+    }
+    PC[31:16] = 0xBFC0;
+  }
+
+  inline subroutine raiseNMI(): int {
+    resetStatus();
+    if (inBranchDelaySlot) {
+      ErrorEPC = PC - 4;
+    } else {
+      ErrorEPC = PC;
+    }
+    PC[31:16] = 0xBFC0;
+  } 
+
+  inline subroutine raiseMCheck(): int {
+    raiseException(24, 0);
+  }
+
+  inline subroutine raiseAddrError(vAddr: int, isLoad: boolean): int {
+    BadVAddr = vAddr;
+    if (isLoad) {
+      raiseException(4, 0);
+    } else {
+      raiseException(5, 0);
+    }
+  }
+
+  inline subroutine raiseTLB(vAddr:int, isTLBLoad: boolean): int {
+    BadVAddr = vAddr;
+    BadVPN2 = vAddr[31:13];
+      
+    if (isTLBLoad) {
+      raiseException(2, 0);
+    } else {
+      raiseException(3, 0);
+    }
+  }
+
+  inline subroutine raiseCacheError(): int {
+    raiseException(30, 0);
+  }
+
+  // In this context, only data references -- instruction references need
+  // to executed before each instruction reference
+  inline subroutine raiseBusError(): int {
+    raiseException(7, 0);
+  }
+
+  inline subroutine raiseOverflow(): int {
+    raiseException(12, 0);
+  }
+
+  inline subroutine raiseTrap(): int {
+    raiseException(13, 0);
+  }
+
+  inline subroutine raiseSyscall(): int {
+    raiseException(8, 0);
+  }
+
+  inline subroutine raiseBreakpoint(): int {
+    raiseException(9, 0);
+  }
+
+  inline subroutine raiseReservedInstruction(): int {
+    raiseException(10, 0);
+  }
+
+  inline subroutine raiseCoprocessorUnusable(coproc: int.2): int {
+    raiseException(11, coproc);
+  }
+
+  inline subroutine raiseFloatingPoint(): int {
+    raiseException(15, 1);
+  }
+
+  inline subroutine raiseCoprocessor2(): int {
+    raiseException(18, 2);
+  }
+  
+  inline subroutine raiseWatch(): int {
+    raiseException(23, 0);
+  }
+
+  inline subroutine checkInterrupts(): int {
+    if (IE and !EXL and !ERL) {
+      if ((IP & IM) != 0) {
+        raiseException(0, 0);
+      }
+    }
+  }
+
+  //============================//
+  // Memory Mapping Subroutines //
+  //============================//
+  inline subroutine fixedAddressTranslation(vAddr: int): int {
+    local pAddr: int = vAddr;
+    local seg: int.4 = vAddr[31:28];
+    if (seg < 7) {
+      if (ERL) {
+        seg = seg + 0x4;
+      }
+    } else if ((seg == 8) or (seg == 9)) {
+      seg = seg - 0x8;
+    } else if ((seg == 0xA) or (seg == 0xB)) {
+      seg = seg - 0xA;
+    }
+
+    pAddr[31:28] = seg;
+    return pAddr;
+  }
+}

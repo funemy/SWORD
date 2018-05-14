@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="lib" path="/Users/liyanze/java-oxygen/projects/java-lib/bcel-6.2.jar"/>
+	<classpathentry kind="lib" path="/Users/liyanze/java-oxygen/projects/java-lib/java_cup.jar"/>
+	<classpathentry kind="lib" path="/Users/liyanze/java-oxygen/projects/java-lib/xercesImpl-2.8.0.jar"/>
+	<classpathentry kind="output" path=""/>
+</classpath>

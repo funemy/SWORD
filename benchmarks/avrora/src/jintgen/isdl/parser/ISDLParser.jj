@@ -1,0 +1,774 @@
+/**
+ * Copyright (c) 2004-2005, Regents of the University of California
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * Neither the name of the University of California, Los Angeles nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * This file implements a parser for the instruction set description language
+ * that is used by jIntGen to generate an optimized interpreter as well as
+ * an abstract interpreter, visitors, instruction representations, etc.
+ *
+ * @author Ben L. Titzer
+ **/
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+
+PARSER_BEGIN(ISDLParser)
+
+package jintgen.isdl.parser;
+import jintgen.jigir.*;
+import jintgen.isdl.*;
+import jintgen.types.*;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.HashMap;
+
+public class ISDLParser {
+
+    ArchDecl arch;
+
+}
+
+PARSER_END(ISDLParser)
+
+/* WHITE SPACE */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+/* COMMENTS */
+
+MORE :
+{
+  "//" : IN_SINGLE_LINE_COMMENT
+|
+  <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+|
+  "/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_FORMAL_COMMENT>
+SPECIAL_TOKEN :
+{
+  <FORMAL_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_FORMAL_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+
+/* RESERVED WORDS AND LITERALS */
+
+TOKEN :
+{
+  < INTEGER_LITERAL:
+       (<DECIMAL_LITERAL> | <HEX_LITERAL> | <BIN_LITERAL> | <OCTAL_LITERAL>)
+  >
+|
+  < #DECIMAL_LITERAL: (("-")? ["1"-"9"] (["0"-"9"])*) >
+|
+  < #HEX_LITERAL: (("0" ["x","X"])) (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #BIN_LITERAL: "0" ["b","B"] (["0", "1"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}
+
+/* Reserved words */
+TOKEN :
+{
+    < INSTRUCTION : "instruction" >
+  | < ARCHITECTURE : "architecture" >
+  | < FORMAT : "format" >
+  | < ENUM : "enum" >
+  | < ENUM_SUB : "enum-subset" >
+  | < OPERAND_TYPE : "operand-type" >
+  | < ADDR_MODE : "addr-mode" >
+  | < ADDR_SET : "addr-set" >
+  | < READ : "read" >
+  | < WRITE : "write" >
+  | < WHERE : "where" >
+  | < PRIORITY : "priority" >
+  | < ENCODING : "encoding" >
+  | < EXECUTE : "execute" >
+  | < LOCAL : "local" >
+  | < GLOBAL : "global" >
+  | < MEMORY : "memory" >
+  | < IF : "if" >
+  | < ELSE : "else" >
+  | < AND: "and" >
+  | < OR: "or" >
+  | < XOR: "xor" >
+  | < SUBROUTINE: "subroutine" >
+  | < INLINE: "inline" >
+  | < EXTERNAL: "external" >
+  | < RETURN: "return" >
+  | < BOOLEAN_LITERAL: "true" | "false" >
+  | < PSEUDO: "pseudo" >
+  | < WHEN : "when" >
+  | < PROPERTY: "property" >
+}
+
+TOKEN :
+{
+    < LBRACKET: "{" >
+  | < RBRACKET: "}" >
+  | < EQUALS: "=" >
+  | < COMMA: "," >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < SEMI: ";" >
+  | < SHIFTLEFT: "<<" >
+  | < SHIFTRIGHT: ">>" >
+  | < ADD: "+" >
+  | < SUB: "-" >
+  | < MUL: "*" >
+  | < DIV: "/" >
+  | < MOD: "%" >
+  | < B_AND: "&" >
+  | < B_OR: "|" >
+  | < B_XOR: "^" >
+  | < NOT: "!" >
+  | < B_COMP: "~" >
+  | < EQUAL: "==" >
+  | < NOTEQUAL: "!=" >
+  | < LESS: "<" >
+  | < LESSEQ: "<=" >
+  | < GREATER: ">" >
+  | < GREATEREQ: ">=" >
+  | < DOLLAR: "$" >
+}
+
+/* Instruction MNEMONICS */
+
+/* IDENTIFIERS */
+
+TOKEN :
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+      [ "a"-"z", "A"-"Z", "_"]
+  >
+|
+  < #DIGIT:
+      [ "0"-"9" ]
+  >
+}
+
+
+/* Begin GRAMMAR */
+
+
+ArchDecl ArchDecl() : { Token n; }
+{
+    "architecture" n = <IDENTIFIER> { arch = new ArchDecl(n); }"{"
+        (Item())*
+    "}" { return arch; }
+}
+
+void Item() : {}
+{
+    Instruction()
+  | Enum()
+  | EnumSubset()
+  | FormatDecl()
+  | OperandTypeDecl()
+  | Subroutine()
+  | AddrModeDecl()
+  | AddrSetDecl()
+  | Global()
+}
+
+void Instruction() :
+{
+    Token n;
+    AddrModeUse am;
+    List<Stmt> s = new LinkedList<Stmt>();
+    List<Property> p = new LinkedList<Property>();
+    FormatDecl e;
+    boolean pseudo = false;
+}
+{
+    ["pseudo" { pseudo = true; }] "instruction" n = <STRING_LITERAL> am = AddrModeUse(n) "{"
+        ( e = Encoding(n) { am.addEncoding(e); })*
+        ( Property(p) )*
+        [ s = Execute(s) ]
+
+    "}" { arch.addInstruction(new InstrDecl(pseudo, n, am, p, s)); }
+}
+
+void Enum() : { Token n; SymbolMapping m; }
+{
+    "enum" n = <IDENTIFIER> { m = new SymbolMapping(n); }"{"
+        MappingSetElem(m) ("," MappingSetElem(m))*
+    "}" { arch.addEnum(new EnumDecl(n, m)); }
+}
+
+void EnumSubset() : { Token n; EnumTypeRef t; SymbolMapping m; }
+{
+    "enum-subset" n = <IDENTIFIER> ":" t = EnumType() { m = new SymbolMapping(n); }"{"
+        MappingSetElem(m) ("," MappingSetElem(m))*
+    "}" { arch.addEnum(new EnumDecl.Subset(n, t, m)); }
+}
+
+AddrModeUse AddrModeUse(Token n) : { List<AddrModeDecl.Operand> o; }
+{
+    (":" n = <IDENTIFIER> { return new AddrModeUse(n, null); })
+   |(o = Operands() { return new AddrModeUse(null, new AddrModeDecl(n, o)); })
+}
+
+Property Property(List<Property> pl) : { Property p; Token name, v; TypeRef t; }
+{
+    "property" name = <IDENTIFIER> ":" t = Type() "=" v = Value() ";"
+    { p = new Property(name, t, v);
+      if ( pl != null ) pl.add(p);
+      return p; }
+}
+
+Token Value() : { Token t; }
+{
+  ( t = <STRING_LITERAL>
+  | t = <IDENTIFIER>
+  | t = <BOOLEAN_LITERAL>
+  | t = <INTEGER_LITERAL>)
+  { return t; }
+}
+
+void Global() : { Token n; TypeRef t; }
+{
+    "global" n = <IDENTIFIER> ":" t = Type() ";" { arch.addGlobal(n, t); }
+}
+
+void AddrModeDecl() : {
+    Token n;
+    AddrModeDecl amd;
+    Property p;
+    List<AddrModeDecl.Operand> o;
+    FormatDecl e;
+}
+{
+    "addr-mode" n = <IDENTIFIER> o = Operands() { amd = new AddrModeDecl(n, o); } "{"
+        (p = Property(null) { amd.addProperty(p); }
+        | e = Encoding(n) { amd.addEncoding(e); }
+        )*
+    "}" { arch.addAddressingMode(amd); }
+}
+
+void AddrSetDecl() : { Token n; List<Token> l = new LinkedList<Token>(); Token e; }
+{
+    "addr-set" n = <IDENTIFIER> "{"
+        e = <IDENTIFIER> { l.add(e); }
+        ("," e = <IDENTIFIER> { l.add(e); })*
+    "}"
+    { arch.addAddressingModeSet(new AddrModeSetDecl(n, l)); }
+}
+
+FormatDecl Encoding(Token n) : { FormatDecl d; FormatDecl.Cond ec; }
+{
+    "encoding" "=" d = Format(n) [ec = EncodingCond() { d.setCond(ec); }] { return d; }
+}
+
+FormatDecl.Cond EncodingCond() : { Token n; Expr e; }
+{
+    "when" n = <IDENTIFIER> "==" e = Expr() { return new FormatDecl.Cond(n, e); }
+}
+
+List<Stmt> Execute(List<Stmt> s) : { }
+{
+    "execute" Block(s) { return s; }
+}
+
+void FormatDecl() : { Token n; FormatDecl d; }
+{
+    "format" n = <IDENTIFIER> "=" d = Format(n) { arch.addEncoding(d); }
+}
+
+void OperandTypeDecl() : { Token n; OperandTypeDecl d; }
+{
+    "operand-type" n = <IDENTIFIER>  ( d = SimpleOperandType(n) | d = CompoundOperandType(n) )
+    { arch.addOperand(d); }
+}
+
+OperandTypeDecl SimpleOperandType(Token n) : { TypeRef t; Token b, l = null, h = null; OperandTypeDecl d; }
+{
+    "[" b = <INTEGER_LITERAL> "]" ":"
+    t = Type() [ "[" l = <INTEGER_LITERAL> "," h = <INTEGER_LITERAL> "]" ]
+    { d = new OperandTypeDecl.Value(n, b, t, l, h); }
+    ( OperandBody(d) | ";" )
+    { return d; }
+}
+
+OperandTypeDecl CompoundOperandType(Token n) :
+{
+    OperandTypeDecl.Compound cd = new OperandTypeDecl.Compound(n);
+}
+{
+    OperandBody(cd)
+    { return cd; }
+
+}
+
+void OperandBody(OperandTypeDecl td) : { }
+{
+    "{"
+    ( ReadMethod(td)
+    | WriteMethod(td)
+    | SubOperand(td) )*
+    "}"
+}
+
+void SubOperand(OperandTypeDecl td) : { AddrModeDecl.Operand o; }
+{
+    "sub-operand" o = Operand() { td.addSubOperand(o); } ";"
+}
+
+void ReadMethod(OperandTypeDecl td) :
+{
+  Token r;
+  TypeRef tr;
+  List<Stmt> s = new LinkedList<Stmt>();
+
+}
+{
+    r = "read" ":" tr = Type() Block(s) { td.addReadDecl(r, tr, new CodeRegion(s)); }
+}
+
+void WriteMethod(OperandTypeDecl td) :
+{
+  Token r;
+  TypeRef tr;
+  List<Stmt> s = new LinkedList<Stmt>();
+
+}
+{
+    r = "write" ":" tr = Type() Block(s)  { td.addWriteDecl(r, tr, new CodeRegion(s)); }
+}
+
+void MappingSetElem(SymbolMapping m) : { Token n, i; }
+{
+    (n = <IDENTIFIER> "=" i = <INTEGER_LITERAL>)
+    { m.add(n, i); }
+}
+
+FormatDecl Format(Token n) : { Token pr = null; FormatDecl d; }
+{
+   ["priority" pr = <INTEGER_LITERAL>] (d = DerivedFormat(pr, n) | d = NewFormat(pr, n)) { return d; }
+}
+
+FormatDecl DerivedFormat(Token pr, Token n) :
+{
+    Token p;
+    List<FormatDecl.Substitution> l = new LinkedList<FormatDecl.Substitution>();
+}
+{
+    p = <IDENTIFIER> ("where" l = SubstitutionList() | ";" )
+    { return new FormatDecl.Derived(n, pr, p, l); }
+}
+
+FormatDecl NewFormat(Token pr, Token n) : { List<Expr> l; }
+{
+    "{" l = ExprList() "}" { return new FormatDecl(n, pr, l); }
+}
+
+List<FormatDecl.Substitution> SubstitutionList() :
+{
+    List<FormatDecl.Substitution> l = new LinkedList<FormatDecl.Substitution>();
+    FormatDecl.Substitution s;
+}
+{
+    "{" s = Substitution() { l.add(s); } ("," s = Substitution() { l.add(s); })* "}" { return l; }
+}
+
+FormatDecl.Substitution Substitution() : { Token n; Expr e; }
+{
+    n = <IDENTIFIER> "=" e = Expr() { return new FormatDecl.Substitution(n, e); }
+}
+
+List<AddrModeDecl.Operand> Operands() :
+{
+    AddrModeDecl.Operand o;
+    List<AddrModeDecl.Operand> l = new LinkedList<AddrModeDecl.Operand>();
+}
+{
+    [ o = Operand() { l.add(o); } ("," o = Operand() { l.add(o); })* ] { return l; }
+}
+
+AddrModeDecl.Operand Operand() : { Token n; OperandTypeRef t; }
+{
+    n = <IDENTIFIER> ":" t = OperandType() { return new AddrModeDecl.Operand(n, t); }
+}
+
+void Subroutine() :
+{
+    boolean i = false;
+    Token m;
+    TypeRef r;
+    List<SubroutineDecl.Parameter> f;
+    List<Stmt> l = new LinkedList<Stmt>();
+}
+{
+    (["inline" { i = true; }] "subroutine" m = <IDENTIFIER>
+       "(" f = Params() ")" ":" r = Type() Block(l)
+        { arch.addSubroutine(new SubroutineDecl(i, m, f, r, l)); } )
+   |("external" "subroutine" m = <IDENTIFIER> "(" f = Params() ")" ":" r = Type() ";"
+        { arch.addSubroutine(new SubroutineDecl(i, m, f, r, null)); } )
+
+}
+
+List<SubroutineDecl.Parameter> Params() :
+{
+    SubroutineDecl.Parameter p;
+    List<SubroutineDecl.Parameter> l = new LinkedList<SubroutineDecl.Parameter>();
+}
+{
+    [ p = Param() { l.add(p); } ("," p = Param() { l.add(p); })* ] { return l; }
+}
+
+SubroutineDecl.Parameter Param() : { Token n; TypeRef t; }
+{
+    n = <IDENTIFIER> ":" t = Type() { return new SubroutineDecl.Parameter(n, t); }
+}
+
+Expr Expr() : { Expr e; }
+{
+    e = Cond_Or_Expr() { return e; }
+}
+
+List<Expr> ExprList() : { List<Expr> l = new LinkedList<Expr>(); Expr e; }
+{
+    (e = Expr() { l.add(e); } ("," e = Expr() { l.add(e); } )*)
+    { return l; }
+}
+
+Expr Term() : { Expr e; }
+{
+    ( LOOKAHEAD(2) e = CallExpr()
+    | LOOKAHEAD(2) e = DotExpr()
+    | e = VarUse()
+    | e = Literal()
+    | e = ReadExpr()
+    | "(" e = Expr() ")"
+    )
+    (e = Index(e))*
+    [e = Conversion(e)]
+    { return e; }
+}
+
+Expr Conversion(Expr e) : { TypeRef t; }
+{
+  ":" t = Type() { return new ConversionExpr(e, t); }
+}
+
+Expr VarUse() : { Token t; }
+{
+  t = <IDENTIFIER> { return new VarExpr(t); }
+}
+
+Expr DotExpr() : { Token o, f; }
+{
+    o = <IDENTIFIER> "." f = <IDENTIFIER> { return new DotExpr(new VarExpr(o), f); }
+}
+
+Expr Literal() : { Token t; }
+{
+  (t = <INTEGER_LITERAL> { return new Literal.IntExpr(t); })
+ |(t = <BOOLEAN_LITERAL> { return new Literal.BoolExpr(t); })
+}
+
+Expr ReadExpr() : { Token r, o; TypeRef t = null; }
+{
+  r = "read" [":" t = Type()] "(" o = <IDENTIFIER> ")" { return new ReadExpr(r, t, o); }
+}
+
+Expr CallExpr() : { Token t; List<Expr> l; }
+{
+  t = <IDENTIFIER> l = Parameters() { return new CallExpr(t, l); }
+}
+
+List<Expr> Parameters() : { List<Expr> l = new LinkedList<Expr>(); }
+{
+    "(" [ l = ExprList() ] ")"
+    { return l; }
+}
+
+Stmt Statement() : { Stmt s; }
+{
+  (
+    s = LocalDecl()
+  | s = IfStatement()
+  | LOOKAHEAD(Expr() "=") s = Assignment()
+  | s = CallStmt()
+  | s = ReturnStmt()
+  | s = WriteStmt()
+  ) { return s; }
+}
+
+DeclStmt LocalDecl() : { Token n; TypeRef t; Expr e; }
+{
+    "local" n = <IDENTIFIER> ":" t = Type() "=" e = Expr() ";"
+    { return new DeclStmt(n, t, e); }
+}
+
+IfStmt IfStatement() : { Expr c; List<Stmt> t = new LinkedList<Stmt>(), f = new LinkedList<Stmt>(); }
+{
+    "if" "(" c = Expr() ")" SingleStatement(t)
+        [ LOOKAHEAD(1) "else" SingleStatement(f) ]
+    { return new IfStmt(c, t, f); }
+}
+
+CallStmt CallStmt() : { Token t; List<Expr> l; }
+{
+  t = <IDENTIFIER> l = Parameters() ";" { return new CallStmt(t, l); }
+}
+
+
+ReturnStmt ReturnStmt() : { Expr e; }
+{
+    "return" e = Expr() ";" { return new ReturnStmt(e); }
+}
+
+WriteStmt WriteStmt() : { Token w, o; TypeRef t = null; Expr e; }
+{
+  w = "write" [":" t = Type() ] "(" o = <IDENTIFIER> "," e = Expr() ")" ";"
+  { return new WriteStmt(w, t, o, e); }
+}
+
+void SingleStatement(List<Stmt> l) : { Stmt s; }
+{
+    s = Statement() { l.add(s); } | (Block(l))
+}
+
+AssignStmt Assignment() : { Expr d; Expr e; }
+{
+    d = Expr() "=" e = Expr() ";"
+    { return new AssignStmt(d, e); }
+}
+
+List<Stmt> Block(List<Stmt> l) : { Stmt s; }
+{
+    "{" (s = Statement() { l.add(s); })* "}"
+    { return l; }
+}
+
+Expr Index(Expr e) : { Expr et; Token t1, t2; }
+{
+    "["
+    (LOOKAHEAD(2) (t1 = <INTEGER_LITERAL> ":" t2 = <INTEGER_LITERAL>
+     { e =  new FixedRangeExpr(e, t1, t2); })
+   | (et = Expr()
+     { e = new IndexExpr(e, et); }))
+    "]"
+    { return e; }
+}
+
+
+Expr Cond_Or_Expr() : { Expr e, et; Token tok; }
+{
+  e = Cond_Xor_Expr()
+  ( tok = "or" et = Cond_Xor_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Cond_Xor_Expr() : { Expr e, et; Token tok; }
+{
+  e = Cond_And_Expr()
+  ( tok = "xor" et = Cond_And_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Cond_And_Expr() : { Expr e, et; Token tok; }
+{
+  e = Or_Expr()
+  ( tok = "and" et = Or_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Or_Expr() : { Expr e, et; Token tok; }
+{
+  e = Xor_Expr()
+  ( tok = "|" et = Xor_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Xor_Expr() : { Expr e, et; Token tok; }
+{
+  e = And_Expr()
+  ( tok = "^" et = And_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr And_Expr() : { Expr e, et; Token tok; }
+{
+  e = Equ_Expr()
+  ( tok = "&" et = Equ_Expr()
+    { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Equ_Expr() : { Expr e, et; Token tok; }
+{
+  e = Rel_Expr() (
+     (tok = "==" | tok = "!=")
+     et = Rel_Expr() { e = new BinOpExpr(e, tok, et); })*
+  { return e; }
+}
+
+Expr Rel_Expr() : { Expr e, et; Token tok; }
+{
+  e = Shift_Expr() (
+     (tok = "<"  | tok = ">" | tok = "<=" | tok = ">=")
+     et = Shift_Expr() { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Shift_Expr() : { Expr e, et; Token tok; }
+{
+  e = Add_Expr() (
+    (tok = "<<" | tok = ">>" )
+    et = Add_Expr() { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Add_Expr() : { Expr e, et; Token tok; }
+{
+  e = Mul_Expr() (
+    (tok = "+" | tok = "-" )
+    et = Mul_Expr() { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Mul_Expr() : { Expr e, et; Token tok; }
+{
+  e = Un_Expr() (
+    (tok = "*" | tok = "/" | tok = "%")
+    et = Un_Expr() { e = new BinOpExpr(e, tok, et); } )*
+  { return e; }
+}
+
+Expr Un_Expr() : { Expr e; Token tok; }
+{
+   (
+    ((tok = "~" | tok = "!" | tok = "-" | tok = "+") e = Term() { e = new UnOpExpr(tok, e); })
+   | (e = Term())
+   )
+  { return e; }
+}
+
+TypeRef Type() : { Token t; HashMap<String, List> dims = new HashMap<String, List>(); }
+{
+    [SignDimension(dims)]
+    t = <IDENTIFIER>
+    [ SizeDimension(dims) ]
+    [ LOOKAHEAD(2) TypesDimension(dims, "types") ]
+    { return new TypeRef(t, dims); }
+}
+
+void SignDimension(HashMap<String, List> dims) : { Token s; }
+{
+    (s = "+" | s = "-") { List l = new LinkedList(); l.add(s); dims.put("sign", l); }
+}
+
+void SizeDimension(HashMap<String, List> dims) : { Token w; }
+{
+    "." w = <INTEGER_LITERAL> { List l = new LinkedList(); l.add(w); dims.put("size", l); }
+}
+
+void TypesDimension(HashMap<String, List> dims, String n) : { List ty = new LinkedList(); TypeRef tr; }
+{
+   "<" [ tr = Type() { ty.add(tr); } ("," tr = Type() { ty.add(tr); })* ] ">" { dims.put(n, ty); }
+}
+
+OperandTypeRef OperandType() : { Token t; }
+{
+    t = <IDENTIFIER> { return new OperandTypeRef(t); }
+}
+
+EnumTypeRef EnumType() : { Token t; }
+{
+    t = <IDENTIFIER> { return new EnumTypeRef(t); }
+}

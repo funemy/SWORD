@@ -1,0 +1,689 @@
+/**
+ * Copyright (c) 2004-2005, Regents of the University of California
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * Neither the name of the University of California, Los Angeles nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * This is a modified version of AmtelParser.jj. It supports the
+ * avr-object dump syntax
+ *
+ * @author Ben L. Titzer, Vids Samanta
+ **/
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+
+PARSER_BEGIN(ObjDumpParser)
+
+package avrora.syntax.objdump;
+
+import cck.parser.SimpleCharStream;
+import avrora.*;
+import avrora.syntax.*;
+
+public class ObjDumpParser extends AbstractParser  {
+
+    protected RawModule rawModule;
+
+    public ObjDumpParser(java.io.InputStream stream, RawModule m, String fname) {
+        this(new FileMarkingTokenManager(new SimpleCharStream(stream, 1, 1), fname));
+
+        module = m;
+        rawModule = m;
+    }
+
+    public void ReInit(java.io.InputStream stream, RawModule m, String fname) {
+        ReInit(new FileMarkingTokenManager(new SimpleCharStream(stream, 1, 1), fname));
+
+        module = m;
+        rawModule = m;
+    }
+
+    public ObjDumpParser(java.io.Reader stream, RawModule m, String fname) {
+        this(new FileMarkingTokenManager(new SimpleCharStream(stream, 1, 1, 4096), fname));
+
+        module = m;
+        rawModule = m;
+    }
+
+    public void ReInit(java.io.Reader stream, RawModule m, String fname) {
+        ReInit(new FileMarkingTokenManager(new SimpleCharStream(stream, 1, 1, 4096), fname));
+
+        module = m;
+        rawModule = m;
+    }
+
+}
+
+PARSER_END(ObjDumpParser)
+
+/* WHITE SPACE */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+/* COMMENTS */
+
+MORE :
+{
+  ";" : IN_SINGLE_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+/* RESERVED WORDS AND LITERALS */
+
+TOKEN :
+{
+  < INTEGER_LITERAL:
+       (<DECIMAL_LITERAL> | <HEX_LITERAL> | <BIN_LITERAL> | <OCTAL_LITERAL> )
+  >
+|
+  < #DECIMAL_LITERAL: (["1"-"9"] (["0"-"9"])*) >
+|
+  < #HEX_LITERAL: (("0" ["x","X"])|"$") (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #BIN_LITERAL: "0" ["b","B"] (["0", "1"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < CHARACTER_LITERAL:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )
+      "'"
+  >
+|
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}
+
+/* Function names */
+TOKEN :
+{
+    < LOW : "low" >
+  | < HIGH: "high" >
+  | < BYTE2: "byte2" >
+  | < BYTE3: "byte3" >
+  | < BYTE4: "byte4" >
+  | < LWRD: "lwrd" >
+  | < HWRD: "hwrd" >
+  | < PAGE: "page" >
+  | < EXP2: "exp2" >
+  | < LOG2: "log2" >
+}
+
+/* reserved words */
+
+TOKEN :
+{
+    < WORD   : ".word"  >
+  | < START   : "start"  >
+  | < SECTION   : "section"  >
+  | < PROGRAM   : "program"  >
+  | < LABEL   : "label"  >
+  | < SIZE   : "size"  >
+  | < VMA   : "vma"  >
+  | < LMA   : "lma"  >
+  | < OFFSET   : "offset"  >
+}
+
+/* Instruction MNEMONICS */
+
+TOKEN :
+{
+    < ADD    : "add"   >
+  | < ADC    : "adc"   >
+  | < ADIW   : "adiw"  >
+  | < AND    : "and"   >
+  | < ANDI   : "andi"  >
+  | < ASR    : "asr"   >
+  | < BCLR   : "bclr"  >
+  | < BLD    : "bld"   >
+  | < BRBC   : "brbc"  >
+  | < BRBS   : "brbs"  >
+  | < BRCC   : "brcc"  >
+  | < BRCS   : "brcs"  >
+  | < BREAK  : "break" >
+  | < BREQ   : "breq"  >
+  | < BRGE   : "brge"  >
+  | < BRHC   : "brhc"  >
+  | < BRHS   : "brhs"  >
+  | < BRID   : "brid"  >
+  | < BRIE   : "brie"  >
+  | < BRLO   : "brlo"  >
+  | < BRLT   : "brlt"  >
+  | < BRMI   : "brmi"  >
+  | < BRNE   : "brne"  >
+  | < BRPL   : "brpl"  >
+  | < BRSH   : "brsh"  >
+  | < BRTC   : "brtc"  >
+  | < BRTS   : "brts"  >
+  | < BRVC   : "brvc"  >
+  | < BRVS   : "brvs"  >
+  | < BSET   : "bset"  >
+  | < BST    : "bst"   >
+  | < CALL   : "call"  >
+  | < CBI    : "cbi"   >
+  | < CBR    : "cbr"   >
+  | < CLC    : "clc"   >
+  | < CLH    : "clh"   >
+  | < CLI    : "cli"   >
+  | < CLN    : "cln"   >
+  | < CLR    : "clr"   >
+  | < CLS    : "cls"   >
+  | < CLT    : "clt"   >
+  | < CLV    : "clv"   >
+  | < CLZ    : "clz"   >
+  | < COM    : "com"   >
+  | < CP     : "cp"    >
+  | < CPC    : "cpc"   >
+  | < CPI    : "cpi"   >
+  | < CPSE   : "cpse"  >
+  | < DEC    : "dec"   >
+  | < EICALL : "eicall" >
+  | < EIJMP  : "eijmp"  >
+  | < ELPM   : "elpm"  >
+  | < EOR    : "eor"   >
+  | < FMUL   : "fmul"  >
+  | < FMULS  : "fmuls" >
+  | < FMULSU : "fmulsu">
+  | < ICALL  : "icall" >
+  | < IJMP   : "ijmp"  >
+  | < IN     : "in"    >
+  | < INC    : "inc"   >
+  | < JMP    : "jmp"   >
+  | < LD     : "ld"    >
+  | < LDD    : "ldd"   >
+  | < LDI    : "ldi"   >
+  | < LDS    : "lds"   >
+  | < LPM    : "lpm"   >
+  | < LSL    : "lsl"   >
+  | < LSR    : "lsr"   >
+  | < MOV    : "mov"   >
+  | < MOVW   : "movw"  >
+  | < MUL    : "mul"   >
+  | < MULS   : "muls"  >
+  | < MULSU  : "mulsu" >
+  | < NEG    : "neg"   >
+  | < NOP    : "nop"   >
+  | < OR     : "or"    >
+  | < ORI    : "ori"   >
+  | < OUT    : "out"   >
+  | < POP    : "pop"   >
+  | < PUSH   : "push"  >
+  | < RCALL  : "rcall" >
+  | < RET    : "ret"   >
+  | < RETI   : "reti"  >
+  | < RJMP   : "rjmp"  >
+  | < ROL    : "rol"   >
+  | < ROR    : "ror"   >
+  | < SBC    : "sbc"   >
+  | < SBCI   : "sbci"  >
+  | < SBI    : "sbi"   >
+  | < SBIC   : "sbic"  >
+  | < SBIS   : "sbis"  >
+  | < SBIW   : "sbiw"  >
+  | < SBR    : "sbr"   >
+  | < SBRC   : "sbrc"  >
+  | < SBRS   : "sbrs"  >
+  | < SEC    : "sec"   >
+  | < SEH    : "seh"   >
+  | < SEI    : "sei"   >
+  | < SEN    : "sen"   >
+  | < SER    : "ser"   >
+  | < SES    : "ses"   >
+  | < SET    : "set"   >
+  | < SEV    : "sev"   >
+  | < SEZ    : "sez"   >
+  | < SLEEP  : "sleep" >
+  | < SPM    : "spm"   >
+  | < ST     : "st"    >
+  | < STD    : "std"   >
+  | < STS    : "sts"   >
+  | < SUB    : "sub"   >
+  | < SUBI   : "subi"  >
+  | < SWAP   : "swap"  >
+  | < TST    : "tst"   >
+  | < WDR    : "wdr"   >
+}
+
+/* IDENTIFIERS */
+
+TOKEN :
+{
+
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+      [ "a"-"z", "A"-"Z", "_", "$", "/" ]
+  >
+|
+  < #DIGIT:
+      [ "0"-"9" ]
+  >
+|
+  < DOT_IDENTIFIER: "." <IDENTIFIER> >
+|
+/*  Warning:  "adc" ,  "dec" and  "add"  will not be matched as  <ADDRESS>. */
+  < ADDRESS: (["0"-"9","a"-"f","A"-"F"])+ >
+}
+
+
+/* Begin GRAMMAR */
+
+void Module() : {}
+{
+  Header() (Section())+ <EOF>
+}
+
+void Header() : {}
+{
+    ["program" <STRING_LITERAL> ":"]
+    (SectionDecl())+
+}
+
+void SectionDecl() : { Token name, vma, lma; }
+{
+    "section" name = <DOT_IDENTIFIER>
+    "size" "=" <INTEGER_LITERAL>
+    "vma" "=" vma = <INTEGER_LITERAL>
+    "lma" "=" lma = <INTEGER_LITERAL>
+    "offset" "=" <INTEGER_LITERAL>
+    { rawModule.newSection(name, vma, lma); }
+}
+
+void Property() : {}
+{
+    <IDENTIFIER> "=" <INTEGER_LITERAL>
+}
+
+void Section() : { Token sect; }
+{
+   "start" sect = <DOT_IDENTIFIER> ":"
+   { rawModule.enterSection(sect); }
+   (Statement())*
+}
+
+void Statement() : {}
+{
+    Label()
+  | Item()
+}
+
+void Item() : { Token addr; }
+{
+    addr = <INTEGER_LITERAL> ":"
+    { rawModule.setAddress(addr); }
+    RawData()
+    { rawModule.setAddress(addr); }
+    (Instruction() | Data())
+}
+
+void RawData() : {}
+{
+    LOOKAHEAD(3) Raw4() | Raw2()
+}
+
+void Raw2() : { Token b1, b2; }
+{
+    b1 = <INTEGER_LITERAL> b2 = <INTEGER_LITERAL>
+    { rawModule.addBytes(b1, b2); }
+}
+
+void Raw4() : { Token b1, b2, b3, b4; }
+{
+    b1 = <INTEGER_LITERAL> b2 = <INTEGER_LITERAL>
+    b3 = <INTEGER_LITERAL> b4 = <INTEGER_LITERAL>
+    { rawModule.addBytes(b1, b2, b3, b4); }
+}
+
+void Instruction() : {}
+{
+    InstrGPRGPR()
+  | InstrGPR()
+  | InstrGPRIMM()
+  | InstrInput()
+  | InstrOutput()
+  | InstrIMM()
+  | InstrIMMIMM()
+  | InstrBARE()
+  | InstrLoad()
+  | InstrStore()
+}
+
+void Data() : { Token b1, b2; }
+{
+    ".word" <INTEGER_LITERAL>
+}
+
+void InstrGPRGPR() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = OpcodeGPRGPR() r1 = Register() "," r2 = Register())
+    { module.addInstruction(t.image, t, r1, r2); }
+}
+
+Token OpcodeGPRGPR() : { Token t; }
+{
+   (t = "add" | t = "adc"  | t = "sub"   | t = "sbc"  | t = "and"   | t = "or"     | t = "eor"  |
+    t = "mul" | t = "muls" | t = "mulsu" | t = "fmul" | t = "fmuls" | t = "fmulsu" | t = "cpse" |
+    t = "cp"  | t = "cpc"  | t = "mov"   | t = "movw")
+    { return t; }
+}
+
+void InstrGPR() : { Token t; SyntacticOperand.Register r1; }
+{
+    (t = OpcodeGPR() r1 = Register())
+    { module.addInstruction(t.image, t, r1); }
+}
+
+Token OpcodeGPR() : { Token t; }
+{
+   (t = "com" | t = "neg" | t = "inc" | t = "dec" | t = "tst" | t = "clr" | t = "ser" | t = "push" |
+    t = "pop" | t = "lsl" | t = "lsr" | t = "rol" | t = "ror" | t = "asr" | t = "swap")
+    { return t; }
+}
+
+void InstrGPRIMM() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    (t = OpcodeGPRIMM() r1 = Register() "," c1 = Const())
+    { module.addInstruction(t.image, t, r1, c1); }
+}
+
+Token OpcodeGPRIMM() : { Token t; }
+{
+   (t = "adiw" | t = "subi" | t = "sbci" | t = "sbiw" | t = "andi" | t = "ori" | t = "sbr" |
+    t = "cbr"  | t = "cpi"  | t = "sbrc" | t = "sbrs" | t = "bst"  | t = "bld")
+    { return t; }
+}
+
+void InstrIMM() : { Token t; SyntacticOperand.Expr c1; }
+{
+    (t = OpcodeIMM() c1 = Const())
+    { module.addInstruction(t.image, t, c1); }
+}
+
+Token OpcodeIMM() : { Token t; }
+{
+   (t = "rjmp" | t = "jmp"  | t = "rcall" | t = "call" | t = "breq" | t = "brne" | t = "brcs" |
+    t = "brcc" | t = "brsh" | t = "brlo"  | t = "brmi" | t = "brpl" | t = "brge" | t = "brlt" |
+    t = "brhs" | t = "brhc" | t = "brts"  | t = "brtc" | t = "brvs" | t = "brvc" | t = "brie" |
+    t = "brid" | t = "bset" | t = "bclr")
+    { return t; }
+}
+
+void InstrIMMIMM() : { Token t; SyntacticOperand.Expr c1, c2; }
+{
+    (t = OpcodeIMMIMM() c1 = Const() "," c2 = Const())
+    { module.addInstruction(t.image, t, c1, c2); }
+}
+
+Token OpcodeIMMIMM() : { Token t; }
+{
+    ( t = "sbic" | t = "sbis" | t = "brbs" | t = "brbc" | t = "sbi" | t = "cbi")
+    { return t; }
+}
+
+void InstrLoad() : {}
+{
+    InstrLDI() |
+    InstrLD_variant() |
+    InstrLDD() |
+    InstrLDS() |
+    InstrLPM_variant()
+}
+
+void InstrLDI() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    (t = "ldi" r1 = Register() "," c1 = Const())
+    { module.addInstruction(t.image, t, r1, c1); }
+}
+
+void InstrLD_variant() : { }
+{
+    LOOKAHEAD(5) InstrLDPI()
+  | LOOKAHEAD(4) InstrLDPD()
+  | InstrLD()
+
+}
+
+void InstrLD() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "ld" r1 = Register() "," r2 = Register())
+    { module.addInstruction("ld", t, r1, r2); }
+}
+
+void InstrLDPI() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "ld" r1 = Register() "," r2 = Register() "+")
+    { module.addInstruction("ldpi", t, r1, r2); }
+}
+
+void InstrLDPD() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "ld" r1 = Register() "," "-" r2 = Register())
+    { module.addInstruction("ldpd", t, r1, r2); }
+}
+
+void InstrLDD() : { Token t; SyntacticOperand.Register r1, r2; SyntacticOperand.Expr c1; }
+{
+    (t = "ldd" r1 = Register() "," r2 = Register() "+" c1 = Const())
+    { module.addInstruction(t.image, t, r1, r2, c1); }
+}
+
+void InstrLDS() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    (t = "lds" r1 = Register() "," c1 = Const())
+    { module.addInstruction(t.image, t, r1, c1); }
+}
+
+void InstrLPM_variant() : {}
+{
+
+    LOOKAHEAD(5) InstrLPMGPRGPRP()
+  | LOOKAHEAD(3) InstrLPMGPRGPR()
+  | InstrLPMBARE()
+}
+
+void InstrLPMGPRGPR() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = OpcodeLPM() r1 = Register() "," r2 = Register())
+    { module.addInstruction(t.image+"d", t, r1, r2); }
+}
+
+void InstrLPMGPRGPRP() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = OpcodeLPM() r1 = Register() "," r2 = Register() "+")
+    { module.addInstruction(t.image+"pi", t, r1, r2); }
+}
+
+void InstrLPMBARE() : { Token t; }
+{
+    t = OpcodeLPM() { module.addInstruction(t.image, t); }
+}
+
+Token OpcodeLPM() : { Token t; }
+{
+    (t = "lpm" | t = "elpm") { return t; }
+}
+
+void InstrStore() : {}
+{
+    InstrST_variant() |
+    InstrSTD() |
+    InstrSTS()
+}
+
+void InstrST_variant() : { }
+{
+    LOOKAHEAD(3) InstrST()
+  | LOOKAHEAD(3) InstrSTPI()
+  | InstrSTPD()
+}
+
+void InstrST() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "st" r1 = Register() "," r2 = Register())
+    { module.addInstruction("st", t, r1, r2); }
+}
+
+void InstrSTPI() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "st" r1 = Register() "+" "," r2 = Register())
+    { module.addInstruction("stpi", t, r1, r2); }
+}
+
+void InstrSTPD() : { Token t; SyntacticOperand.Register r1, r2; }
+{
+    (t = "st" "-" r1 = Register() "," r2 = Register())
+    { module.addInstruction("stpd", t, r1, r2); }
+}
+
+void InstrSTD() : { Token t; SyntacticOperand.Register r1, r2; SyntacticOperand.Expr c1; }
+{
+    (t = "std" r1 = Register() "+" c1 = Const() "," r2 = Register())
+    { module.addInstruction(t.image, t, r1, c1, r2); }
+}
+
+void InstrSTS() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    (t = "sts" c1 = Const() "," r1 = Register())
+    { module.addInstruction(t.image, t, c1, r1); }
+}
+
+void InstrBARE() : { Token t; }
+{
+   (t = "ijmp"  | t = "icall" | t = "ret"   | t = "reti" | t = "sec" | t = "clc" | t = "sen" |
+    t = "cln"   | t = "sez"   | t = "clz"   | t = "sei"  | t = "cli" | t = "ses" | t = "cls" |
+    t = "sev"   | t = "clv"   | t = "set"   | t = "clt"  | t = "seh" | t = "clh" | t = "nop" |
+    t = "sleep" | t = "wdr"   | t = "break" | t = "spm"  | t = "eijmp"  | t = "eicall")
+    { module.addInstruction(t.image, t); }
+}
+
+void InstrInput() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    (t = "in" r1 = Register() "," c1 = Const())
+    { module.addInstruction(t.image, t, r1, c1); }
+}
+
+void InstrOutput() : { Token t; SyntacticOperand.Register r1; SyntacticOperand.Expr c1; }
+{
+    t = "out" c1 = Const() "," r1 = Register()
+    { module.addInstruction(t.image, t, c1, r1); }
+}
+
+SyntacticOperand.Register Register() : { Token tok; }
+{
+    tok = <IDENTIFIER>
+    { return module.newOperand(tok); }
+}
+
+void Label() : { Token tok; Token v; }
+{
+    "label" v = <INTEGER_LITERAL> tok = <STRING_LITERAL> ":"
+    { rawModule.addQuotedLabelAt(v, tok); }
+}
+
+SyntacticOperand.Expr Const() : { Expr e; }
+{
+  (LOOKAHEAD(".") e = RelExpr() | e = Term() )
+  { return module.newOperand(e); }
+}
+
+Expr Term() : { Token tok; Expr e; }
+{
+  (
+    tok = <IDENTIFIER> { e = new Expr.Variable(tok); }
+  | tok = <INTEGER_LITERAL> { e = new Expr.Constant(tok); }
+  )
+
+  { return e; }
+}
+
+Expr RelExpr() : { Token ltok; Token op; Token rtok; }
+{
+ (ltok = "." op = BinOp() rtok = <INTEGER_LITERAL>)
+ { return new Expr.RelativeAddress(ltok, op, rtok); }
+}
+
+Token BinOp() : { Token tok; }
+{
+ (tok = "+" | tok = "-")
+ { return tok; }
+}

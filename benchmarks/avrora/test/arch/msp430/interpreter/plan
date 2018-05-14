@@ -1,0 +1,83 @@
+
+Instr	Operands		CNZV
+----------------------------------------------------------------
+ADD	src,dst			xxxx
+ADDC	src,dst			xxxx
+AND	src,dst			xxx0
+BIC	src,dst			....
+BIS	src,dst			....
+BIT	src,dst			xxx0
+CALL	src			....
+CMP	src,dst			xxxx
+DADD	src,dst			xxxx
+JC	label			....
+JEQ	label			....
+JGE	label			....
+JL	label			....
+JMP	label			....
+JN	label			....
+JNC	label			....
+JNE	label			....
+MOV	src,dst			....
+PUSH	src			....
+RETI				xxxx
+RRA	dst			xxx0
+RRC	dst			xxxx
+SUB	src,dst			xxxx
+SUBC	src,dst			xxxx
+SWPB	dst			....
+SXT	dst			xxx0
+XOR	src,dst			xxxx
+
+
+Pseudo	Operands		Encoding
+----------------------------------------------------------------
+ADC	dst			addc #0, dst
+BR	src			mov src, pc
+CLR				mov #0, dst
+CLRC				bic #1, sr
+CLRN				bic #4, sr
+CLRZ				bic #2, sr
+DADC	dst			dadd #0, dst
+DEC	dst			sub #1, dst
+DECD	dst			sub #2, dst
+DINT				bic #8, sr
+EINT				bis #8, sr
+INC	dst			add #1, dst
+INCD	dst			add #2, dst
+INV	dst			xor #0xffff, dst
+NOP				mov #0, r3
+POP	dst			mov @sp+, dst
+RET				mov @sp+, pc
+RLA	dst			add dst, dst
+RLC	dst			addc dst, dst
+SBC	dst			subc #0, dst			
+SETC				bis #1, sr
+SETN				bis #4, sr				
+SETZ				bis #2, sr
+TST	dst			cmp #0, dst
+
+
+Class				Situations				Instructions
+----------------------------------------------------------------------------------------
+instruction correctness		REGREG,REG				<all>
+constant generator		IMMREG,IMM				add, mov, push
+absolute addresses		ABSABS,ABSREG,IMMABS,REGABS,ABS		add, mov, push
+relative addresses		SYMSYM,SYMABS,SYMREG,REGSYM,SYM		add, mov, push
+indexed register		INDIND,INDABS,INDREG,REGIND,IMMIND,IND	add, mov, push
+indirect register		IREGREG,IREGSYM,IREGABS,IREG		add, mov, push
+auto-increment (W)		AUTOREG_W,AUTOSYM_W,AUTOABS_W,AUTO_W	add, mov, push
+auto-increment (B)		AUTOREG_B,AUTOSYM_B,AUTOABS_B,AUTO_B	add.b, mov.b, push.b
+flag manipulations
+bit manipulations
+calls				ABS,REG,IMM,SYM,IND,IREG		call
+ret									ret
+reti									reti
+branches								<all branches>
+jump				ABS,REG,IMM,SYM,IND,IREG		jump
+push
+pop
+emulated (dst,dst)							rla,rrc
+emulated (IMM,dst)							<all $i dst>
+PC as destination		IMM,SYM					add,mov
+emulated (sp)								pop,ret

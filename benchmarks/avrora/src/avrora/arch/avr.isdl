@@ -1,0 +1,1526 @@
+architecture avr {
+
+//---------------------------------------------------------------------------
+//  ENCODING FORMATS OF INSTRUCTIONS
+//---------------------------------------------------------------------------
+
+    format GPRGPR = { opcode[5:0], rr[4:4], rd[4:4], rd[3:0], rr[3:0] }
+    format GPR = { opcode[6:0], r1[4:4], r1[3:0], 0b0101 }
+    format HGPRIMM8 = { opcode[3:0], imm[7:4], rd[3:0], imm[3:0] }
+    format BRSET = { 0b111100, target[6:0], bit[2:0] }
+    format BRCLR = { 0b111101, target[6:0], bit[2:0] }
+    format SET = { 0b10010100, 0b0, bit[2:0], 0b1000 }
+    format CLR = { 0b10010100, 0b1, bit[2:0], 0b1000 }
+    format ABS4 = { opcode[9:3], target[21:17], opcode[2:0], target[16:0] }
+    format MGPRMGPR = { opcode[7:0], s1[0], r1[2:0], s2[0], r2[2:0] }
+
+//---------------------------------------------------------------------------
+//  STATE USED IN THE SIMULATION
+//---------------------------------------------------------------------------
+
+    global regs: map<int, int.8>;    // the register file: signed 8-bit quantities
+    global sram: map<int, int.8>;     // a "view" of the memory as signed 8-bit quantities
+    global ioregs: map<int, int.8>;   // a "view" of the IO registers as signed 8-bit quantites
+    global flash: map<int, int.8>;    // the flash (program) memory
+
+    inline subroutine get_reg(r: int.31): int.8 {
+        return regs[r];
+    }
+
+    inline subroutine get_wreg(r: int.31): +int.16 {
+        return uword(regs[r], regs[r+1]);
+    }
+
+    inline subroutine set_reg(r: int, v: int.8): void {
+        regs[r] = v;
+    }
+
+    inline subroutine set_wreg(r: int.31, v: int): void {
+        regs[r] = low(v);
+        regs[r+1] = high(v);
+    }
+
+    global I: boolean;         // global interrupts enabled flag
+    global T: boolean;         // global T flag
+    global H: boolean;         // global H (half carry) flag
+    global S: boolean;         // global S (signed) flag
+    global C: boolean;         // global C (carry) flag
+    global N: boolean;         // global N (negative) flag
+    global Z: boolean;         // global Z (zero) flag
+    global V: boolean;         // global V (overflow) flag
+
+    global justReturnedFromInterrupt: boolean;
+
+    global SREG: int;            // status register number
+    global nextpc: int;          // the next pc afer executing this instructiobn
+    global cycles: int;          // cycles consumed by this instruction
+
+//---------------------------------------------------------------------------
+//  OPERANDS ALLOWED TO INSTRUCTIONS
+//---------------------------------------------------------------------------
+
+    enum GPR {
+        r0  = 0,  r1  = 1,  r2  = 2,  r3  = 3,
+        r4  = 4,  r5  = 5,  r6  = 6,  r7  = 7,
+        r8  = 8,  r9  = 9,  r10 = 10, r11 = 11,
+        r12 = 12, r13 = 13, r14 = 14, r15 = 15,
+        r16 = 16, r17 = 17, r18 = 18, r19 = 19,
+        r20 = 20, r21 = 21, r22 = 22, r23 = 23,
+        r24 = 24, r25 = 25, r26 = 26, r27 = 27,
+        r28 = 28, r29 = 29, r30 = 30, r31 = 31
+    }
+
+    enum ADR {
+        X = 26, Y = 28, Z = 30
+    }
+
+    enum-subset HGPR: GPR {
+        r16 = 0,  r17 = 1,  r18 = 2,  r19 = 3,
+        r20 = 4,  r21 = 5,  r22 = 6,  r23 = 7,
+        r24 = 8,  r25 = 9,  r26 = 10, r27 = 11,
+        r28 = 12, r29 = 13, r30 = 14, r31 = 15
+    }
+
+    enum-subset EGPR: GPR {
+        r0  = 0,  r2  = 1,  r4  = 2,  r6  = 3,
+        r8  = 4,  r10 = 5,  r12 = 6,  r14 = 7,
+        r16 = 8,  r18 = 9,  r20 = 10, r22 = 11,
+        r24 = 12, r26 = 13, r28 = 14, r30 = 15
+    }
+
+    enum-subset MGPR: GPR {
+        r16 = 0, r17 = 1, r18 = 2, r19 = 3,
+        r20 = 4, r21 = 5, r22 = 6, r23 = 7
+    }
+
+    enum-subset YZ: ADR {
+        Y = 1, Z = 0
+    }
+
+    enum-subset RDL: GPR {
+        r24 = 0, r26 = 1, r28 = 2, r30 = 3
+    }
+
+    operand-type op_GPR[5]: GPR { // all of the general purpose registers
+        read: int.8 { return get_reg(this:int); }
+        write: int.8 { set_reg(this:int, value); }
+    }
+
+    operand-type op_HGPR[4]: HGPR { // the "high" general purpose registers
+        read: int.8 { return get_reg(this:int); }
+        write: int.8 { set_reg(this:int, value); }
+    }
+
+    operand-type op_MGPR[3]: MGPR { // the "mid-range" general purpose registers
+        read: int.8 { return get_reg(this:int); }
+        write: int.8 { set_reg(this:int, value); }
+    }
+
+    operand-type op_YZ[1]: YZ { // either the Y or Z address registers
+        read: +int.16 { return get_wreg(this:int); }
+        write: +int.16 { set_wreg(this:int, value); }
+    }
+
+    operand-type op_EGPR[4]: EGPR { // an "even" general purpose register
+        read: +int.16 { return get_wreg(this:int); }
+        write: +int.16 { set_wreg(this:int, value); }
+    }
+
+    operand-type op_RDL[2]: RDL { // a word register r24:r25, r26:r27, etc
+        read: +int.16 { return get_wreg(this:int); }
+        write: +int.16 { set_wreg(this:int, value); }
+    }
+
+    operand-type IMM3[3]: int [0, 7];
+    operand-type IMM5[5]: int [0, 31];
+    operand-type IMM6[6]: int [0, 63];
+    operand-type IMM7[7]: int [0, 127];
+    operand-type IMM8[8]: int [0, 255];
+    operand-type SREL[7]: -address.2 [-64, 63];
+    operand-type LREL[11]: -address.2 [-1024, 1023];
+    operand-type PADDR[16]: address.2 [0, 65536];
+    operand-type DADDR[16]: address [0, 65536];
+
+//---------------------------------------------------------------------------
+// ADDRESSING MODES
+//---------------------------------------------------------------------------
+
+    addr-mode GPRGPR rd: op_GPR, rr: op_GPR { // two general purpose registers
+        encoding = { opcode[5:0], rr[4:4], rd[4:4], rd[3:0], rr[3:0] }
+    }
+
+    addr-mode MGPRMGPR rd: op_MGPR, rr: op_MGPR { // two midrange general purpose registers
+        encoding = { opcode[7:0], s1[0], rd[2:0], s2[0], rr[2:0] }
+    }
+
+    addr-mode GPR rd: op_GPR { // one general purpose register
+        encoding = { opcode[6:0], rd[4:4], rd[3:0], ext[3:0] }
+    }
+
+    addr-mode HGPRIMM8 rd: op_HGPR, imm: IMM8 { // a high general purpose register and an 8-bit immediate
+        encoding = { opcode[3:0], imm[7:4], rd[3:0], imm[3:0] }
+    }
+
+    addr-mode ABS target: PADDR { // absolute address
+        encoding = { opcode[9:3], target[21:17], opcode[2:0], target[16:0] }
+    }
+
+    addr-mode BRANCH target: SREL { // branch if the bit is set
+        encoding = { 0b11110, clear[0], target[6:0], bit[2:0] }
+    }
+
+    addr-mode CALL target: LREL {
+        encoding = { 0b1101, target[11:0] }
+    }
+
+    addr-mode WRITEBIT { // write bit in status register
+        encoding = { 0b10010100, clear[0], bit[2:0], 0b1000 }
+    }
+
+//---------------------------------------------------------------------------
+//  SUBROUTINES
+//---------------------------------------------------------------------------
+
+    external subroutine popByte(): int.8;
+    external subroutine pushByte(b: int.8): void;
+    external subroutine extended(addr: int): int;
+    external subroutine enableInterrupts(): void;
+    external subroutine disableInterrupts(): void;
+    external subroutine enterSleepMode(): void;
+    external subroutine storeProgramMemory(): void;
+    external subroutine stop(): void;
+    external subroutine skip(): void;
+    external subroutine getIORbit(ior: int, bit: int): boolean;
+    external subroutine setIORbit(ior: int, bit: int, v: boolean): void;
+
+    inline subroutine bit(b: boolean): +int.1 {
+        if ( b ) return 1;
+        else return 0;
+    }
+
+    inline subroutine performAddition(r1: int.8, r2: int.8, carry: int.1): int.8 {
+        local result: int.10 = r1 + r2 + carry;
+        local ral: +int.4 = r1[3:0];
+        local rbl: +int.4 = r2[3:0];
+
+        local Rd7: boolean = r1[7];
+        local Rr7: boolean = r2[7];
+        local R7: boolean = result[7];
+
+        // set the flags as per instruction set documentation.
+        H = (ral + rbl + carry)[4];
+        C = result[8];
+        N = R7;
+        Z = low(result) == 0;
+        V = (Rd7 and Rr7 and !R7) or (!Rd7 and !Rr7 and R7);
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine performSubtraction(r1: int.8, r2: int.8, carry: int.1): int.8 {
+        local result: int.9 = r1 - r2 - carry;
+
+        local Rd7: boolean = r1[7];
+        local Rr7: boolean = r2[7];
+        local R7:  boolean = result[7];
+        local Rd3: boolean = r1[3];
+        local Rr3: boolean = r2[3];
+        local R3:  boolean = result[3];
+
+        // set the flags as per instruction set documentation.
+        H = (!Rd3 and Rr3) or (Rr3 and R3) or (R3 and !Rd3);
+        C = (!Rd7 and Rr7) or (Rr7 and R7) or (R7 and !Rd7);
+        N = R7;
+        Z = low(result) == 0;
+        V = (Rd7 and !Rr7 and !R7) or (!Rd7 and Rr7 and R7);
+        S = N xor V;
+
+        return low(result);
+    }
+
+    // perform subtraction, but preserve zero flag if result is zero
+    inline subroutine performSubtractionPZ(r1: int.8, r2: int.8, carry: int.1): int.8 {
+        local result: int = r1 - r2 - carry;
+
+        local Rd7: boolean = r1[7];
+        local Rr7: boolean = r2[7];
+        local R7:  boolean = result[7];
+        local Rd3: boolean = r1[3];
+        local Rr3: boolean = r2[3];
+        local R3:  boolean = result[3];
+
+        // set the flags as per instruction set documentation.
+        H = (!Rd3 and Rr3) or (Rr3 and R3) or (R3 and !Rd3);
+        C = (!Rd7 and Rr7) or (Rr7 and R7) or (R7 and !Rd7);
+        N = R7;
+        Z = (low(result) == 0) and Z;
+        V = (Rd7 and !Rr7 and !R7) or (!Rd7 and Rr7 and R7);
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine performLeftShift(r1: int.8, lowbit: boolean): int.8 {
+        local result: int.9 = r1 << 1;
+        result[0] = lowbit;
+
+        H = result[4];
+        C = result[8];
+        N = result[7];
+        Z = low(result) == 0;
+        V = N xor C;
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine performRightShift(r1: int.8, highbit: boolean): int.8 {
+        local result: int.8 = ((r1 & 0xff) >> 1);
+        result[7] = highbit;
+
+        C = r1[0];
+        N = highbit;
+        Z = low(result) == 0;
+        V = N xor C;
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine performOr(r1: int.8, r2: int.8): int.8 {
+        local result: int.8 = r1 | r2;
+
+        N = result[7];
+        Z = low(result) == 0;
+        V = false;
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine performAnd(r1: int.8, r2: int.8): int.8 {
+        local result: int.8 = r1 & r2;
+
+        N = result[7];
+        Z = low(result) == 0;
+        V = false;
+        S = N xor V;
+
+        return low(result);
+    }
+
+    inline subroutine relativeBranch(target: SREL): void {
+        nextpc = relative(target: int);
+        cycles = cycles + 1;
+    }
+
+    inline subroutine relative(target: +int.16): int {
+        return (target * 2) + nextpc;
+    }
+
+    inline subroutine absolute(target: +int.16): int {
+        return target * 2;
+    }
+
+    inline subroutine pushPC(npc: +int.17): void {
+        npc = npc / 2;
+        pushByte(low(npc));
+        pushByte(high(npc));
+    }
+
+    inline subroutine popPC(): +int.17 {
+        local high: int.8 = popByte();
+        local low: int.8 = popByte();
+        return uword(low, high) * 2;
+    }
+
+    inline subroutine low(v: int): int.8 {
+        return v:int.8;
+    }
+
+    inline subroutine high(v: int): int.8 {
+        return (v >> 8):int.8;
+    }
+
+    inline subroutine uword(low: int.8, high: int.8): int {
+        return ((high << 8) | low[7:0])[15:0];
+    }
+
+
+//---------------------------------------------------------------------------
+//  BEGIN INSTRUCTION SET DESCRIPTION
+//---------------------------------------------------------------------------
+
+    instruction "adc": GPRGPR {
+        property opcode: int = 0b000111;
+        property cycles: int = 1;
+        execute {
+            write(rd, performAddition(+read(rd), +read(rr), bit(C)));
+        }
+    }
+
+    instruction "add": GPRGPR { // add second register to first
+        property opcode: int = 0b000011;
+        property cycles: int = 1;
+        execute {
+            write(rd, performAddition(+read(rd), +read(rr), 0));
+        }
+    }
+
+    instruction "adiw" rd: op_RDL, imm: IMM6 { // add immediate to word register
+        encoding = { 0b10010110, imm[5:4], rd[1:0], imm[3:0] }
+        property cycles: int = 2;
+        execute {
+            local r1: +int.16     = read(rd);
+            local result: int.17 = r1 + imm:+int.6;
+            local R15: boolean   = result[15];
+            local Rdh7: boolean  = r1[15];
+
+            C = (!R15 and Rdh7);
+            N = (R15);
+            V = (!Rdh7 and R15);
+            Z = (result[15:0] == 0);
+            S = (N xor V);
+
+            write(rd, result);
+        }
+    }
+
+    instruction "and": GPRGPR { // and first register with second
+        property opcode: int = 0b001000;
+        property cycles: int = 1;
+        execute {
+            write(rd, performAnd(read(rd), read(rr)));
+        }
+    }
+
+    instruction "andi": HGPRIMM8 { // and register with immediate
+        property opcode: int = 0b0111;
+        property cycles: int = 1;
+        execute {
+            write(rd, performAnd(read(rd), imm:int.8));
+        }
+    }
+
+    instruction "asr": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0101;
+        property cycles: int = 1;
+        execute {
+            local r1: int.8 = read(rd);
+            write(rd, performRightShift(r1, r1[7]));
+        }
+    }
+
+    // BCLR is the general form of clearing a bit in the SREG register
+    // each case has its own name: CLI, CLS, CLS, etc
+    pseudo instruction "bclr" bit: IMM3 {
+        encoding = CLR where { bit = bit }
+        property cycles: int = 1;
+        execute {
+            setIORbit(SREG, bit:int, false);
+        }
+    }
+
+    instruction "bld" rr: op_GPR, bit: IMM3 {
+        encoding = { 0b1111100, rr[4:0], 0b0, bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            local val: int.8 = read(rr);
+            val[bit:int] = T;
+            write(rr, val);
+        }
+    }
+
+    // BRBC is the general form of the "branch if bit is clear" instruction
+    // each special case has its own name, and thus the general one is pseudo
+    pseudo instruction "brbc" bit: IMM3, target: SREL {
+        encoding = BRCLR where { bit = bit }
+        property cycles: int = 1;
+        execute {
+            if (!getIORbit(SREG, bit:int) ) relativeBranch(target);
+        }
+    }
+
+    // BRBC is the general form of the "branch if bit is set" instruction
+    // each special case has its own name, and thus the general one is pseudo
+    pseudo instruction "brbs" bit: IMM3, target: SREL {
+        encoding = BRSET where { bit = bit }
+        property cycles: int = 1;
+        execute {
+            if ( getIORbit(SREG, bit:int) ) relativeBranch(target);
+        }
+    }
+
+    instruction "brcc": BRANCH {
+        property bit: int = 0b000;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !C ) relativeBranch(target);
+        }
+    }
+
+    // BRCS is equivalent to the BRLO instruction, thus this one is a pseudo instruction
+    instruction "brcs": BRANCH {
+        property bit: int = 0b000;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( C ) relativeBranch(target);
+        }
+    }
+
+    instruction "break" {
+        encoding = { 0b10010101, 0b10011000 }
+        property cycles: int = 1;
+        execute {
+            stop();
+        }
+    }
+
+    instruction "breq": BRANCH {
+        property bit: int = 0b001;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( Z ) relativeBranch(target);
+        }
+    }
+
+    instruction "brge": BRANCH {
+        property bit: int = 0b100;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !S ) relativeBranch(target);
+        }
+    }
+
+    instruction "brhc": BRANCH {
+        property bit: int = 0b101;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !H ) relativeBranch(target);
+        }
+    }
+
+    instruction "brhs": BRANCH {
+        property bit: int = 0b101;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( H ) relativeBranch(target);
+        }
+    }
+
+    instruction "brid": BRANCH {
+        property bit: int = 0b111;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !I ) relativeBranch(target);
+        }
+    }
+
+    instruction "brie": BRANCH {
+        property bit: int = 0b111;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( I ) relativeBranch(target);
+        }
+    }
+
+    pseudo instruction "brlo": BRANCH {
+        property bit: int = 0b000;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( C ) relativeBranch(target);
+        }
+    }
+
+    instruction "brlt": BRANCH {
+        property bit: int = 0b100;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( S ) relativeBranch(target);
+        }
+    }
+
+    instruction "brmi": BRANCH {
+        property bit: int = 0b010;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( N ) relativeBranch(target);
+        }
+    }
+
+    instruction "brne": BRANCH {
+        property bit: int = 0b001;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !Z ) relativeBranch(target);
+        }
+    }
+
+    instruction "brpl": BRANCH {
+        property bit: int = 0b010;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !N ) relativeBranch(target);
+        }
+    }
+
+    // BRSH is equivalent to the BRCC instruction
+    pseudo instruction "brsh": BRANCH {
+        property bit: int = 0b000;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !C ) relativeBranch(target);
+        }
+    }
+
+    instruction "brtc": BRANCH {
+        property bit: int = 0b110;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !T ) relativeBranch(target);
+        }
+    }
+
+    instruction "brts": BRANCH {
+        property bit: int = 0b110;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( T ) relativeBranch(target);
+        }
+    }
+
+    instruction "brvc": BRANCH {
+        property bit: int = 0b011;
+        property clear: int = 1;
+        property cycles: int = 1;
+        execute {
+            if ( !V ) relativeBranch(target);
+        }
+    }
+
+    instruction "brvs": BRANCH {
+        property bit: int = 0b011;
+        property clear: int = 0;
+        property cycles: int = 1;
+        execute {
+            if ( V ) relativeBranch(target);
+        }
+    }
+
+    // BRSET is the general form of the "branch if bit is set" instruction
+    // each possibility has its own name, so the general case is a pseudo instruction
+    pseudo instruction "bset" bit: IMM3 {
+        encoding = SET where { bit = bit }
+        property cycles: int = 1;
+        execute {
+            setIORbit(SREG, bit:int, true);
+        }
+    }
+
+    instruction "bst" rr: op_GPR, bit: IMM3 {
+        encoding = { 0b1111101, rr[4:0], 0b0, bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            T = read(rr)[bit:int];
+        }
+    }
+
+    instruction "call" target: PADDR {
+        encoding = ABS4 where { opcode = 0b1001010111 }
+        property cycles: int = 4;
+        execute {
+            pushPC(nextpc);
+            nextpc = absolute(target:int);
+        }
+    }
+
+    instruction "cbi" ior: IMM5, bit: IMM3 {
+        encoding = { 0b10011000, ior[4:0], bit[2:0] }
+        property cycles: int = 2;
+        execute {
+            setIORbit(ior:int, bit:int, false);
+        }
+    }
+
+    // CBR (clear bits in register) is equivalent to an ANDI instruction
+    // and is encoded as an ANDI instruction with the operand complemented
+    pseudo instruction "cbr": HGPRIMM8 {
+        property opcode: int = 0b0111;
+        property cycles: int = 1;
+        execute {
+            write(rd, performAnd(read(rd), ~(imm:int)));
+        }
+    }
+
+    instruction "clc" {
+        encoding = CLR where { bit = 0b000 }
+        property cycles: int = 1;
+        execute {
+            C = false;
+        }
+    }
+
+    instruction "clh" {
+        encoding = CLR where { bit = 0b101 }
+        property cycles: int = 1;
+        execute {
+            H = false;
+        }
+    }
+
+    instruction "cli" {
+        encoding = CLR where { bit = 0b111 }
+        property cycles: int = 1;
+        execute {
+            disableInterrupts();
+        }
+    }
+
+    instruction "cln" {
+        encoding = CLR where { bit = 0b010 }
+        property cycles: int = 1;
+        execute {
+            N = false;
+        }
+    }
+
+    // CLR (clear register A) is equivalent to EOR A, A (exclusive-or A with itself)
+    pseudo instruction "clr" rd: op_GPR {
+        // note that this is equivalent to eor rd, rd
+        encoding = GPRGPR where { opcode = 0b001001, r1 = rd, r2 = rr }
+        property cycles: int = 1;
+        execute {
+            S = false;
+            V = false;
+            N = false;
+            Z = true;
+            write(rd, low(0));
+        }
+    }
+
+    instruction "cls" {
+        encoding = CLR where { bit = 0b100 }
+        property cycles: int = 1;
+        execute {
+            S = false;
+        }
+    }
+
+    instruction "clt" {
+        encoding = CLR where { bit = 0b110 }
+        property cycles: int = 1;
+        execute {
+            T = false;
+        }
+    }
+
+    instruction "clv" {
+        encoding = CLR where { bit = 0b011 }
+        property cycles: int = 1;
+        execute {
+            V = false;
+        }
+    }
+
+    instruction "clz" {
+        encoding = CLR where { bit = 0b001 }
+        property cycles: int = 1;
+        execute {
+            Z = false;
+        }
+    }
+
+    instruction "com": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0000;
+        property cycles: int = 1;
+        execute {
+            local result: int = 0xff - read(rd);
+
+            C = true;
+            N = result[7];
+            Z = low(result) == 0;
+            V = false;
+            S = N xor V;
+
+            write(rd, low(result));
+        }
+    }
+
+    instruction "cp": GPRGPR {
+        property opcode: int = 0b000101;
+        property cycles: int = 1;
+        execute {
+            // perform subtraction for flag side effects.
+            performSubtraction(read(rd), read(rr), 0);
+        }
+    }
+
+    instruction "cpc": GPRGPR {
+        property opcode: int = 0b000001;
+        property cycles: int = 1;
+        execute {
+            // perform subtraction for flag side effects.
+            performSubtractionPZ(read(rd), read(rr), bit(C));
+        }
+    }
+
+    instruction "cpi": HGPRIMM8 {
+        property opcode: int = 0b0011;
+        property cycles: int = 1;
+        execute {
+            // perform subtraction for flag side effects.
+            performSubtraction(read(rd), imm:int.8, 0);
+        }
+    }
+
+    instruction "cpse": GPRGPR {
+        property opcode: int = 0b000100;
+        property cycles: int = 1;
+        execute {
+            local r1: int.8 = read(rd);
+            local r2: int.8 = read(rr);
+            // perform subtraction for flag side effects.
+            performSubtraction(r1, r2, 0);
+            if (r1 == r2) skip();
+        }
+    }
+
+    instruction "dec": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b1010;
+        property cycles: int = 1;
+        execute {
+            local r1: +int.8 = +read(rd);
+            local result: +int.8 = low(r1 - 1);
+
+            N = result[7];
+            Z = result == 0;
+            V = r1 == 0x80;
+            S = N xor V;
+
+            write(rd, result);
+        }
+    }
+
+    instruction "eicall" {
+        encoding = { 0b10010101, 0b00011001 }
+        property cycles: int = 4;
+        execute {
+            // TODO: implement me
+        }
+    }
+
+    instruction "eijmp" {
+        encoding = { 0b10010100, 0b00011001 }
+        property cycles: int = 2;
+        execute {
+            // TODO: implement me
+        }
+    }
+
+    instruction "eor": GPRGPR {
+        property opcode: int = 0b001001;
+        property cycles: int = 1;
+        execute {
+            local result: int.8 = read(rd) ^ read(rr);
+
+            N = result[7];
+            Z = result == 0;
+            V = false;
+            S = N xor V;
+
+            write(rd, result);
+        }
+    }
+
+    instruction "fmul" rd: op_MGPR, rr: op_MGPR {
+        encoding = MGPRMGPR where { opcode = 0b0000011, s1 = 0, r1 = rd, s2 = 1, r2 = rr }
+        property cycles: int = 2;
+        execute {
+            local result: int.17 = (+read(rd) * +read(rr)) << 1;
+            Z = result[15:0] == 0;
+            C = result[16];
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "fmuls" rd: op_MGPR, rr: op_MGPR {
+        encoding = MGPRMGPR where { opcode = 0b0000011, s1 = 1, r1 = rd, s2 = 0, r2 = rr }
+        property cycles: int = 2;
+        execute {
+            local result: int.17 = (read(rd) * read(rr)) << 1;
+            Z = result[15:0] == 0;
+            C = result[16];
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "fmulsu" rd: op_MGPR, rr: op_MGPR {
+        encoding = MGPRMGPR where { opcode = 0b0000011, s1 = 1, r1 = rd, s2 = 1, r2 = rr }
+        property cycles: int = 2;
+        execute {
+            local result: int.17 = (read(rd) * +read(rr)) << 1;
+            Z = result[15:0] == 0;
+            C = result[16];
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "icall" {
+        encoding = { 0b10010101, 0b00001001 }
+        property cycles: int = 3;
+        execute {
+            pushPC(nextpc);
+            // TODO: put back in RZ.Z
+            nextpc = absolute(get_wreg(30));
+        }
+    }
+
+    instruction "ijmp" {
+        encoding = { 0b10010100, 0b00001001 }
+        property cycles: int = 2;
+        execute {
+            // TODO: put back in RZ.Z
+            nextpc = absolute(get_wreg(30));
+        }
+    }
+
+    instruction "in" rd: op_GPR, imm: IMM6 {
+        encoding = { 0b10110, imm[5:4], rd[4:0], imm[3:0] }
+        property cycles: int = 1;
+        execute {
+            write(rd, ioregs[imm:int]);
+        }
+    }
+
+    instruction "inc": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0011;
+        property cycles: int = 1;
+        execute {
+            local r1: +int.8 = +read(rd);
+            local result: +int.8 = low(r1 + 1);
+
+            N = result[7];
+            Z = result == 0;
+            V = r1 == 0x7f;
+            S = N xor V;
+
+            write(rd, result);
+        }
+    }
+
+    instruction "jmp" target: PADDR {
+        encoding = ABS4 where { opcode = 0b1001010110 }
+        property cycles: int = 3;
+        execute {
+            nextpc = absolute(target:int);
+        }
+    }
+
+    instruction "ldd" rd: op_GPR, ar: op_YZ, imm: IMM6 {
+        encoding = priority 1 { 0b10, imm[5], 0b0, imm[4:3], 0b0, rd[4:0], ar[0], imm[2:0] }
+        property syntax: String = "%rd, %ar+%imm";
+        property cycles: int = 2;
+        execute {
+            write(rd, sram[read(ar) + imm:+int.6]);
+        }
+    }
+
+    instruction "ldi": HGPRIMM8 {
+        property opcode: int = 0b1110;
+        property cycles: int = 1;
+        execute {
+            write(rd, imm:int.8);
+        }
+    }
+
+    instruction "lds" rd: op_GPR, addr: DADDR {
+        encoding = { 0b1001000, rd[4:0], 0b0000, addr[15:0] }
+        property cycles: int = 2;
+        execute {
+            write(rd, sram[addr:+int.16]);
+        }
+    }
+
+    // LSL (logical shift left by 1) is encoded as an ADD instruction where
+    // the register is simply added to itself
+    pseudo instruction "lsl" rd: op_GPR {
+        encoding = GPRGPR where { opcode = 0b000011, r1 = rd, r2 = rd }
+        property cycles: int = 1;
+        execute {
+            write(rd, performLeftShift(read(rd), false));
+        }
+    }
+
+    instruction "lsr": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b110;
+        property cycles: int = 1;
+        execute {
+            write(rd, performRightShift(read(rd), false));
+        }
+    }
+
+    instruction "mov": GPRGPR {
+        property opcode: int = 0b001011;
+        property cycles: int = 1;
+        execute {
+            write(rd, read(rr));
+        }
+    }
+
+    instruction "movw" rd: op_EGPR, rr: op_EGPR {
+        encoding = { 0b00000001, rd[3:0], rr[3:0] }
+        property cycles: int = 1;
+        execute {
+            write(rd, read(rr));
+        }
+    }
+
+    instruction "mul": GPRGPR {
+        property opcode: int = 0b100111;
+        property cycles: int = 2;
+        execute {
+            local result: +int.16 = +read(rd) * +read(rr);
+            C = result[15];
+            Z = (result[15:0] == 0);
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "muls" rd: op_HGPR, rr: op_HGPR {
+        encoding = { 0b00000010, rd[3:0], rr[3:0] }
+        property cycles: int = 2;
+        execute {
+            local result: -int.16 = read(rd) * read(rr);
+            C = result[15];
+            Z = (result[15:0] == 0);
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "mulsu" rd: op_MGPR, rr: op_MGPR {
+        encoding = { 0b00000011, 0b0, rd[2:0], 0b0, rr[2:0] }
+        property cycles: int = 2;
+        execute {
+            local result: -int.16 = read(rd) * +read(rr);
+            C = result[15];
+            Z = (result[15:0] == 0);
+            // TODO: put back in GPR.r0
+            set_wreg(0, result);
+        }
+    }
+
+    instruction "neg": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0001;
+        property cycles: int = 1;
+        execute {
+            write(rd, performSubtraction(0, read(rd), 0));
+        }
+    }
+
+    instruction "nop" {
+        encoding = { 0b00000000, 0b00000000 }
+        property cycles: int = 1;
+        execute {
+            // do nothing.
+        }
+    }
+
+    instruction "or": GPRGPR {
+        property opcode: int = 0b001010;
+        property cycles: int = 1;
+        execute {
+            write(rd, performOr(read(rd), read(rr)));
+        }
+    }
+
+    instruction "ori": HGPRIMM8 {
+        property opcode: int = 0b0110;
+        property cycles: int = 1;
+        execute {
+            write(rd, performOr(read(rd), imm:int.8));
+        }
+    }
+
+    instruction "out" ior: IMM6, rr: op_GPR {
+        encoding = { 0b10111, ior[5:4], rr[4:0], ior[3:0] }
+        property cycles: int = 1;
+        execute {
+            ioregs[ior:int] = read(rr);
+        }
+    }
+
+    instruction "pop": GPR {
+        property opcode: int = 0b1001000;
+        property ext: int = 0b1111;
+        property cycles: int = 2;
+        execute {
+            write(rd, popByte());
+        }
+    }
+
+    instruction "push": GPR {
+        property opcode: int = 0b1001001;
+        property ext: int = 0b1111;
+        property cycles: int = 2;
+        execute {
+            pushByte(read(rd));
+        }
+    }
+
+    instruction "rcall" target: LREL {
+        encoding = { 0b1101, target[11:0] }
+        property cycles: int = 3;
+        execute {
+            pushPC(nextpc);
+            nextpc = relative(target:int);
+        }
+    }
+
+    instruction "ret" {
+        encoding = { 0b10010101, 0b00001000 }
+        property cycles: int = 4;
+        execute {
+            nextpc = popPC();
+        }
+    }
+
+    instruction "reti" {
+        encoding = { 0b10010101, 0b00011000 }
+        property cycles: int = 4;
+        execute {
+            nextpc = popPC();
+            enableInterrupts();
+            // lastRETI = totalCycles;
+            justReturnedFromInterrupt = true;
+        }
+    }
+
+    instruction "rjmp" target: LREL {
+        encoding = { 0b1100, target[11:0] }
+        property cycles: int = 2;
+        execute {
+            nextpc = relative(target:int);
+        }
+    }
+
+    // ROL (rotate left by 1) is encoded an ADC (add with carry instruction)
+    // where the register is simply added to itself
+    pseudo instruction "rol" rd: op_GPR {
+        encoding = GPRGPR where { opcode = 0b000111, r1 = rd, r2 = rd }
+        property cycles: int = 1;
+        execute {
+            write(rd, performLeftShift(+read(rd), C));
+        }
+    }
+
+    instruction "ror": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0111;
+        property cycles: int = 1;
+        execute {
+            write(rd, performRightShift(read(rd), C));
+        }
+    }
+
+    instruction "sbc": GPRGPR {
+        property opcode: int = 0b000010;
+        property cycles: int = 1;
+        execute {
+            write(rd, performSubtractionPZ(read(rd), read(rr), bit(C)));
+        }
+    }
+
+    instruction "sbci": HGPRIMM8 {
+        property opcode: int = 0b0100;
+        property cycles: int = 1;
+        execute {
+            write(rd, performSubtractionPZ(read(rd), imm:int.8, bit(C)));
+        }
+    }
+
+    instruction "sbi" ior: IMM5, bit: IMM3 {
+        encoding = { 0b10011010, ior[4:0], bit[2:0] }
+        property cycles: int = 2;
+        execute {
+            setIORbit(ior:int, bit:int, true);
+        }
+    }
+
+    instruction "sbic" ior: IMM5, bit: IMM3 {
+        encoding = { 0b10011001, ior[4:0], bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            if (!getIORbit(ior:int, bit:int)) skip();
+        }
+    }
+
+    instruction "sbis" ior: IMM5, bit: IMM3 {
+        encoding = { 0b10011011, ior[4:0], bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            if ( getIORbit(ior:int, bit:int) ) skip();
+        }
+    }
+
+    instruction "sbiw" rd: op_RDL, imm: IMM6 {
+        encoding = { 0b10010111, imm[5:4], rd[1:0], imm[3:0] }
+        property cycles: int = 2;
+        execute {
+            local val: +int.16 = read(rd);
+            local result: -int.16 = val - (imm: +int.6);
+
+            local Rdh7: boolean = val[15];
+            local R15: boolean = result[15];
+
+            V = Rdh7 and !R15;
+            N = R15;
+            Z = result[15:0] == 0;
+            C = R15 and !Rdh7;
+            S = N xor V;
+
+            write(rd, result);
+        }
+    }
+
+    // SBR (set bits in register) is equivalent to the ORI (or with immediate) instruction
+    pseudo instruction "sbr": HGPRIMM8 {
+        property opcode: int = 0b0110;
+        property cycles: int = 1;
+        execute {
+            write(rd, performOr(read(rd), imm:int.8));
+        }
+    }
+
+    instruction "sbrc" rr: op_GPR, bit: IMM3 {
+        encoding = { 0b1111110, rr[4:0], 0b0, bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            if (!(read(rr)[bit:int])) skip();
+        }
+    }
+
+    instruction "sbrs" rr: op_GPR, bit: IMM3 {
+        encoding = { 0b1111111, rr[4:0], 0b0, bit[2:0] }
+        property cycles: int = 1;
+        execute {
+            if ( read(rr)[bit:int] ) skip();
+        }
+    }
+
+    instruction "sec" {
+        encoding = SET where { bit = 0b000 }
+        property cycles: int = 1;
+        execute {
+            C = true;
+        }
+    }
+
+    instruction "seh" {
+        encoding = SET where { bit = 0b101 }
+        property cycles: int = 1;
+        execute {
+            H = true;
+        }
+    }
+
+    instruction "sei" {
+        encoding = SET where { bit = 0b111 }
+        property cycles: int = 1;
+        execute {
+            enableInterrupts();
+        }
+    }
+
+    instruction "sen" {
+        encoding = SET where { bit = 0b010 }
+        property cycles: int = 1;
+        execute {
+            N = true;
+        }
+    }
+
+    pseudo instruction "ser" rd: op_HGPR {
+        encoding = { 0b11101111, rd[4:1], 0b1111 }
+        property cycles: int = 1;
+        execute {
+            write(rd, low(0xff));
+        }
+    }
+
+    instruction "ses" {
+        encoding = SET where { bit = 0b100 }
+        property cycles: int = 1;
+        execute {
+            S = true;
+        }
+    }
+
+    instruction "set" {
+        encoding = SET where { bit = 0b110 }
+        property cycles: int = 1;
+        execute {
+            T = true;
+        }
+    }
+
+    instruction "sev" {
+        encoding = SET where { bit = 0b011 }
+        property cycles: int = 1;
+        execute {
+            V = true;
+        }
+    }
+
+    instruction "sez" {
+        encoding = SET where { bit = 0b001 }
+        property cycles: int = 1;
+        execute {
+            Z = true;
+        }
+    }
+
+    instruction "sleep" {
+        encoding = { 0b10010101, 0b10001000 }
+        property cycles: int = 1;
+        execute {
+            enterSleepMode();
+        }
+    }
+
+    instruction "spm" {
+        encoding = { 0b10010101, 0b11101000 }
+        property cycles: int = 1;
+        execute {
+            storeProgramMemory();
+        }
+    }
+
+    instruction "std" ar: op_YZ, imm: IMM6, rr: op_GPR {
+        encoding = priority 1 { 0b10, imm[5], 0b0, imm[4:3], 0b1, rr[4:0], ar[0], imm[2:0] }
+        property syntax: String = "%ar+%imm, %rr";
+        property cycles: int = 2;
+        execute {
+            sram[read(ar) + imm:+int.6] = read(rr);
+        }
+    }
+
+    instruction "sts" addr: DADDR, rr: op_GPR {
+        encoding = { 0b1001001, rr[4:0], 0b0000, addr[15:0] }
+        property cycles: int = 2;
+        execute {
+            sram[addr:int] = read(rr);
+        }
+    }
+
+    instruction "sub": GPRGPR {
+        property opcode: int = 0b000110;
+        property cycles: int = 1;
+        execute {
+            write(rd, performSubtraction(read(rd), read(rr), 0));
+        }
+    }
+
+    instruction "subi": HGPRIMM8 {
+        property opcode: int = 0b0101;
+        property cycles: int = 1;
+        execute {
+            write(rd, performSubtraction(read(rd), imm:int.8, 0));
+        }
+    }
+
+    instruction "swap": GPR {
+        property opcode: int = 0b1001010;
+        property ext: int = 0b0010;
+        property cycles: int = 1;
+        execute {
+            local val: +int.8 = +read(rd);
+            local result: +int.8 = 0;
+            result[3:0] = val[7:4];
+            result[7:4] = val[3:0];
+            write(rd, low(result));
+        }
+    }
+
+    // TST (test) is encoded as an AND instruction
+    pseudo instruction "tst" rd: op_GPR {
+        encoding = GPRGPR where { rr = rd }
+        property opcode: int = 0b001000;
+        property cycles: int = 1;
+        execute {
+            local r1: int.8 = read(rd);
+            V = false;
+            Z = low(r1) == 0;
+            N = r1[7];
+            S = N xor V;
+        }
+    }
+
+    instruction "wdr" {
+        encoding = { 0b10010101, 0b10101000 }
+        property cycles: int = 1;
+        execute {
+            // do nothing.
+        }
+    }
+
+//------------------------------------------------------------------------
+// POLYMORPHIC INSTRUCTIONS SUPPORT: lpm, elpm, ld, ldd, st, std
+//------------------------------------------------------------------------
+
+    enum-subset R0: GPR {
+        r0 = 0
+    }
+
+    enum-subset RZ: ADR {
+        Z = 0
+    }
+
+    operand-type R0_B[0]: R0 {
+        read: int.8 { return get_reg(0); }
+        write: int.8 { set_reg(0, value); }
+    }
+
+    operand-type RZ_W[0]: RZ {
+            // TODO: put back in RZ.Z
+        read: +int.16 { return get_wreg(30); }
+    }
+
+    operand-type AI_RZ_W[0]: RZ {
+        read: +int.16 {
+            // TODO: put back in RZ.Z
+            local temp: +int.16 = get_wreg(30);
+            set_wreg(30, temp + 1);
+            return temp;
+        }
+    }
+
+    addr-mode XLPM_REG dest: R0_B, source: RZ_W { // load from flash at address Z into R0
+        encoding = { 0b10010101, 0b110, extended[0], 0b1000 }
+        property syntax: String = "";
+    }
+
+    addr-mode XLPM_D dest: op_GPR, source: RZ_W { // load from flash at address Z into rd
+        encoding = { 0b1001000, dest[4:0], 0b01, extended[0], 0b0 }
+        property syntax: String = "%dest, %source";
+    }
+
+    addr-mode XLPM_INC dest: op_GPR, source: AI_RZ_W { // load from flash at address Z into rd and increment Z
+        encoding = { 0b1001000, dest[4:0], 0b01, extended[0], 0b1 }
+        property syntax: String = "%dest, %source+";
+    }
+
+    addr-set XLPM { XLPM_REG, XLPM_D, XLPM_INC } // addressing modes for LPM, ELPM
+
+    operand-type XYZ[0]: ADR { // simply read from X, Y, or Z
+        read: +int.16 { return get_wreg(this: int); }
+    }
+
+    operand-type AI_XYZ[0]: ADR { // read from X, Y, or Z and post increment
+        read: +int.16 {
+            local tmp: +int.16 = get_wreg(this: int);
+            set_wreg(this: int, tmp + 1);
+            return tmp;
+        }
+    }
+
+    operand-type PD_XYZ[0]: ADR { // read from X, Y, or Z with predecrement
+        read: +int.16 {
+            local tmp: +int.16 = (get_wreg(this: int) - 1)[15:0];
+            set_wreg(this: int, tmp);
+            return tmp;
+        }
+    }
+
+    addr-mode LD_ST_XYZ rd: op_GPR, ar: XYZ {
+        encoding = { 0b100100, store[0], rd[4:0], 0b1100 } when ar == X
+        encoding = { 0b100000, store[0], rd[4:0], 0b1000 } when ar == Y
+        encoding = { 0b100000, store[0], rd[4:0], 0b0000 } when ar == Z
+        property syntax: String = "%rd, %ar";
+    }
+
+    addr-mode LD_ST_AI_XYZ rd: op_GPR, ar: AI_XYZ {
+        encoding = { 0b100100, store[0], rd[4:0], 0b1101 } when ar == X
+        encoding = { 0b100100, store[0], rd[4:0], 0b1001 } when ar == Y
+        encoding = { 0b100100, store[0], rd[4:0], 0b0001 } when ar == Z
+        property syntax: String = "%rd, %ar+";
+    }
+
+    addr-mode LD_ST_PD_XYZ rd: op_GPR, ar: PD_XYZ {
+        encoding = { 0b100100, store[0], rd[4:0], 0b1110 } when ar == X
+        encoding = { 0b100100, store[0], rd[4:0], 0b1010 } when ar == Y
+        encoding = { 0b100100, store[0], rd[4:0], 0b0010 } when ar == Z
+        property syntax: String = "%rd, -%ar";
+    }
+
+    addr-set LD_ST { LD_ST_XYZ, LD_ST_AI_XYZ, LD_ST_PD_XYZ }
+
+//------------------------------------------------------------------------
+// POLYMORPHIC INSTRUCTIONS : lpm, elpm, ld, st
+//------------------------------------------------------------------------
+
+    instruction "elpm": XLPM {
+        property cycles: int = 3;
+        property extended: int = 1;
+        execute {
+            local addr: int = extended(read(source));
+            write(dest, flash[addr]);
+        }
+    }
+
+    instruction "lpm": XLPM {
+        property cycles: int = 3;
+        property extended: int = 0;
+        execute {
+            local addr: int = read(source);
+            write(dest, flash[addr]);
+        }
+    }
+
+    instruction "ld": LD_ST {
+        property cycles: int = 2;
+        property store: boolean = false;
+        execute {
+            local addr: int = read(ar);
+            write(rd, sram[addr]);
+        }
+    }
+
+    instruction "st": LD_ST {
+        property cycles: int = 2;
+        property store: boolean = true;
+        execute {
+            local addr: int = read(ar);
+            local val: int.8 = read(rd);
+            sram[addr] = val;
+        }
+    }
+
+}

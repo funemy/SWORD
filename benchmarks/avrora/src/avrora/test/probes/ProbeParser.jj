@@ -1,0 +1,224 @@
+/**
+ * Copyright (c) 2004-2005, Regents of the University of California
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * Neither the name of the University of California, Los Angeles nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * This file implements a parser for the probing system testcases,
+ * that test the correctness of the probing infrastructure.
+ * @author Ben L. Titzer
+ **/
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+
+PARSER_BEGIN(ProbeParser)
+
+package avrora.test.probes;
+import avrora.core.isdl.ast.*;
+import avrora.core.isdl.*;
+import java.util.List;
+import java.util.LinkedList;
+
+public class ProbeParser {
+
+}
+
+PARSER_END(ProbeParser)
+
+/* WHITE SPACE */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+/* COMMENTS */
+
+MORE :
+{
+  "#" : IN_SINGLE_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+
+<IN_SINGLE_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+
+/* RESERVED WORDS AND LITERALS */
+
+TOKEN :
+{
+  < INTEGER_LITERAL:
+       (<DECIMAL_LITERAL> | <HEX_LITERAL> | <BIN_LITERAL> | <OCTAL_LITERAL>)
+  >
+|
+  < #DECIMAL_LITERAL: (("-")? ["1"-"9"] (["0"-"9"])*) >
+|
+  < #HEX_LITERAL: (("0" ["x","X"])|"$") (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #BIN_LITERAL: "0" ["b","B"] (["0", "1"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+}
+
+/* Reserved words */
+TOKEN :
+{
+    < PROBE : "probe" >
+  | < EVENT : "event" >
+  | < WATCH : "watch" >
+  | < MAIN : "main" >
+  | < INSERT : "insert" >
+  | < REMOVE : "remove" >
+  | < ADVANCE : "advance" >
+  | < RESULT : "result" >
+}
+
+TOKEN :
+{
+    < LBRACKET: "{" >
+  | < RBRACKET: "}" >
+  | < SEMI: ";" >
+  | < PIPE: "|" >
+}
+
+/* Instruction MNEMONICS */
+
+/* IDENTIFIERS */
+
+TOKEN :
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+      [ "a"-"z", "A"-"Z", "_"]
+  >
+|
+  < #DIGIT:
+      [ "0"-"9", "." ]
+  >
+}
+
+
+/* Begin GRAMMAR */
+
+ProbeTest ProbeTest() : { ProbeTest pt = new ProbeTest(); }
+{
+    ( Declaration(pt) )*
+    Main(pt)
+    Result(pt)
+    { return pt; }
+}
+
+void Main(ProbeTest pt): { List l; }
+{
+    "main" "{" l = Body(pt) "}"
+    { pt.addMainCode(l); }
+}
+
+void Result(ProbeTest pt): {}
+{
+    "result" "{" (Event(pt) ";")* "}"
+
+}
+
+void Event(ProbeTest pt): { Token t, n; }
+{
+    t = <INTEGER_LITERAL> (n = <IDENTIFIER> { pt.addResultEvent(t, n); } )+
+}
+
+void Declaration(ProbeTest pt) : {}
+{
+    ProbeDeclaration(pt)
+  | WatchDeclaration(pt)
+  | EventDeclaration(pt)
+}
+
+List Body(ProbeTest pt) : { List l = new LinkedList(); }
+{
+    (Statement(pt, l) ";")*
+    { return l; }
+}
+
+void Statement(ProbeTest pt, List l) : { Token n, v; }
+{
+    "insert" n = <IDENTIFIER> v = <INTEGER_LITERAL> { pt.addInsert(l, n, v); }
+   |"remove" n = <IDENTIFIER> v = <INTEGER_LITERAL> { pt.addRemove(l, n, v); }
+   |"advance" v = <INTEGER_LITERAL> { pt.addAdvance(l, v); }
+}
+
+void ProbeDeclaration(ProbeTest pt): { Token n; List b, a; }
+{
+    "probe" n = <IDENTIFIER> "{" b = Body(pt) "|" a = Body(pt) "}"
+    { pt.newProbe(n, b, a); }
+}
+
+void WatchDeclaration(ProbeTest pt): { Token n; List b1, a1, b2, a2; }
+{
+    "watch" n = <IDENTIFIER> "{" b1 = Body(pt) "|" a1 = Body(pt) "|" b2 = Body(pt) "|" a2 = Body(pt) "}"
+    { pt.newWatch(n, b1, a1, b2, a2); }
+}
+
+void EventDeclaration(ProbeTest pt): { Token n; List b; }
+{
+    "event" n = <IDENTIFIER> "{" b = Body(pt) "}"
+    { pt.newEvent(n, b); }
+}
