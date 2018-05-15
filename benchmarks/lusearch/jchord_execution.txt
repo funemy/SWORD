@@ -1,0 +1,924 @@
+Buildfile: ../compare/chord/main/build.xml
+
+run:
+     [java] Chord run initiated at: Jul 25, 2011 6:57:29 PM
+     [java] ENTER: datarace-java at Mon Jul 25 18:57:30 CDT 2011
+     [java] ENTER: P at Mon Jul 25 18:57:30 CDT 2011
+     [java] ENTER: M at Mon Jul 25 18:57:30 CDT 2011
+     [java] ENTER: RTA
+     [java] Iteration: 0
+     [java] Iteration: 1
+     [java] Iteration: 2
+     [java] Iteration: 3
+     [java] Iteration: 4
+     [java] LEAVE: RTA
+     [java] Time: 00:00:11:585 hh:mm:ss:ms
+     [java] SAVING dom M size: 7762
+     [java] LEAVE: M
+     [java] Exclusive time: 00:00:11:815 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:11:815 hh:mm:ss:ms
+     [java] SAVING dom P size: 158792
+     [java] LEAVE: P
+     [java] Exclusive time: 00:00:04:364 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:16:179 hh:mm:ss:ms
+     [java] ENTER: ctxts-java at Mon Jul 25 18:57:47 CDT 2011
+     [java] ENTER: cipa-0cfa-dlog at Mon Jul 25 18:57:47 CDT 2011
+     [java] ENTER: T at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom T size: 1880
+     [java] LEAVE: T
+     [java] Exclusive time: 00:00:00:003 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:003 hh:mm:ss:ms
+     [java] ENTER: F at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom F size: 5576
+     [java] LEAVE: F
+     [java] Exclusive time: 00:00:00:029 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:029 hh:mm:ss:ms
+     [java] ENTER: V at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom V size: 59420
+     [java] LEAVE: V
+     [java] Exclusive time: 00:00:00:338 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:338 hh:mm:ss:ms
+     [java] ENTER: H at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom H size: 5438
+     [java] LEAVE: H
+     [java] Exclusive time: 00:00:00:094 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:094 hh:mm:ss:ms
+     [java] ENTER: I at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom I size: 25723
+     [java] LEAVE: I
+     [java] Exclusive time: 00:00:00:316 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:316 hh:mm:ss:ms
+     [java] ENTER: Z at Mon Jul 25 18:57:47 CDT 2011
+     [java] SAVING dom Z size: 14
+     [java] LEAVE: Z
+     [java] Exclusive time: 00:00:00:066 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:066 hh:mm:ss:ms
+     [java] ENTER: MmethArg at Mon Jul 25 18:57:48 CDT 2011
+     [java] SAVING rel MmethArg size: 10368
+     [java] LEAVE: MmethArg
+     [java] Exclusive time: 00:00:00:930 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:930 hh:mm:ss:ms
+     [java] ENTER: VT at Mon Jul 25 18:57:48 CDT 2011
+     [java] SAVING rel VT size: 59426
+     [java] LEAVE: VT
+     [java] Exclusive time: 00:00:02:278 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:02:278 hh:mm:ss:ms
+     [java] ENTER: virtIM at Mon Jul 25 18:57:51 CDT 2011
+     [java] SAVING rel virtIM size: 14403
+     [java] LEAVE: virtIM
+     [java] Exclusive time: 00:00:00:481 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:481 hh:mm:ss:ms
+     [java] ENTER: sub at Mon Jul 25 18:57:51 CDT 2011
+     [java] SAVING rel sub size: 5376
+     [java] LEAVE: sub
+     [java] Exclusive time: 00:00:00:217 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:217 hh:mm:ss:ms
+     [java] ENTER: IinvkRet at Mon Jul 25 18:57:51 CDT 2011
+     [java] SAVING rel IinvkRet size: 9548
+     [java] LEAVE: IinvkRet
+     [java] Exclusive time: 00:00:00:340 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:340 hh:mm:ss:ms
+     [java] ENTER: objNewInst-java at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel objNewInstIH size: 0
+     [java] SAVING rel objNewInstIM size: 0
+     [java] LEAVE: objNewInst-java
+     [java] Exclusive time: 00:00:00:113 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:113 hh:mm:ss:ms
+     [java] ENTER: aryNewInstIH at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel aryNewInstIH size: 0
+     [java] LEAVE: aryNewInstIH
+     [java] Exclusive time: 00:00:00:057 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:057 hh:mm:ss:ms
+     [java] ENTER: staticTM at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel staticTM size: 1570
+     [java] LEAVE: staticTM
+     [java] Exclusive time: 00:00:00:088 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:088 hh:mm:ss:ms
+     [java] ENTER: staticTF at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel staticTF size: 2803
+     [java] LEAVE: staticTF
+     [java] Exclusive time: 00:00:00:108 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:108 hh:mm:ss:ms
+     [java] ENTER: MgetStatFldInst at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel MgetStatFldInst size: 2222
+     [java] LEAVE: MgetStatFldInst
+     [java] Exclusive time: 00:00:00:232 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:232 hh:mm:ss:ms
+     [java] ENTER: cha at Mon Jul 25 18:57:52 CDT 2011
+     [java] SAVING rel cha size: 20192
+     [java] LEAVE: cha
+     [java] Exclusive time: 00:00:01:043 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:043 hh:mm:ss:ms
+     [java] ENTER: HT at Mon Jul 25 18:57:53 CDT 2011
+     [java] SAVING rel HT size: 5437
+     [java] LEAVE: HT
+     [java] Exclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] ENTER: MgetInstFldInst at Mon Jul 25 18:57:54 CDT 2011
+     [java] SAVING rel MgetInstFldInst size: 8617
+     [java] LEAVE: MgetInstFldInst
+     [java] Exclusive time: 00:00:00:747 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:747 hh:mm:ss:ms
+     [java] ENTER: specIM at Mon Jul 25 18:57:54 CDT 2011
+     [java] SAVING rel specIM size: 7220
+     [java] LEAVE: specIM
+     [java] Exclusive time: 00:00:00:223 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:223 hh:mm:ss:ms
+     [java] ENTER: classT at Mon Jul 25 18:57:55 CDT 2011
+     [java] SAVING rel classT size: 1153
+     [java] LEAVE: classT
+     [java] Exclusive time: 00:00:00:064 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:064 hh:mm:ss:ms
+     [java] ENTER: MI at Mon Jul 25 18:57:55 CDT 2011
+     [java] SAVING rel MI size: 25723
+     [java] LEAVE: MI
+     [java] Exclusive time: 00:00:00:649 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:649 hh:mm:ss:ms
+     [java] ENTER: MobjValAsgnInst at Mon Jul 25 18:57:55 CDT 2011
+     [java] SAVING rel MobjValAsgnInst size: 5437
+     [java] LEAVE: MobjValAsgnInst
+     [java] Exclusive time: 00:00:00:302 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:302 hh:mm:ss:ms
+     [java] ENTER: clinitTM at Mon Jul 25 18:57:56 CDT 2011
+     [java] SAVING rel clinitTM size: 306
+     [java] LEAVE: clinitTM
+     [java] Exclusive time: 00:00:00:074 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:074 hh:mm:ss:ms
+     [java] ENTER: MobjVarAsgnInst at Mon Jul 25 18:57:56 CDT 2011
+     [java] SAVING rel MobjVarAsgnInst size: 20157
+     [java] LEAVE: MobjVarAsgnInst
+     [java] Exclusive time: 00:00:01:002 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:002 hh:mm:ss:ms
+     [java] ENTER: conNewInst-java at Mon Jul 25 18:57:57 CDT 2011
+     [java] SAVING rel conNewInstIH size: 0
+     [java] SAVING rel conNewInstIM size: 0
+     [java] LEAVE: conNewInst-java
+     [java] Exclusive time: 00:00:00:113 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:113 hh:mm:ss:ms
+     [java] ENTER: IinvkArg0 at Mon Jul 25 18:57:57 CDT 2011
+     [java] SAVING rel IinvkArg0 size: 23796
+     [java] LEAVE: IinvkArg0
+     [java] Exclusive time: 00:00:00:650 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:650 hh:mm:ss:ms
+     [java] ENTER: IinvkArg at Mon Jul 25 18:57:57 CDT 2011
+     [java] SAVING rel IinvkArg size: 34985
+     [java] LEAVE: IinvkArg
+     [java] Exclusive time: 00:00:01:187 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:187 hh:mm:ss:ms
+     [java] ENTER: MmethRet at Mon Jul 25 18:57:59 CDT 2011
+     [java] SAVING rel MmethRet size: 2599
+     [java] LEAVE: MmethRet
+     [java] Exclusive time: 00:00:00:263 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:263 hh:mm:ss:ms
+     [java] ENTER: clsForNameIT at Mon Jul 25 18:57:59 CDT 2011
+     [java] SAVING rel clsForNameIT size: 0
+     [java] LEAVE: clsForNameIT
+     [java] Exclusive time: 00:00:00:056 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:056 hh:mm:ss:ms
+     [java] ENTER: MputInstFldInst at Mon Jul 25 18:57:59 CDT 2011
+     [java] SAVING rel MputInstFldInst size: 3252
+     [java] LEAVE: MputInstFldInst
+     [java] Exclusive time: 00:00:00:366 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:366 hh:mm:ss:ms
+     [java] ENTER: MputStatFldInst at Mon Jul 25 18:57:59 CDT 2011
+     [java] SAVING rel MputStatFldInst size: 903
+     [java] LEAVE: MputStatFldInst
+     [java] Exclusive time: 00:00:00:144 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:144 hh:mm:ss:ms
+     [java] ENTER: statIM at Mon Jul 25 18:57:59 CDT 2011
+     [java] SAVING rel statIM size: 4100
+     [java] LEAVE: statIM
+     [java] Exclusive time: 00:00:00:162 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:162 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_cipa_0cfa.dlog '
+     [java] Relation IHM: 217050 nodes, 4299907.0 elements (I0,M0,H0)
+     [java] Relation reachableT: 326 nodes, 794.0 elements (T0)
+     [java] Relation VHfilter: 40339 nodes, 2.4710742E7 elements (V0,H0)
+     [java] Relation VH: 44736 nodes, 583763.0 elements (V0,H0)
+     [java] Relation FH: 4387 nodes, 729.0 elements (H0,F0)
+     [java] Relation HFH: 16528 nodes, 429489.0 elements (H0,F0,H1)
+     [java] Relation rootM: 374 nodes, 221.0 elements (M0)
+     [java] Relation reachableI: 1248 nodes, 14563.0 elements (I0)
+     [java] Relation reachableM: 924 nodes, 4278.0 elements (M0)
+     [java] Relation IM: 32501 nodes, 19195.0 elements (I0,M0)
+     [java] Relation MM: 22393 nodes, 13542.0 elements (M0,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_cipa_0cfa.dlog '
+     [java] LEAVE: cipa-0cfa-dlog
+     [java] Exclusive time: 00:00:19:681 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:32:570 hh:mm:ss:ms
+     [java] SAVING dom C size: 31161
+     [java] SAVING rel CI size: 25723
+     [java] SAVING rel CH size: 5437
+     [java] SAVING rel CC size: 31160
+     [java] SAVING rel epsilonM size: 7762
+     [java] SAVING rel kcfaSenM size: 0
+     [java] SAVING rel kobjSenM size: 0
+     [java] SAVING rel ctxtCpyM size: 0
+     [java] SAVING rel epsilonV size: 59420
+     [java] SAVING rel refinableV size: 0
+     [java] SAVING rel refinableM size: 0
+     [java] LEAVE: ctxts-java
+     [java] Exclusive time: 00:00:03:886 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:36:456 hh:mm:ss:ms
+     [java] ENTER: cspa-0cfa-dlog at Mon Jul 25 18:58:23 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_cspa_0cfa.dlog '
+     [java] Relation CVC: 120550 nodes, 583763.0 elements (C0,C1,V0)
+     [java] Relation FC: 4399 nodes, 729.0 elements (C0,F0)
+     [java] Relation CFC: 17893 nodes, 429489.0 elements (C0,F0,C1)
+     [java] Relation rootCM: 389 nodes, 221.0 elements (C0,M0)
+     [java] Relation reachableCI: 1263 nodes, 14563.0 elements (C0,I0)
+     [java] Relation reachableCM: 939 nodes, 4278.0 elements (C0,M0)
+     [java] Relation CICM: 32531 nodes, 19195.0 elements (C0,M0,I0,C1)
+     [java] Relation CMCM: 22423 nodes, 13542.0 elements (C0,M0,C1,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_cspa_0cfa.dlog '
+     [java] LEAVE: cspa-0cfa-dlog
+     [java] Exclusive time: 00:00:02:189 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:02:189 hh:mm:ss:ms
+     [java] ENTER: datarace-prologue-dlog at Mon Jul 25 18:58:25 CDT 2011
+     [java] ENTER: E at Mon Jul 25 18:58:25 CDT 2011
+     [java] SAVING dom E size: 30339
+     [java] LEAVE: E
+     [java] Exclusive time: 00:00:00:322 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:322 hh:mm:ss:ms
+     [java] ENTER: threads-java at Mon Jul 25 18:58:26 CDT 2011
+     [java] ENTER: threads-dlog at Mon Jul 25 18:58:26 CDT 2011
+     [java] ENTER: thrOblAbbrCSCG-dlog at Mon Jul 25 18:58:26 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_thrOblAbbrCSCG.dlog '
+     [java] Relation thrOblAbbrRootCM: 28 nodes, 1.0 elements (C0,M0)
+     [java] Relation thrOblAbbrReachableCM: 939 nodes, 3681.0 elements (C0,M0)
+     [java] Relation thrOblAbbrCICM: 29810 nodes, 17467.0 elements (C0,M0,I0,C1)
+     [java] Relation thrOblAbbrCMCM: 20736 nodes, 12554.0 elements (C0,M0,C1,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_thrOblAbbrCSCG.dlog '
+     [java] LEAVE: thrOblAbbrCSCG-dlog
+     [java] Exclusive time: 00:00:01:731 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:732 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_thread_threads.dlog '
+     [java] Relation threadOC: 52 nodes, 2.0 elements (C0,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_thread_threads.dlog '
+     [java] LEAVE: threads-dlog
+     [java] Exclusive time: 00:00:01:515 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:03:247 hh:mm:ss:ms
+     [java] SAVING dom A size: 4
+     [java] SAVING rel threadAOCM size: 3
+     [java] LEAVE: threads-java
+     [java] Exclusive time: 00:00:00:125 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:03:372 hh:mm:ss:ms
+     [java] ENTER: ME at Mon Jul 25 18:58:29 CDT 2011
+     [java] SAVING rel ME size: 30339
+     [java] LEAVE: ME
+     [java] Exclusive time: 00:00:00:581 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:581 hh:mm:ss:ms
+     [java] ENTER: checkExcludedT at Mon Jul 25 18:58:30 CDT 2011
+     [java] SAVING rel checkExcludedT size: 426
+     [java] LEAVE: checkExcludedT
+     [java] Exclusive time: 00:00:00:065 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:065 hh:mm:ss:ms
+     [java] ENTER: thrSenAbbrCSCG-dlog at Mon Jul 25 18:58:30 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_thrSenAbbrCSCG.dlog '
+     [java] Relation thrSenAbbrRootCM: 27 nodes, 2.0 elements (C0,M0)
+     [java] Relation thrSenAbbrReachableCM: 939 nodes, 3681.0 elements (C0,M0)
+     [java] Relation thrSenAbbrCICM: 29808 nodes, 17466.0 elements (C0,M0,I0,C1)
+     [java] Relation thrSenAbbrCMCM: 20736 nodes, 12553.0 elements (C0,M0,M1,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_alias_thrSenAbbrCSCG.dlog '
+     [java] LEAVE: thrSenAbbrCSCG-dlog
+     [java] Exclusive time: 00:00:01:696 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:696 hh:mm:ss:ms
+     [java] ENTER: TM at Mon Jul 25 18:58:31 CDT 2011
+     [java] SAVING rel TM size: 7762
+     [java] LEAVE: TM
+     [java] Exclusive time: 00:00:00:169 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:170 hh:mm:ss:ms
+     [java] ENTER: EF at Mon Jul 25 18:58:32 CDT 2011
+     [java] SAVING rel EF size: 30339
+     [java] LEAVE: EF
+     [java] Exclusive time: 00:00:00:760 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:760 hh:mm:ss:ms
+     [java] ENTER: writeE at Mon Jul 25 18:58:32 CDT 2011
+     [java] SAVING rel writeE size: 12728
+     [java] LEAVE: writeE
+     [java] Exclusive time: 00:00:00:152 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:152 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_prologue.dlog '
+     [java] Relation reachableTCM: 1359 nodes, 8119.0 elements (A0,C0,M0)
+     [java] Relation relevantTCE: 1417 nodes, 21913.0 elements (A0,C0,E0)
+     [java] Relation rdOrWrTCEF: 22170 nodes, 21913.0 elements (A0,C0,E0,F0)
+     [java] Relation onlyWrTCEF: 13287 nodes, 6035.0 elements (A0,C0,E0,F0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_prologue.dlog '
+     [java] LEAVE: datarace-prologue-dlog
+     [java] Exclusive time: 00:00:01:409 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:08:527 hh:mm:ss:ms
+     [java] ENTER: datarace-parallel-include-dlog at Mon Jul 25 18:58:34 CDT 2011
+     [java] ENTER: mhp-dlog at Mon Jul 25 18:58:34 CDT 2011
+     [java] ENTER: MPhead at Mon Jul 25 18:58:34 CDT 2011
+     [java] SAVING rel MPhead size: 7392
+     [java] LEAVE: MPhead
+     [java] Exclusive time: 00:00:00:260 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:260 hh:mm:ss:ms
+     [java] ENTER: PP at Mon Jul 25 18:58:34 CDT 2011
+     [java] SAVING rel PP size: 165329
+     [java] LEAVE: PP
+     [java] Exclusive time: 00:00:07:483 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:07:483 hh:mm:ss:ms
+     [java] ENTER: PI at Mon Jul 25 18:58:42 CDT 2011
+     [java] SAVING rel PI size: 25723
+     [java] LEAVE: PI
+     [java] Exclusive time: 00:00:01:210 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:210 hh:mm:ss:ms
+     [java] ENTER: MPtail at Mon Jul 25 18:58:43 CDT 2011
+     [java] SAVING rel MPtail size: 7392
+     [java] LEAVE: MPtail
+     [java] Exclusive time: 00:00:00:260 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:260 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_mhp_mhp.dlog '
+     [java] Relation ForkPMcs: 61 nodes, 2.0 elements (P0,C0,C1)
+     [java] Relation ForkPHcs: 92 nodes, 2.0 elements (P0,C0,C1,P1)
+     [java] Relation NonForkPMcs: 43967 nodes, 19193.0 elements (M0,P0,C0,C1)
+     [java] Relation NonForkPHcs: 66914 nodes, 19193.0 elements (P0,C0,C1,P1)
+     [java] Relation NonForkPTcs: 67179 nodes, 19193.0 elements (P0,C0,C1,P1)
+     [java] Relation PathEdge: 3952 nodes, 669019.0 elements (P0,C0,A0,A1,A2)
+     [java] Relation SummEdge: 10248 nodes, 120080.0 elements (P0,C0,A0,A1,A2)
+     [java] Relation mhp: 3890 nodes, 498182.0 elements (P0,C0,A0,A1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_mhp_mhp.dlog '
+     [java] LEAVE: mhp-dlog
+     [java] Exclusive time: 00:00:06:015 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:15:229 hh:mm:ss:ms
+     [java] ENTER: PE at Mon Jul 25 18:58:49 CDT 2011
+     [java] SAVING rel PE size: 30339
+     [java] LEAVE: PE
+     [java] Exclusive time: 00:00:01:368 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:368 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_parallel_include.dlog '
+     [java] Relation mhe: 1731 nodes, 87818.0 elements (C0,A0,A1,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_parallel_include.dlog '
+     [java] LEAVE: datarace-parallel-include-dlog
+     [java] Exclusive time: 00:00:01:579 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:18:177 hh:mm:ss:ms
+     [java] ENTER: datarace-escaping-include-dlog at Mon Jul 25 18:58:52 CDT 2011
+     [java] ENTER: flowins-thresc-dlog at Mon Jul 25 18:58:52 CDT 2011
+     [java] ENTER: MV at Mon Jul 25 18:58:52 CDT 2011
+     [java] SAVING rel MV size: 59420
+     [java] LEAVE: MV
+     [java] Exclusive time: 00:00:01:410 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:410 hh:mm:ss:ms
+     [java] ENTER: MP at Mon Jul 25 18:58:53 CDT 2011
+     [java] SAVING rel MP size: 144008
+     [java] LEAVE: MP
+     [java] Exclusive time: 00:00:05:787 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:05:787 hh:mm:ss:ms
+     [java] ENTER: EV at Mon Jul 25 18:58:59 CDT 2011
+     [java] SAVING rel EV size: 26478
+     [java] LEAVE: EV
+     [java] Exclusive time: 00:00:00:656 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:656 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_escape_flowins_thresc.dlog '
+     [java] Relation escO: 594 nodes, 1955.0 elements (C0)
+     [java] Relation escCPVO: 138400 nodes, 2.0227271E7 elements (V0,C0,P0,C1)
+     [java] Relation flowinsVisitedE: 1490 nodes, 12384.0 elements (E0)
+     [java] Relation flowinsEscE: 1514 nodes, 9021.0 elements (E0)
+     [java] Relation flowinsLocE: 1592 nodes, 9539.0 elements (E0)
+     [java] Relation queryE: 1458 nodes, 18560.0 elements (E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_escape_flowins_thresc.dlog '
+     [java] LEAVE: flowins-thresc-dlog
+     [java] Exclusive time: 00:00:03:222 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:11:076 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_escaping_include.dlog '
+     [java] Relation CEC: 41191 nodes, 35763.0 elements (C0,C1,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_escaping_include.dlog '
+     [java] LEAVE: datarace-escaping-include-dlog
+     [java] Exclusive time: 00:00:02:873 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:13:949 hh:mm:ss:ms
+     [java] ENTER: datarace-nongrded-include-dlog at Mon Jul 25 18:59:06 CDT 2011
+     [java] ENTER: L at Mon Jul 25 18:59:06 CDT 2011
+     [java] SAVING dom L size: 378
+     [java] LEAVE: L
+     [java] Exclusive time: 00:00:00:103 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:103 hh:mm:ss:ms
+     [java] ENTER: syncCLC-dlog at Mon Jul 25 18:59:06 CDT 2011
+     [java] ENTER: thisMV at Mon Jul 25 18:59:06 CDT 2011
+     [java] SAVING rel thisMV size: 5822
+     [java] LEAVE: thisMV
+     [java] Exclusive time: 00:00:00:191 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:191 hh:mm:ss:ms
+     [java] ENTER: syncLV at Mon Jul 25 18:59:06 CDT 2011
+     [java] SAVING rel syncLV size: 194
+     [java] LEAVE: syncLV
+     [java] Exclusive time: 00:00:00:063 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:063 hh:mm:ss:ms
+     [java] ENTER: syncLM at Mon Jul 25 18:59:06 CDT 2011
+     [java] SAVING rel syncLM size: 175
+     [java] LEAVE: syncLM
+     [java] Exclusive time: 00:00:00:061 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:061 hh:mm:ss:ms
+     [java] ENTER: statM at Mon Jul 25 18:59:06 CDT 2011
+     [java] SAVING rel statM size: 1570
+     [java] LEAVE: statM
+     [java] Exclusive time: 00:00:00:073 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:073 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_syncCLC.dlog '
+     [java] Relation syncCLC: 3036 nodes, 1155.0 elements (C0,L0,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_syncCLC.dlog '
+     [java] LEAVE: syncCLC-dlog
+     [java] Exclusive time: 00:00:01:234 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:622 hh:mm:ss:ms
+     [java] ENTER: transLI-dlog at Mon Jul 25 18:59:08 CDT 2011
+     [java] ENTER: LI at Mon Jul 25 18:59:08 CDT 2011
+     [java] SAVING rel LI size: 1241
+     [java] LEAVE: LI
+     [java] Exclusive time: 00:00:00:222 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:222 hh:mm:ss:ms
+     [java] ENTER: LL at Mon Jul 25 18:59:08 CDT 2011
+     [java] SAVING rel LL size: 5
+     [java] LEAVE: LL
+     [java] Exclusive time: 00:00:00:198 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:198 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_transLI.dlog '
+     [java] Relation transLI: 3851 nodes, 1272.0 elements (L0,I0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_transLI.dlog '
+     [java] LEAVE: transLI-dlog
+     [java] Exclusive time: 00:00:00:549 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:969 hh:mm:ss:ms
+     [java] ENTER: transLE-dlog at Mon Jul 25 18:59:09 CDT 2011
+     [java] ENTER: LE at Mon Jul 25 18:59:09 CDT 2011
+     [java] SAVING rel LE size: 1443
+     [java] LEAVE: LE
+     [java] Exclusive time: 00:00:00:241 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:241 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_transLE.dlog '
+     [java] Relation transLE: 3687 nodes, 1465.0 elements (L0,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_lock_transLE.dlog '
+     [java] LEAVE: transLE-dlog
+     [java] Exclusive time: 00:00:00:561 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:802 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_nongrded_include.dlog '
+     [java] Relation guardedE: 3202 nodes, 28024.0 elements (C0,C1,A0,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_nongrded_include.dlog '
+     [java] LEAVE: datarace-nongrded-include-dlog
+     [java] Exclusive time: 00:00:01:546 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:05:042 hh:mm:ss:ms
+     [java] ENTER: datarace-dlog at Mon Jul 25 18:59:11 CDT 2011
+     [java] ENTER: statF at Mon Jul 25 18:59:11 CDT 2011
+     [java] SAVING rel statF size: 2803
+     [java] LEAVE: statF
+     [java] Exclusive time: 00:00:00:077 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:077 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace.dlog '
+     [java] Relation ctxtInsStartingRace: 47015 nodes, 489407.0 elements (E0,E1)
+     [java] Relation datarace: 33860 nodes, 51958.0 elements (A0,C0,E0,A1,C1,E1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace.dlog '
+     [java] LEAVE: datarace-dlog
+     [java] Exclusive time: 00:00:03:072 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:03:149 hh:mm:ss:ms
+     [java] ENTER: datarace-stats-dlog at Mon Jul 25 18:59:14 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_stats.dlog '
+     [java] Relation ctxtInsDatarace: 28504 nodes, 19699.0 elements (E0,E1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_stats.dlog '
+     [java] LEAVE: datarace-stats-dlog
+     [java] Exclusive time: 00:00:00:960 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:960 hh:mm:ss:ms
+     [java] ENTER: cs-alias-java at Mon Jul 25 18:59:15 CDT 2011
+     [java] LEAVE: cs-alias-java
+     [java] Exclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] ENTER: thrsen-abbr-cscg-java at Mon Jul 25 18:59:15 CDT 2011
+     [java] LEAVE: thrsen-abbr-cscg-java
+     [java] Exclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] ENTER: datarace-epilogue-dlog at Mon Jul 25 18:59:15 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_epilogue.dlog '
+     [java] Relation raceCEC: 53822 nodes, 53312.0 elements (C0,E0,C1,E1,C2)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/lusearch/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/lusearch/chord_output/chord_analyses_datarace_datarace_epilogue.dlog '
+     [java] LEAVE: datarace-epilogue-dlog
+     [java] Exclusive time: 00:00:01:335 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:335 hh:mm:ss:ms
+     [java] TASK LI ALREADY DONE.
+     [java] TASK LE ALREADY DONE.
+     [java] TASK syncCLC-dlog ALREADY DONE.
+     [java] Created /home/cos/workspace/evaluation/lusearch/chord_output/stylesheet.css
+     [java] Created /home/cos/workspace/evaluation/lusearch/chord_output/front.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/AlreadyClosedException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/LoadFirstFieldSelector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/NoSuchDirectoryException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/UnicodeUtil.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/Analyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/RAMInputStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/RangeQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/SimpleFSLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/WordlistLoader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/TokenFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/MultiSearcher.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanTermQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TermRangeTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/BitVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsDocsConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldCacheTermsFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsTermsConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocumentsWriterThreadState.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/AttributeSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FilteredTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentMergeQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/TypeAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/AbstractAllTermDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MultipleTermPositions.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/Term.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/PositionBasedTermVectorMapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/WildcardQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FilteredDocIdSetIterator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/StoredFieldsWriterPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/FloatFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DocIdSet.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermFreqVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopDocsCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/LucenePackage.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/LowerCaseTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SimilarityDelegator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/MappingCharFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/HitQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/TypeAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/StringInterner.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermInfo.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/SortedVIntList.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TermRangeQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/FastCharStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/QueryFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentInfo.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/FieldCacheSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/TokenWrapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SpanFilterResult.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/FSDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ReqExclScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ByteSliceReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/ArrayUtil.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/Directory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/AllTermDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/CloseableThreadLocal.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanNotQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentTermPositionVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/QueryTermVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/QueryWrapperFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharacterCache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/DateField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/ByteFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldInfos.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/SetBasedFieldSelector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldDoc.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermBuffer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/LockReleaseFailedException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldValueHitQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharArraySet.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CachingTokenFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ExtendedFieldCache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/DocIdBitSet.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/PorterStemFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/Constants.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHashConsumerPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexCommitPoint.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsPositionsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/FieldMaskingSpanQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TermScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocumentsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MergeDocIDRemapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumers.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumerPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/RawPostingList.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/PorterStemmer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorsTermsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/BooleanScorer2.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Hits.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/OffsetAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/NormsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermInfosWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DisjunctionMaxScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexFileNames.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHashPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/HitCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/BaseCharFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/NumberTools.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldProcessorPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/TeeTokenFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/QueryParserConstants.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/AveragePayloadFunction.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopFieldDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/SimpleFSDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldCacheRangeFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/NormalizeCharMap.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentWriteState.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/MaxPayloadFunction.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/Payload.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentTermPositions.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/RAMFile.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ConjunctionScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/PayloadAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ReusableStringReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SortedTermVectorMapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SnapshotDeletionPolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/AttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/MapFieldSelector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ScoreDoc.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Weight.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopDocCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldProcessor.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldCacheImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SortComparator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocEndConsumerPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ComplexExplanation.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/dacapo/lusearch/Search.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/Lock.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ConcurrentMergeScheduler.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ParallelMultiSearcher.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/FieldSelector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/TokenStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/IndexableBinaryStringTools.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsTermsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TermRangeFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocInverterPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanWeight.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IntBlockPool.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SpanFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/PayloadNearQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ByteBlockPool.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TermQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PrefixFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/StopAnalyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/ReverseOrdFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/BooleanQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/CachingSpanFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopFieldDocCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldInfo.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/MMapDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentMerger.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/CorruptIndexException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/PriorityQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/BufferedIndexInput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/SimpleAnalyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/StaleReaderException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DefaultSimilarity.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/standard/StandardTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/IndexOutput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/LockStressTest.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/RamUsageEstimator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/BufferedIndexOutput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/HitCollectorWrapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/FlagsAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldSortedHitQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/BooleanScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/MultiFieldQueryParser.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/dacapo/lusearch/SearchThreads.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopScoreDocCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/IndexInput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/Fieldable.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHashConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/WhitespaceTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ByteSliceWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorOffsetInfo.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/PayloadAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/SinkTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocEndConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/cache/SimpleLRUCache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SpanQueryFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SloppyPhraseScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/CustomScoreQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/Parameter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/LowerCaseFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/OpenBitSetDISI.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/ValueSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocEndConsumerPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumersPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanNearQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/Field.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/NativeFSLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Filter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorEntryFreqSortedComparator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FilterManager.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/MinPayloadFunction.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ScoreDocComparator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/StringHelper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FreqProxTermsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/RangeFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/WhitespaceAnalyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/ParseException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/ChecksumIndexInput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/LogDocMergePolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorsReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/StoredFieldsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/DateTools.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ReadOnlyDirectoryReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocConsumerPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Hit.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/KeepOnlyLastCommitDeletionPolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/MultiTermQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/NormsWriterPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/FieldScoreQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FilteredQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/QueryParserTokenManager.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DirectoryReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/CustomScoreProvider.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/KeywordTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/Attribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/AbstractField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ReadOnlySegmentReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/LengthFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/cache/SimpleMapCache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/IntFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/LockObtainFailedException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermPositionVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHashConsumerPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/OpenBitSet.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DefaultSkipListReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldCache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/messages/NLS.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ConstantScoreQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/LogMergePolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/MultiPhraseQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldInvertState.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/NearSpansUnordered.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FreqProxFieldMergeState.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/NumericUtils.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/NumericRangeQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/Tokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/QueryParser.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldProcessorPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Scorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/VerifyingLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TimeLimitedCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/Spans.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentTermVector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/CachingWrapperFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanOrQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/StopFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHash.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/DocValues.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorEntry.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/Token.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/CompressionTools.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Searchable.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/NumericField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/PayloadFunction.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Query.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MergePolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DisjunctionSumScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/standard/StandardTokenizerImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ExactPhraseScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/BitUtil.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/CharStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/IndexSearcher.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/BoostingTermQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SerialMergeScheduler.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/ValueSourceQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/ShortFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DocIdSetIterator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/BufferedDeletes.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocInverter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocConsumerPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/Document.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumersPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentTermDocs.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/CheckIndex.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/ParallelReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorMapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/ReaderUtil.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/MapOfSets.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/OrdFieldSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MultiLevelSkipListReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MultiLevelSkipListWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FilteredDocIdSet.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldComparatorSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermsHashPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/ISOLatin1AccentFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldComparator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Sort.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PositiveScoresOnlyCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/LogByteSizeMergePolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/messages/Message.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/TeeSinkTokenFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsFieldsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/CompoundFileReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/PositionIncrementAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/CompoundFileWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexFileDeleter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/RAMDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/ScorerDocQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/CharBlockPool.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MultiReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/MatchAllDocsQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/AverageGuessMemoryModel.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/NIOFSDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ConstantScoreRangeQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DirectoryOwningReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/WildcardTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PhraseScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/HitIterator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FuzzyQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/ChecksumIndexOutput.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/dacapo/harness/Lusearch.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ReqOptSumScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/SimpleStringInterner.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PrefixQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexFileNameFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/MultiTermQueryWrapperFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/NearSpansOrdered.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/LockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/messages/MessageImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsPositionsConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/dacapo/harness/Lusearch.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Similarity.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/OffsetAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocInverterPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexCommit.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/queryParser/TokenMgrError.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexDeletionPolicy.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/TermAttributeImpl.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/BooleanClause.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/PayloadSpanUtil.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/TermAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentMergeInfo.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/standard/StandardFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FreqProxTermsWriterPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/FlagsAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/CharFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/OpenBitSetIterator.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldSortedTermVectorMapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/function/MultiValueSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Explanation.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/FileSwitchDirectory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorsTermsWriterPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/NormsWriterPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PhraseQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SortField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldReaderException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FieldsReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/ASCIIFoldingFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PhrasePositions.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/SmallFloat.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TopFieldCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/document/FieldSelectorResult.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/ToStringUtils.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FuzzyTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/LockVerifyServer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/FSLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/SorterTemplate.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DefaultSkipListWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/standard/StandardAnalyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/messages/NLSException.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/ScoreCachingWrappingScorer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/MergeScheduler.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Searcher.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/payloads/PayloadTermQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsDocsWriter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/RAMOutputStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PrefixTermEnum.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/NoLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermPositions.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/MemoryModel.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/SegmentInfos.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/PhraseQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/InvertedDocConsumerPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/SpanFirstQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FormatPostingsFieldsConsumer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/spans/TermSpans.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/store/SingleInstanceLockFactory.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/FieldCacheSanityChecker.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/TimeLimitingCollector.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/Version.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/IndexModifier.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/LetterTokenizer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/FieldDocSortedHitQueue.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/SortComparatorSource.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/util/cache/Cache.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FreqProxTermsWriterPerThread.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermInfosReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/tokenattributes/PositionIncrementAttribute.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/DocFieldConsumerPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/PerFieldAnalyzerWrapper.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/DisjunctionMaxQuery.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/NumericTokenStream.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/NumericRangeFilter.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/Token.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/TermVectorsTermsWriterPerField.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/index/FilterIndexReader.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/analysis/KeywordAnalyzer.java.html
+     [java] Created: /home/cos/workspace/evaluation/lusearch/chord_output/org/apache/lucene/search/Collector.java.html
+     [java] LEAVE: datarace-java
+     [java] Exclusive time: 00:04:18:837 hh:mm:ss:ms
+     [java] Inclusive time: 00:04:35:016 hh:mm:ss:ms
+     [java] Chord run completed at: Jul 25, 2011 7:02:05 PM
+     [java] Total time: 00:04:36:782 hh:mm:ss:ms
+
+BUILD SUCCESSFUL
+Total time: 4 minutes 38 seconds
