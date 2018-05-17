@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.apache.geronimo.daytrader.plugins.daytrader-j
+ ms
+Bundle-Version: 3.0.0.SNAPSHOT
+Bundle-Activator: org.apache.geronimo.kernel.osgi.ConfigurationActivat
+ or
+Import-Package: org.apache.geronimo.kernel.osgi,org.apache.geronimo.bv
+ al,javax.validation,org.osgi.framework,org.apache.geronimo.connector.
+ wrapper,org.apache.geronimo.gbean,org.apache.geronimo.management.gero
+ nimo,org.apache.geronimo.management,org.apache.activemq,javax.resourc
+ e.spi,javax.transaction,org.apache.geronimo.connector.work,org.apache
+ .geronimo.transaction.manager,javax.resource.spi.endpoint,javax.trans
+ action.xa,org.apache.geronimo.connector.wrapper.outbound,org.apache.g
+ eronimo.connector,org.apache.geronimo.kernel,org.apache.geronimo.conn
+ ector.outbound.connectionmanagerconfig,org.apache.geronimo.connector.
+ outbound.connectiontracking,org.apache.activemq.command,org.apache.ge
+ ronimo.j2ee.jndi,javax.naming,org.apache.geronimo.gjndi
+Export-Package: org.apache.activemq.ra
+DynamicImport-Package: *
+Bundle-ClassPath: rar/kahadb-5.4.3.jar,rar/activemq-ra-5.4.3.jar,rar/c
+ ommons-lang-2.6.jar,rar/geronimo-j2ee-management_1.1_spec-1.0.1.jar,r
+ ar/activemq-core-5.4.3.jar,rar/org.apache.servicemix.bundles.jasypt-1
+ .6_1.jar,rar/activemq-protobuf-1.1.jar,rar/commons-net-2.0.jar
+

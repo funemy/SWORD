@@ -1,0 +1,15 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+Daytrader :: H2 DataSource
+
+
+From: 'an unknown organization'
+  - H2 Database Engine (http://www.h2database.com) com.h2database:h2:jar:1.2.121
+    License: The H2 License, Version 1.0  (http://h2database.com/html/license.html)
+
+
+
+

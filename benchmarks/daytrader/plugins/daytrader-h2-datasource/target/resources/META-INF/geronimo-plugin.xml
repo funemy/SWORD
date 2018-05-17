@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<geronimo-plugin xmlns="http://geronimo.apache.org/xml/ns/plugins-1.3" xmlns:ns2="http://geronimo.apache.org/xml/ns/attributes-1.2">
+    <name>Daytrader :: H2 DataSource</name>
+    <category>Daytrader :: Java EE 6</category>
+    <pluginGroup>false</pluginGroup>
+    <description>Java EE 6.0 Performance Benchmark Sample Application</description>
+    <url>http://www.apache.org/</url>
+    <author>Apache Software Foundation</author>
+    <license osi-approved="true">The Apache Software License, Version 2.0</license>
+    <plugin-artifact>
+        <module-id>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-h2-datasource</artifactId>
+            <version>3.0-SNAPSHOT</version>
+            <type>car</type>
+        </module-id>
+        <geronimo-version>3.0.1</geronimo-version>
+        <jvm-version>1.5</jvm-version>
+        <jvm-version>1.6</jvm-version>
+        <jvm-version>1.7</jvm-version>
+        <jvm-version>1.8</jvm-version>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.2.121</version>
+            <type>jar</type>
+        </dependency>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-db2-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-derby-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-informix-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-mysql-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-oracle-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-postgre-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-sqlserver-datasource</artifactId>
+        </obsoletes>
+        <obsoletes>
+            <groupId>org.apache.geronimo.daytrader.plugins</groupId>
+            <artifactId>daytrader-h2-datasource</artifactId>
+        </obsoletes>
+        <source-repository>~/.m2/repository/</source-repository>
+        <source-repository>http://repository.apache.org/snapshots/</source-repository>
+        <source-repository>http://repo1.maven.org/maven2/</source-repository>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-db2-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-derby-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-informix-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-mysql-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-oracle-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-postgre-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-sqlserver-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+        <artifact-alias key="org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car">org.apache.geronimo.daytrader.plugins/daytrader-h2-datasource/3.0-SNAPSHOT/car</artifact-alias>
+    </plugin-artifact>
+</geronimo-plugin>

@@ -1,0 +1,513 @@
+!SESSION 2018-05-15 14:26:14.536 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_152
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CN
+
+!ENTRY org.apache.geronimo.configs.transaction-1_6 4 0 2018-05-15 14:26:14.537
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.configs.transaction-1_6.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.configs.bval-deployer 4 0 2018-05-15 14:26:14.540
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.configs.bval-deployer.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.configs.connector-deployer-1_6 4 0 2018-05-15 14:26:14.541
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.configs.connector-deployer-1_6.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.j2ee-security 4 0 2018-05-15 14:26:14.543
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.framework.j2ee-security.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.server-security-config 4 0 2018-05-15 14:26:14.544
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.framework.server-security-config.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.configs.j2ee-server 4 0 2018-05-15 14:26:14.547
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.configs.j2ee-server.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.configs.j2ee-deployer 4 0 2018-05-15 14:26:14.548
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.configs.j2ee-deployer.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.j2ee-system 4 0 2018-05-15 14:26:14.562
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.system.osgi.BootActivator.stop() of bundle org.apache.geronimo.framework.j2ee-system.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.apache.geronimo.system.osgi.BootActivator.stop(BootActivator.java:96)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.apache.geronimo.system.osgi.BootActivator.stop(BootActivator.java:96)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.rmi-naming 4 0 2018-05-15 14:26:14.563
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.framework.rmi-naming.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.plugin 4 0 2018-05-15 14:26:14.564
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.framework.plugin.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+
+!ENTRY org.apache.geronimo.framework.geronimo-gbean-deployer 4 0 2018-05-15 14:26:14.565
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Exception in org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop() of bundle org.apache.geronimo.framework.geronimo-gbean-deployer.
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:791)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	... 11 more
+Root exception:
+java.lang.IllegalStateException: GBean is not running: geronimo/packaging/fixed/car?j2eeType=ConfigurationManager,name=ConfigManager
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:295)
+	at org.apache.geronimo.kernel.basic.BasicKernel.getGBean(BasicKernel.java:288)
+	at org.apache.geronimo.kernel.config.ConfigurationUtil.getConfigurationManager(ConfigurationUtil.java:341)
+	at org.apache.geronimo.kernel.osgi.ConfigurationActivator.stop(ConfigurationActivator.java:100)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl$2.run(BundleContextImpl.java:771)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at org.eclipse.osgi.framework.internal.core.BundleContextImpl.stop(BundleContextImpl.java:764)
+	at org.eclipse.osgi.framework.internal.core.BundleHost.stopWorker(BundleHost.java:510)
+	at org.eclipse.osgi.framework.internal.core.AbstractBundle.suspend(AbstractBundle.java:565)
+	at org.eclipse.osgi.framework.internal.core.Framework.suspendBundle(Framework.java:1161)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.suspendAllBundles(StartLevelManager.java:615)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.doSetStartLevel(StartLevelManager.java:261)
+	at org.eclipse.osgi.framework.internal.core.StartLevelManager.shutdown(StartLevelManager.java:215)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle.suspend(InternalSystemBundle.java:284)
+	at org.eclipse.osgi.framework.internal.core.Framework.shutdown(Framework.java:691)
+	at org.eclipse.osgi.framework.internal.core.Framework.close(Framework.java:598)
+	at org.eclipse.osgi.framework.internal.core.InternalSystemBundle$1.run(InternalSystemBundle.java:261)
+	at java.lang.Thread.run(Thread.java:748)

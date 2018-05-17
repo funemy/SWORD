@@ -1,0 +1,15 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+DayTrader :: Java EE 6 :: Modules - Web
+
+
+From: 'The Apache Software Foundation' (http://www.apache.org)
+  - JAXRPC 1.1 (http://geronimo.apache.org/maven/specs/geronimo-jaxrpc_1.1_spec/2.1) org.apache.geronimo.specs:geronimo-jaxrpc_1.1_spec:bundle:2.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+
+
+
