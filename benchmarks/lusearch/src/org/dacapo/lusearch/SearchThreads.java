@@ -39,9 +39,13 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.TopDocCollector;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
 import extra166y.Ops.Generator;
 import extra166y.Ops.IntToObject;
 import extra166y.Ops.Procedure;
+import javafx.print.PageRange;
+import jdk.internal.dynalink.beans.StaticClass;
 import extra166y.ParallelArray;
 
 /**
@@ -74,12 +78,13 @@ public class SearchThreads {
 			return in.norms(this.field);
 		}
 	}
-
+	
 	public SearchThreads() {
+		completed = 0;
 	}
 
 	/** Simple command-line based search demo. */
-	public void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 		String usage = "Usage:\tjava org.dacapo.lusearch.Search [-index dir] [-field f] [-repeat n] [-queries file] [-raw] [-norms field] [-paging hitsPerPage]";
 		usage += "\n\tSpecify 'false' for hitsPerPage to use streaming instead of paging search.";
 		if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0]))) {
@@ -155,23 +160,22 @@ public class SearchThreads {
 //				}
 //			}
 //		});
-
-		completed = 0;
+		SearchThreads search = new SearchThreads();
 		for (int j = 0; j < threads; j++) {
-			new QueryThread(this, "Query" + j, j, threads, totalQueries, index, outBase, queryBase, field, normsField,
+			new QueryThread(search, "Query" + j, j, threads, totalQueries, index, outBase, queryBase, field, normsField,
 					raw, hitsPerPage).start();
 		}
-		synchronized (this) {
-			while (completed != totalQueries) {
+		synchronized (search) {
+			while (search.completed != totalQueries) {
 				try {
-					this.wait();
+					search.wait();
 				} catch (InterruptedException e) {
 				}
 			}
 		}
 	}
 
-	class QueryThread extends Thread {
+	static class QueryThread extends Thread {
 
 		SearchThreads parent;
 		int id;
@@ -218,7 +222,7 @@ public class SearchThreads {
 
 	}
 
-	public class QueryProcessor {
+	public static class QueryProcessor {
 
 		SearchThreads parent;
 		String field;
