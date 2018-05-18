@@ -140,7 +140,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		//initial bug engine
 		bughub = akkasys.actorOf(Props.create(BugHub.class, nrOfWorkers), "bughub");
 		bugEngine = new TIDEEngine(entrySignature, callGraph, flowgraph, engine.getPointerAnalysis(), bughub);
-		bugEngine.setChange(false);
 		//detect bug
 		return bugEngine.detectBothBugs(null);
 	}

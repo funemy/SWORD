@@ -293,8 +293,6 @@ public class BugWorker extends UntypedActor{
 		if(wtid != xtid){
 			if(!haveCommonLock(xtid, xnode, wtid, wnode)){
 				return hasHBRelation(wtid, wnode, xtid, xnode);
-			}else if(engine.change){
-				engine.addRecheckBugs(wnode, xnode);
 			}
 		}
 		return false;

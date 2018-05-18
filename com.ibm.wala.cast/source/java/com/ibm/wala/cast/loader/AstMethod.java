@@ -40,7 +40,7 @@ public abstract class AstMethod implements IMethod {
     void retranslate(AstTranslator xlator);
     CAstEntity getEntity();
   }
-  
+
   public interface DebuggingInformation {
 
     Position getCodeBodyPosition();
@@ -312,10 +312,13 @@ public abstract class AstMethod implements IMethod {
 
   @Override
   public int getNumberOfParameters() {
+    if(symtab == null){//bz: in h2: null symtable when finding callee target for caller: Node: <src-method: < Source, Lorg/h2/server/web/WebApp, addDatabaseMetaData(Lorg/h2/tools/SimpleResultSet;Ljava/sql/DatabaseMetaData;)V >> Context: Everywhere, and many other callers
+      return 0;//return 0
+    }
     return symtab.getParameterValueNumbers().length;
   }
 /** BEGIN Custom change: precise bytecode positions */
-  
+
   /*
    * @see com.ibm.wala.classLoader.IMethod#getParameterSourcePosition(int)
    */

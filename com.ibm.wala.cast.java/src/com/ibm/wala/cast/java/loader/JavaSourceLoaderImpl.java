@@ -421,6 +421,8 @@ public abstract class JavaSourceLoaderImpl extends ClassLoaderImpl {
         int lastQ = parents[i].lastIndexOf('/', lastLeftParen);
         String typeName = parents[i].substring(0, lastQ);
         final IClass cls = lookupClass(TypeName.string2TypeName(typeName));
+        if(cls == null) //bz: h2 can have null cls here for type Lorg/h2/mvstore/db/TransactionStore/TransactionMap
+          continue;//if so, skip it.
 
         String sig = parents[i].substring(lastQ);
         int nameEnd = sig.indexOf('(');

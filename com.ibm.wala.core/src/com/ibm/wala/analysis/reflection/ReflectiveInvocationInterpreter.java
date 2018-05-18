@@ -54,7 +54,7 @@ public class ReflectiveInvocationInterpreter extends AbstractReflectionInterpret
 
 /** BEGIN Custom change: caching */
   private final Map<String, IR> cache = HashMapFactory.make();
-  
+
 /** END Custom change: caching */
   /*
    * @see com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter#getIR(com.ibm.wala.ipa.callgraph.CGNode)
@@ -74,14 +74,14 @@ public class ReflectiveInvocationInterpreter extends AbstractReflectionInterpret
 /** BEGIN Custom change: caching */
     final IMethod method = node.getMethod();
     final String hashKey = method.toString() + "@" + recv.toString();
-    
+
     IR result = cache.get(hashKey);
-    
+
     if (result == null) {
       result = makeIR(method, m, recv);
       cache.put(hashKey, result);
     }
-    
+
 /** END Custom change: caching */
     return result;
   }
@@ -136,7 +136,7 @@ public class ReflectiveInvocationInterpreter extends AbstractReflectionInterpret
 
   /**
    * TODO: clean this up. Create the IR for the synthetic method (e.g. Method.invoke)
-   * 
+   *
    * @param method is something like Method.invoke or Construction.newInstance
    * @param target is the method being called reflectively
    */
@@ -168,10 +168,12 @@ public class ReflectiveInvocationInterpreter extends AbstractReflectionInterpret
       } else {
         // set up args[0] == the receiver for method.invoke, held in v2.
         // insert a cast for v2 to filter out bogus types
-        args[0] = nextLocal++;
-        TypeReference type = target.getParameterType(0);
-        SSACheckCastInstruction cast = insts.CheckCastInstruction(m.allInstructions.size(), args[0], 2, type, true);
-        m.addInstruction(null, cast, false);
+        if(args.length != 0){//bz: in h2: because of null callee target.
+          args[0] = nextLocal++;
+          TypeReference type = target.getParameterType(0);
+          SSACheckCastInstruction cast = insts.CheckCastInstruction(m.allInstructions.size(), args[0], 2, type, true);
+          m.addInstruction(null, cast, false);
+        }
       }
     }
     int nextArg = target.isStatic() ? 0 : 1; // nextArg := next index in args[] array that needs to be initialized
