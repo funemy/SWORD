@@ -48,6 +48,8 @@ public class JavaScopeMappingInstanceKeys extends ScopeMappingInstanceKeys {
           AstMethod M = (AstMethod) m;
           LexicalParent[] parents = M.getParents();
           for (int i = 0; i < parents.length; i++) {
+            if(parents[i] == null) //bz: null parent; skip
+              continue;
             result.add(parents[i]);
           }
         }
@@ -80,7 +82,7 @@ public class JavaScopeMappingInstanceKeys extends ScopeMappingInstanceKeys {
 
     return result;
   }
-  
+
   @Override
   protected Collection<CGNode> getConstructorCallers(ScopeMappingInstanceKey smik, Pair<String, String> name) {
     // for Java, the creator node is exactly what we want

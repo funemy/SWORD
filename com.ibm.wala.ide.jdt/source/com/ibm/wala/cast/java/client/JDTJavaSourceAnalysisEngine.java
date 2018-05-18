@@ -44,6 +44,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.ibm.wala.cast.ir.ssa.AstIRFactory;
+import com.ibm.wala.cast.java.client.impl.ZeroCFABuilderFactory;
 import com.ibm.wala.cast.java.client.impl.ZeroOneContainerCFABuilderFactory;
 import com.ibm.wala.cast.java.ipa.callgraph.JavaSourceAnalysisScope;
 import com.ibm.wala.cast.java.translator.jdt.JDTClassLoaderFactory;
@@ -101,12 +102,10 @@ public class JDTJavaSourceAnalysisEngine extends EclipseProjectSourceAnalysisEng
   @Override
   protected CallGraphBuilder getCallGraphBuilder(IClassHierarchy cha,
 		  AnalysisOptions options, AnalysisCache cache) {
-//	    return new ZeroCFABuilderFactory().make(options, cache, cha, scope, false);//JEFF
-	    return new ZeroOneContainerCFABuilderFactory().make(options, cache, cha, scope, false);
+	    return new ZeroCFABuilderFactory().make(options, cache, cha, scope, false);//JEFF
+//	    return new ZeroOneContainerCFABuilderFactory().make(options, cache, cha, scope, false);
 //    return new ZeroXContainerCFABuilder(cha, options, cache, null, null, ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.SMUSH_PRIMITIVE_HOLDERS
 //        | ZeroXInstanceKeys.SMUSH_STRINGS | ZeroXInstanceKeys.SMUSH_THROWABLES);
-	    //ContextSelector contextSelector = new KObjectSensitiveContextSelector(objectSensitivityLevel);
-	    //return ZeroXCFABuilder.make(cha, options, cache, null, null, ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.SMUSH_THROWABLES);
   }
 
 }

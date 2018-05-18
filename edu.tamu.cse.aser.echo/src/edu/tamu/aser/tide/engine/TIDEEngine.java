@@ -143,25 +143,6 @@ public class TIDEEngine{
 	public int curTID;
 	public HashMap<CGNode, Integer> astCGNode_ntid_map = new HashMap<>();
 
-	/**
-	 * flag for incremental changes
-	 */
-	public boolean change = false;
-	public void setChange(boolean p){
-		this.change = p;
-	}
-
-	boolean recursive = true; //recursively remove/consider the r,w,lock in outgoing methods
-
-	HashMap<CGNode, Boolean> hasLocks = new HashMap<>();
-	HashMap<CGNode, Boolean> hasThreads = new HashMap<>();
-	//store changed objsig from pta
-	HashSet<String> interest_rw = new HashSet<String>();
-	HashSet<DLockNode> interest_l = new HashSet<DLockNode>();
-	//old objsig  ==> ??
-	HashSet<String> removed_rw = new HashSet<String>();
-	HashSet<DLockNode> removed_l = new HashSet<DLockNode>();
-
 	public boolean useMayAlias = true;//false => lockObject.size == 1;
 
 	//hard write
@@ -173,15 +154,6 @@ public class TIDEEngine{
 	private static String HASHMAP = "<Primordial,Ljava/util/HashMap>";
 	private static String ARRAYS = "<Primordial,Ljava/util/Arrays>";
 	private static String STRING = "<Primordial,Ljava/util/String>";
-
-
-	//	for evaluation
-	private boolean isdeleting = false;
-	public void setDelete(boolean b) {
-		isdeleting = b;
-	}
-	SSAInstruction removeInst = null;
-
 
 
 	public TIDEEngine(String entrySignature,CallGraph callGraph, PropagationGraph flowgraph, PointerAnalysis<InstanceKey> pointerAnalysis, ActorRef bughub){
@@ -505,8 +477,6 @@ public class TIDEEngine{
 					curTrace = new Trace(curTID);
 					shb.addTrace(n, curTrace, curTID);
 					return curTrace;
-				}else if(!change){
-					return curTrace;
 				}
 			}else{
 				hasSyncBetween = false;
@@ -517,17 +487,8 @@ public class TIDEEngine{
 		//create new trace if not in shbgraph
 		if(curTrace != null){
 			if(!curTrace.doesIncludeTid(curTID)){
-				if(change){
-					if(curTrace.ifHasJoin() || curTrace.ifHasStart()){
-						return traverseNode2nd(curTrace, n);
-					}else{
-						shb.includeTidForKidTraces(n, curTID);
-						return curTrace;
-					}
-				}else{
-					//exist edges include new tid>>
-					traverseNode2nd(curTrace, n);
-				}
+				//exist edges include new tid>>
+				traverseNode2nd(curTrace, n);
 			}
 			return curTrace;
 		}else{
@@ -758,26 +719,11 @@ public class TIDEEngine{
 						}
 						curTrace.add(will);
 						threadLockNodes.get(curTID).add(will);
-						if(change){
-							interest_l.add(will);
-						}
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
-					if(change){//incremental
-						Trace subTrace0 = shb.getTrace(node);
-						if(subTrace0 == null){
-							subTrace0 = traverseNode(node);
-						}else{
-							//let curtrace edges include new tids
-							shb.includeTidForKidTraces(node, curTID);
-						}
-						includeTraceToInterestL(node);
-						includeTraceToInterestRW(node);
-					}else{
-						Trace subTrace0 = traverseNode(node);
-						shb.includeTidForKidTraces(node, curTID);
-					}
+					Trace subTrace0 = traverseNode(node);
+					shb.includeTidForKidTraces(node, curTID);
 					shb.addEdge(m, node);
 					if(node.getMethod().isSynchronized()){
 						DUnlockNode unlock = new DUnlockNode(curTID, instSig, sourceLineNum, null, null, n, sourceLineNum);
@@ -820,9 +766,6 @@ public class TIDEEngine{
 							}
 							curTrace.add(will);
 							threadLockNodes.get(curTID).add(will);
-							if(change){
-								interest_l.add(will);
-							}
 							//for pointer-lock map
 							HashSet<SyncNode> ls = pointer_lmap.get(objectPointer);
 							if(ls == null){
@@ -836,20 +779,8 @@ public class TIDEEngine{
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
-					if(change){
-						Trace subTrace1 = shb.getTrace(node);
-						if(subTrace1 == null){
-							subTrace1 = traverseNode(node);
-						}else{
-							//let curtrace edges include new tids
-							shb.includeTidForKidTraces(node, curTID);
-						}
-						includeTraceToInterestL(node);
-						includeTraceToInterestRW(node);
-					}else{
 						Trace subTrace1 = traverseNode(node);
 						shb.includeTidForKidTraces(node,curTID);
-					}
 					shb.addEdge(m, node);
 					if(lockedObjects.size() > 0){
 						if(node.getMethod().isSynchronized()){
@@ -920,9 +851,6 @@ public class TIDEEngine{
 				}
 				curTrace.add(will);
 				threadLockNodes.get(curTID).add(will);
-				if(change){
-					interest_l.add(will);
-				}
 				//for pointer-lock map
 				HashSet<SyncNode> ls = pointer_lmap.get(lockPointer);
 				if(ls == null){
@@ -1576,10 +1504,7 @@ public class TIDEEngine{
 				}
 				while (node == null){
 					new_param = findDefsInDataFlowFor(useNode, new_param, creation.iindex);
-					if(new_param == -1)
-						node = handleRunnable(instKey, new_param, useNode);
-					else
-						break;
+					node = handleRunnable(instKey, new_param, useNode);
 				}
 				return node;
 			}
@@ -1628,9 +1553,6 @@ public class TIDEEngine{
 				String sig2 = sig + instanceKey.hashCode();
 				readNode.addObjSig(sig2);
 				curTrace.addRsigMapping(sig2, readNode);
-				if(change){
-					interest_rw.add(sig2);
-				}
 			}
 			readNode.setLocalSig(field);
 			//add node to trace
@@ -1650,9 +1572,6 @@ public class TIDEEngine{
 				String sig2 = sig+ instanceKey.hashCode();
 				writeNode.addObjSig(sig2);
 				curTrace.addWsigMapping(sig2, writeNode);
-				if(change){
-					interest_rw.add(sig2);
-				}
 			}
 			writeNode.setLocalSig(field);
 			//add node to trace
@@ -1697,9 +1616,6 @@ public class TIDEEngine{
 					exReads.add(readNode);
 					return;
 				}
-				if(change){
-					interest_rw.addAll(sigs);
-				}
 				for (String sig2 : sigs) {
 					curTrace.addRsigMapping(sig2, readNode);
 				}
@@ -1730,9 +1646,6 @@ public class TIDEEngine{
 				//add node to trace
 				curTrace.add(readNode);
 				curTrace.addRsigMapping(sig, readNode);
-				if(change){
-					interest_rw.add(sig);
-				}
 			}
 		}else{//write
 			WriteNode writeNode;
@@ -1752,9 +1665,6 @@ public class TIDEEngine{
 					}
 					exWrites.add(writeNode);
 					return;
-				}
-				if(change){
-					interest_rw.addAll(sigs);
 				}
 				for (String sig2 : sigs) {
 					curTrace.addWsigMapping(sig2, writeNode);
@@ -1786,9 +1696,6 @@ public class TIDEEngine{
 				//add node to trace
 				curTrace.add(writeNode);
 				curTrace.addWsigMapping(sig, writeNode);
-				if(change){
-					interest_rw.add(sig);
-				}
 			}
 		}
 	}
@@ -1901,45 +1808,6 @@ public class TIDEEngine{
 			}
 		}
 		return catchinsts;
-	}
-
-
-
-	private void includeTraceToInterestL(CGNode target) {
-		Trace trace = shb.getTrace(target);
-		if(trace == null){
-			if(target instanceof AstCGNode2){
-				trace = shb.getTrace(((AstCGNode2) target).getCGNode());
-			}
-		}
-		for (INode inode : trace.getContent()) {
-			if(inode instanceof DLockNode){
-				interest_l.add((DLockNode) inode);
-			}
-		}
-	}
-
-
-	private void includeTraceToInterestRW(CGNode node) {
-		Trace trace = shb.getTrace(node);
-		if(trace == null){
-			if(node instanceof AstCGNode2){
-				trace = shb.getTrace(((AstCGNode2) node).getCGNode());
-			}
-		}
-
-		HashMap<String, ArrayList<ReadNode>> rMap = trace.getRsigMapping();
-		if(rMap != null)
-			if(rMap.size() > 0){
-				Set<String> rsig = rMap.keySet();
-				interest_rw.addAll(rsig);
-			}
-		HashMap<String, ArrayList<WriteNode>> wMap = trace.getWsigMapping();
-		if(wMap != null)
-			if(wMap.size() > 0){
-				Set<String> wsig = wMap.keySet();//can be reduced to smaller range
-				interest_rw.addAll(wsig);
-			}
 	}
 
 
