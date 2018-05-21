@@ -83,14 +83,6 @@ public class TIDEEngine{
 	//record shared sigs and nodes
 	public HashMap<String, HashSet<ReadNode>> sigReadNodes = new HashMap<String, HashSet<ReadNode>>();
 	public HashMap<String, HashSet<WriteNode>> sigWriteNodes = new HashMap<String, HashSet<WriteNode>>();
-	//record the ignored sigs by users
-	public HashSet<String> excludedSigForRace = new HashSet<>();
-	public HashMap<String, HashSet<ReadNode>> excludedReadSigMapping = new HashMap<>();
-	public HashMap<String, HashSet<WriteNode>> excludedWriteSigMapping = new HashMap<>();
-	//record the ignored function by users
-	public HashSet<CGNode> excludedMethodForBugs = new HashSet<>();
-	//to check isolates: only for testing
-	public HashMap<CGNode, HashSet<CGNode>> excludedMethodIsolatedCGNodes = new HashMap<>();
 
 	private LinkedList<CGNode> alreadyProcessedNodes = new LinkedList<CGNode>();
 	private LinkedList<CGNode> twiceProcessedNodes = new LinkedList<CGNode>();
@@ -136,10 +128,6 @@ public class TIDEEngine{
 	//akka system
 	public ActorRef bughub;
 	public SHBGraph shb;
-	//to track changes from pta
-	public HashMap<PointerKey, HashSet<MemNode>> pointer_rwmap = new HashMap<>();
-	public HashMap<PointerKey, HashSet<SyncNode>> pointer_lmap = new HashMap<>();
-
 	public int curTID;
 	public HashMap<CGNode, Integer> astCGNode_ntid_map = new HashMap<>();
 
@@ -201,12 +189,6 @@ public class TIDEEngine{
 			sharedFields.clear();
 			sigReadNodes.clear();
 			sigWriteNodes.clear();
-			pointer_lmap.clear();
-			pointer_rwmap.clear();
-			excludedSigForRace.clear();
-			excludedReadSigMapping.clear();
-			excludedWriteSigMapping.clear();
-			excludedMethodForBugs.clear();
 			syncMethods.clear();
 			bugs.clear();
 			addedbugs.clear();
@@ -766,15 +748,6 @@ public class TIDEEngine{
 							}
 							curTrace.add(will);
 							threadLockNodes.get(curTID).add(will);
-							//for pointer-lock map
-							HashSet<SyncNode> ls = pointer_lmap.get(objectPointer);
-							if(ls == null){
-								ls = new HashSet<>();
-								ls.add(will);
-								pointer_lmap.put(objectPointer, ls);
-							}else{
-								ls.add(will);
-							}
 						}
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
@@ -851,15 +824,6 @@ public class TIDEEngine{
 				}
 				curTrace.add(will);
 				threadLockNodes.get(curTID).add(will);
-				//for pointer-lock map
-				HashSet<SyncNode> ls = pointer_lmap.get(lockPointer);
-				if(ls == null){
-					ls = new HashSet<>();
-					ls.add(will);
-					pointer_lmap.put(lockPointer, ls);
-				}else{
-					ls.add(will);
-				}
 			}
 		}else {//monitor exit
 			if(will != null){
@@ -1037,19 +1001,20 @@ public class TIDEEngine{
 	}
 
 	/**
-	 * the jdk classes and method we want to consider
+	 * the jdk classes and method we want to consider, currently do not consider jdk classes
 	 * @param declaringclass
 	 * @return
 	 */
 	private boolean include(IClass declaringclass) {
 		if(AnalysisUtils.isApplicationClass(declaringclass)){
 			return true;
-		}else if(AnalysisUtils.isJDKClass(declaringclass)){
-			String dcName = declaringclass.toString();
-			if(consideredJDKCollectionClass.contains(dcName)){
-				return true;
-			}
 		}
+//		else if(AnalysisUtils.isJDKClass(declaringclass)){
+//			String dcName = declaringclass.toString();
+//			if(consideredJDKCollectionClass.contains(dcName)){
+//				return true;
+//			}
+//		}
 		return false;
 	}
 
@@ -1557,15 +1522,6 @@ public class TIDEEngine{
 			readNode.setLocalSig(field);
 			//add node to trace
 			curTrace.add(readNode);
-			//pointer rw map
-			HashSet<MemNode> rwlist = pointer_rwmap.get(key);
-			if(rwlist == null){
-				rwlist = new HashSet<>();
-				rwlist.add(readNode);
-				pointer_rwmap.put(key, rwlist);
-			}else{
-				rwlist.add(readNode);
-			}
 		}else {//write
 			WriteNode writeNode = new WriteNode(curTID,instSig,sourceLineNum, key, sig, n, inst, file);
 			for (InstanceKey instanceKey : instances) {
@@ -1576,15 +1532,6 @@ public class TIDEEngine{
 			writeNode.setLocalSig(field);
 			//add node to trace
 			curTrace.add(writeNode);
-			//pointer rw map
-			HashSet<MemNode> rwlist = pointer_rwmap.get(key);
-			if(rwlist == null){
-				rwlist = new HashSet<>();
-				rwlist.add(writeNode);
-				pointer_rwmap.put(key, rwlist);
-			}else{
-				rwlist.add(writeNode);
-			}
 		}
 	}
 
@@ -1592,10 +1539,6 @@ public class TIDEEngine{
 
 	private void logFieldAccess(SSAInstruction inst, int sourceLineNum, String instSig, Trace curTrace, CGNode n,
 			PointerKey key, OrdinalSet<InstanceKey> instances, String sig, IFile file) {
-		boolean exclude = false;
-		if(excludedSigForRace.contains(sig)){
-			exclude = true;
-		}
 		HashSet<String> sigs = new HashSet<>();
 		if(inst instanceof SSAGetInstruction){//read
 			ReadNode readNode;
@@ -1606,43 +1549,14 @@ public class TIDEEngine{
 				}
 				readNode = new ReadNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
 				readNode.setObjSigs(sigs);
-				//excluded sigs
-				if(exclude){
-					HashSet<ReadNode> exReads = excludedReadSigMapping.get(sig);
-					if(exReads == null){
-						exReads = new HashSet<ReadNode>();
-						excludedReadSigMapping.put(sig, exReads);
-					}
-					exReads.add(readNode);
-					return;
-				}
 				for (String sig2 : sigs) {
 					curTrace.addRsigMapping(sig2, readNode);
 				}
 				//add node to trace
 				curTrace.add(readNode);
-				//pointer rw map
-				HashSet<MemNode> rwlist = pointer_rwmap.get(key);
-				if(rwlist == null){
-					rwlist = new HashSet<>();
-					rwlist.add(readNode);
-					pointer_rwmap.put(key, rwlist);
-				}else{
-					rwlist.add(readNode);
-				}
 			}else{//static
 				readNode = new ReadNode(curTID,instSig,sourceLineNum,key, sig, n, inst,file);
 				readNode.addObjSig(sig);
-				//excluded sigs
-				if(exclude){
-					HashSet<ReadNode> exReads = excludedReadSigMapping.get(sig);
-					if(exReads == null){
-						exReads = new HashSet<ReadNode>();
-						excludedReadSigMapping.put(sig, exReads);
-					}
-					exReads.add(readNode);
-					return;
-				}
 				//add node to trace
 				curTrace.add(readNode);
 				curTrace.addRsigMapping(sig, readNode);
@@ -1656,43 +1570,11 @@ public class TIDEEngine{
 				}
 				writeNode = new WriteNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
 				writeNode.setObjSigs(sigs);;
-				//excluded sigs
-				if(exclude){
-					HashSet<WriteNode> exWrites = excludedWriteSigMapping.get(sig);
-					if(exWrites == null){
-						exWrites = new HashSet<WriteNode>();
-						excludedWriteSigMapping.put(sig, exWrites);
-					}
-					exWrites.add(writeNode);
-					return;
-				}
-				for (String sig2 : sigs) {
-					curTrace.addWsigMapping(sig2, writeNode);
-				}
 				//add node to trace
 				curTrace.add(writeNode);
-				//pointer rw map
-				HashSet<MemNode> rwlist = pointer_rwmap.get(key);
-				if(rwlist == null){
-					rwlist = new HashSet<>();
-					rwlist.add(writeNode);
-					pointer_rwmap.put(key, rwlist);
-				}else{
-					rwlist.add(writeNode);
-				}
 			}else{//static
 				writeNode = new WriteNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
 				writeNode.addObjSig(sig);
-				//excluded sigs
-				if(exclude){
-					HashSet<WriteNode> exWrites = excludedWriteSigMapping.get(sig);
-					if(exWrites == null){
-						exWrites = new HashSet<WriteNode>();
-						excludedWriteSigMapping.put(sig, exWrites);
-					}
-					exWrites.add(writeNode);
-					return;
-				}
 				//add node to trace
 				curTrace.add(writeNode);
 				curTrace.addWsigMapping(sig, writeNode);
