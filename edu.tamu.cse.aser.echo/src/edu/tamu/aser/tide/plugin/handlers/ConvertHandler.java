@@ -38,25 +38,9 @@ import edu.tamu.aser.tide.views.EchoReadWriteView;
 public class ConvertHandler extends AbstractHandler {
 
 	public static final String DESC_MAIN = "([Ljava/lang/String;)V";
-//	public ExcludeView excludeView;
 	public EchoRaceView echoRaceView;
 	public EchoReadWriteView echoRWView;
 	public EchoDLView echoDLView;
-//	private static String EXCLUSIONS =
-//			//wala
-////			"java\\/awt\\/.*\n" +
-////			"javax\\/swing\\/.*\n" +
-////			"sun\\/awt\\/.*\n" +
-////			"sun\\/swing\\/.*\n" +
-////			"com\\/sun\\/.*\n" +
-////			"sun\\/.*\n" +
-////			"org\\/netbeans\\/.*\n" +
-////			"org\\/openide\\/.*\n" +
-////			"com\\/ibm\\/crypto\\/.*\n" +
-////			"com\\/ibm\\/security\\/.*\n" +
-////			"org\\/apache\\/xerces\\/.*\n" +
-////			"java\\/security\\/.*\n" + "";
-
 
 	public ConvertHandler() throws PartInitException{
 		super();
@@ -79,11 +63,6 @@ public class ConvertHandler extends AbstractHandler {
 	private TIDECGModel currentModel;
 	private IJavaProject currentProject;
 
-	public HashSet<CGNode> changedNodes = new HashSet<>();
-	public HashSet<CGNode> changedModifiers = new HashSet<>();//only for sync method
-	public HashSet<CGNode> ignoreNodes = new HashSet<>();
-	public HashSet<CGNode> considerNodes = new HashSet<>();
-
 	long start_time = System.currentTimeMillis();
 
 	public TIDECGModel getCurrentModel(){
@@ -96,7 +75,7 @@ public class ConvertHandler extends AbstractHandler {
 
 	private int num_of_detection = 0;
 
-	private void letUsRock(IJavaProject javaProject, final IFile file, final TIDECGModel model){
+	private void startDetection(IJavaProject javaProject, final IFile file, final TIDECGModel model){
 		num_of_detection = 1;
 		new Thread(new Runnable(){
 			@Override
@@ -128,36 +107,19 @@ public class ConvertHandler extends AbstractHandler {
 
 			ICompilationUnit cu = (ICompilationUnit) firstElement;
 			if(hasMain(cu)){
-				test(cu, selection);//initial
+				init(cu, selection);//initial
 			}
 		}
 		return null;
 	}
 
 
-	public void test(ICompilationUnit cu, IStructuredSelection selection){
+	public void init(ICompilationUnit cu, IStructuredSelection selection){
 		try{
 			IJavaProject javaProject = cu.getJavaProject();
 			String mainSig = getSignature(cu);
-			//excluded in text file
-//			TIDECGModel model = new TIDECGModel(javaProject, "EclipseDefaultExclusions.txt", mainSig);
-			//excluded in String
-//			String deafaultDefined = excludeView.getDefaultText();
-//			String userDefined = excludeView.getChangedText();
-//			String new_exclusions = null;
-//			if(userDefined.length() > 0){
-//	            //append new added in excludeview
-//				StringBuilder stringBuilder = new StringBuilder();
-//				stringBuilder.append(deafaultDefined);
-//				stringBuilder.append(userDefined);
-//				new_exclusions = stringBuilder.toString();//combined
-//				//write back to EclipseDefaultExclusions.txt
-//				java.io.File file = new java.io.File("/Users/Bozhen/Documents/Eclipse2/Test_both_copy/edu.tamu.cse.aser.echo/data/EclipseDefaultExclusions.txt");
-//				FileWriter fileWriter = new FileWriter(file, false);
-//				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-//				bufferedWriter.write(new_exclusions);
-//				bufferedWriter.close();
-//			}
+			// exclude some common library
+			// setting in data/EclipseDefaultExclusions.txt
 			TIDECGModel model = new TIDECGModel(javaProject, "EclipseDefaultExclusions.txt", mainSig);
 			model.buildGraph();
 			System.err.println("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time));
@@ -171,8 +133,8 @@ public class ConvertHandler extends AbstractHandler {
 			//set current model
 			currentModel = model;
 			currentProject = javaProject;
-			//concurrent
-			letUsRock(javaProject, file, model);
+			// start concurrent bug detection
+			startDetection(javaProject, file, model);
 			Activator.getDefaultReporter().initialSubtree(cu, selection, javaProject);
 		}catch(Exception e){
 			e.printStackTrace();
@@ -233,7 +195,5 @@ public class ConvertHandler extends AbstractHandler {
 			e.printStackTrace();
 		}
 	}
-
-
 
 }

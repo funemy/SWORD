@@ -87,7 +87,7 @@ public class ExcludeView extends ViewPart{
 
 				}else{
 					//redo whole program analysis after change the exclude file
-					edu.tamu.aser.tide.plugin.Activator.getDefault().getConvertHandler().test(cu, selection);
+					edu.tamu.aser.tide.plugin.Activator.getDefault().getConvertHandler().init(cu, selection);
 				}
 			}
 		};
