@@ -234,39 +234,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
   //for experiments only
   public static long totaltime = 0;
-  //
-  //  public static HSSFWorkbook wb = new HSSFWorkbook();
-  //  HSSFSheet sheet = wb.createSheet("parallel");
-  //
-  //  public void initialSheet(){
-  //    Row row1st = sheet.createRow(0);
-  //    Cell r1c1 = row1st.createCell(0);    r1c1.setCellValue("Deletion Time");
-  //    Cell r1c2 = row1st.createCell(1);    r1c2.setCellValue("#of changes");
-  //    Cell r1c3 = row1st.createCell(2);    r1c3.setCellValue("Addition Time");
-  //    Cell r1c4 = row1st.createCell(3);    r1c4.setCellValue("#of changes");
-  //    Cell r1c5 = row1st.createCell(4);    r1c5.setCellValue("Inst");
-  //
-  //  }
-  //
-  //  int rowNum = 1;
-  //  Row row;
-  //
-  //  public void writeDTime(long dt, int delCh){
-  //    row = sheet.createRow(rowNum);
-  //    row.createCell(0).setCellValue(dt);
-  //    row.createCell(1).setCellValue(delCh);
-  //  }
-  //
-  //  public void writeATime(long at, int addCh){
-  //    row.createCell(2).setCellValue(at);
-  //    row.createCell(3).setCellValue(addCh);
-  //  }
-  //
-  //  public void writeInst(SSAInstruction inst){
-  //    row.createCell(4).setCellValue(inst.toString());
-  //    rowNum++;
-  //  }
-
 
   /**
    * for incremental pta check
@@ -316,11 +283,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
         HashSet<IVariable> resultsDelete = system.changes;
         int deletesize = resultsDelete.size();
-//        Iterator<IVariable> itDelete = resultsDelete.iterator();
-//        while(itDelete.hasNext()){
-//          System.out.println(((PointsToSetVariable)itDelete.next()).getPointerKey().toString());
-//        }
-//        System.out.println("num of deletion changes seq: " + resultsDelete.size());
         system.clearChanges();
 
         //add
@@ -345,7 +307,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         boolean nochange = true;
         Iterator<IVariable> it = results.iterator();
         while(it.hasNext()){
-//          System.out.println(((PointsToSetVariable)it.next()).getPointerKey().toString());
           PointsToSetVariable var = (PointsToSetVariable) it.next();
           MutableIntSet update = var.getValue();
           MutableIntSet origin = system.var_pts_map.get(var);
@@ -400,44 +361,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       if(inst==null)
         continue;//skip null
 
-      //          if(!inst.toString().contains("putfield 29.< Primordial, Ljava/util/HashMap$TreeNode, left, <Primordial,Ljava/util/HashMap$TreeNode> > = 26"))
-      //          if(!inst.toString().contains("15 = arrayload 8[14]"))
-      //derby
-      //          if(!inst.toString().contains("putfield 32.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 35"))
-      //            if(!inst.toString().contains("28 = arrayload 3[53]"))
-      //          if(!inst.toString().contains("return 5"))
-      //circular wait
-      //            if(!inst.toString().contains("31 = getfield < Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > 40"))
-      //          if(!inst.toString().contains("putfield 44.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 40"))
-      //        if(!inst.toString().contains("putstatic < Primordial, Ljava/util/ArrayList, DEFAULTCAPACITY_EMPTY_ELEMENTDATA, <Primordial,[Ljava/lang/Object> > = 4"))
-      //            if(!inst.toString().contains("putfield 1.< Application, Lorg/apache/derby/catalog/types/BaseTypeIdImpl, SQLTypeName, <Application,Ljava/lang/String> > = 39"))
-      //        if(!inst.toString().contains("55 = invokestatic < Primordial, Ljava/util/HashMap$TreeNode, balanceInsertion(Ljava/util/HashMap$TreeNode;Ljava/util/HashMap$TreeNode;)Ljava/util/HashMap$TreeNode; > 13,52 @303 exception:54"))
-      //          if(!inst.toString().contains("12 = getfield < Application, Lorg/apache/derby/impl/jdbc/authentication/AuthenticationServiceBase, authenticationScheme, <Application,Lorg/apache/derby/authentication/UserAuthenticator> > 1"))
-      //          if(!inst.toString().contains("6 = getfield < Application, Lorg/apache/derby/impl/drda/DRDAConnThread, database, <Application,Lorg/apache/derby/impl/drda/Database> > 1"))
-      //          if(!inst.toString().contains("3 = getfield < Primordial, Ljava/util/Hashtable$Enumerator, entry, <Primordial,Ljava/util/Hashtable$Entry> > 1"))
-      //floodlight
-      //          if(!inst.toString().contains("putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13"))
-      //            if(!inst.toString().contains("12 = arrayload 5[11]"))
-      //        if(!inst.toString().contains("putfield 42.< Primordial, Ljava/util/HashMap$Node, value, <Primordial,Ljava/lang/Object> > = 4"))
-      //        if(!inst.toString().contains("return 7"))
-      //        if(!inst.toString().contains("12 = arrayload 5[11]"))
-      //          if(!inst.toString().contains("putstatic < Application, Lorg/slf4j/LoggerFactory, NOP_FALLBACK_FACTORY, <Application,Lorg/slf4j/helpers/NOPLoggerFactory> > = 5"))
-      //        if(!inst.toString().contains("29 = getstatic < Application, Ljava/util/logging/Level, FINE, <Application,Ljava/util/logging/Level> >"))
-      //        if(!inst.toString().contains("invokestatic < Application, Lorg/apache/derby/iapi/services/monitor/Monitor, logTextMessage(Ljava/lang/String;Ljava/lang/Object;)V > 12,14 @66 exception:15"))
-      //          if(!inst.toString().contains("putfield 32.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 35"))
-      //            continue;
-
-      //test
-      //          if(!inst.toString().contains("arrayload") && !inst.toString().contains("getfield"))
-      //            if(!inst.toString().contains("arraystore") && !inst.toString().contains("putfield"))
-      //          if(!inst.toString().contains("invoke") && !inst.toString().contains("invoke"))
-      //        if(!inst.toString().contains("putfield 18.< Primordial, Ljava/util/HashMap$TreeNode, next, <Primordial,Ljava/util/HashMap$Node> > = 13"))
-      //          if(!inst.toString().contains("putfield 32.< Primordial, Ljava/util/HashMap$Node, next, <Primordial,Ljava/util/HashMap$Node> > = 35"))
-      //
-      //              continue;
-//      if(!inst.toString().contains("invokestatic < Primordial, Ljava/util/Arrays, sort([Ljava/lang/Object;)V > 1 @5 exception:11"))
-//        continue;
-//    85 = invokespecial < Application, Lorg/h2/command/Parser, readIf(Ljava/lang/String;)Z > 1,83 @886 exception:84
       System.out.println("INST:      "+ inst.toString());
       ISSABasicBlock bb = cfg.getBlockForInstruction(inst.iindex);
       //delete
@@ -469,10 +392,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         int delsize = resultsDelete.size();
         System.out.println("num of deletion changes seq: " + resultsDelete.size());
 
-        //          if(delete_time!=0){
-        //            writeDTime(delete_time, resultsDelete.size());//resultsDelete.size()
-        //          }
-
         system.clearChanges();
 
         long add_start_time = System.currentTimeMillis();
@@ -497,10 +416,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 //        if(delsize != addsize)
 //          System.err.println("NOT MATCH ");
         System.out.println("PARALLEL INCREMENTAL DELETE TIME: " +delete_time + ";  PARALLEL INCREMEMTAL ADDITION TIME: " + add_time);
-        //          if(delete_time!=0){
-        //            writeATime(add_time, results.size());//results.size()
-        //            writeInst(inst);
-        //          }
 
         system.clearChanges();
         //          ps.print(delete_time+" "+add_time+" ");
@@ -1058,12 +973,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       //*** clear lhs ??? wrong
       FilteredPointerKey.TypeFilter filter = pk.getTypeFilter();
       changed = filter.delFiltered(system, lhs, rhs);
-      //      FilteredPointerKey.TypeFilter filter = pk.getTypeFilter();
-      //      changed = filter.addFiltered(system, lhs, rhs);
-      //
-      //      if (DEBUG_FILTER) {
-      //        System.err.println("RESULT " + lhs + (changed ? " (changed)" : ""));
-      //      }
       return changed ? CHANGED : NOT_CHANGED;
     }
 
@@ -1082,12 +991,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       //*** clear lhs ??? wrong
       FilteredPointerKey.TypeFilter filter = pk.getTypeFilter();
       changed = filter.delFiltered(system, lhs, set);
-      //      FilteredPointerKey.TypeFilter filter = pk.getTypeFilter();
-      //      changed = filter.addFiltered(system, lhs, rhs);
-      //
-      //      if (DEBUG_FILTER) {
-      //        System.err.println("RESULT " + lhs + (changed ? " (changed)" : ""));
-      //      }
       return changed ? CHANGED : NOT_CHANGED;
     }
 
@@ -1447,67 +1350,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
 
-    //jeff's idea
-    //    @Override
-    //    public byte evaluateDel(PointsToSetVariable rhs) {//bz
-    //      if (DEBUG_ARRAY_LOAD) {
-    //        PointsToSetVariable def = getFixedSet();
-    //        String S = "DEL EVAL ArrayLoad " + rhs.getPointerKey() + " " + def.getPointerKey();
-    //        System.err.println(S);
-    //        System.err.println("DEl EVAL ArrayLoad " + def + " " + rhs);
-    //        if (priorInstances != null) {
-    //          System.err.println("prior instances: " + priorInstances + " " + priorInstances.getClass());
-    //        }
-    //      }
-    //
-    //      if (rhs.size() == 0) {
-    //        return NOT_CHANGED;
-    //      }
-    //      final PointerKey object = rhs.getPointerKey();
-    //
-    //      PointsToSetVariable def = getFixedSet();
-    //      final PointerKey dVal = def.getPointerKey();
-    //
-    //      final MutableBoolean sideEffect_del = new MutableBoolean();
-    //      final ArrayList<PointsToSetVariable> rhss = new ArrayList<>();
-    //      IntSetAction action = new IntSetAction() {
-    //        @Override
-    //        public void act(int i) {
-    //          InstanceKey I = system.getInstanceKey(i);
-    //          if (!I.getConcreteType().isArrayClass()) {
-    //            return;
-    //          }
-    //          TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-    //          if (C.isPrimitiveType()) {
-    //            return;
-    //          }
-    //          PointerKey p = getPointerKeyForArrayContents(I);
-    //          if (p == null) {
-    //            return;
-    //          }
-    //
-    //          if (DEBUG_ARRAY_LOAD) {
-    //            System.err.println("ArrayLoad del assign: " + dVal + " " + p);
-    //          }
-    ////          sideEffect_del.b |= system.delConstraint(dVal, assignOperator, p);
-    ////          System.out.println("rhs : "+ p.toString());
-    //          PointsToSetVariable ptv = system.findOrCreatePointsToSet(p);
-    //          if(ptv.getValue() != null){
-    //            rhss.add(ptv);
-    //          }
-    //        }
-    //      };
-    //      rhs.getValue().foreach(action);
-    //      priorInstances.foreach(action);
-    //      //start to parallel
-    //      if(!rhss.isEmpty()){
-    //        system.anotherWay(def, assignOperator, rhss, false);
-    //      }
-    //      priorInstances.clear();
-    ////      byte sideEffectMask = sideEffect_del.b ? (byte) SIDE_EFFECT_MASK : 0;
-    ////      return (byte) (NOT_CHANGED | sideEffectMask);
-    //      return (byte) SIDE_EFFECT_MASK;
-    //    }
   }
 
   /**
@@ -1544,105 +1386,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       List<InstanceKey> instances = system.getInstances(rhs.getValue());
       boolean sideEffect = false;
 
-//      if(system.isChange){
-//        if(instances.size() < 1000){
-//          for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-//            InstanceKey I = it.next();
-//            if (!I.getConcreteType().isArrayClass()) {
-//              continue;
-//            }
-//            if (I instanceof ZeroLengthArrayInNode) {
-//              continue;
-//            }
-//            TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-//            if (C.isPrimitiveType()) {
-//              continue;
-//            }
-//            IClass contents = getClassHierarchy().lookupClass(C);
-//            if (contents == null) {
-//              assert false : "null type for " + C + " " + I.getConcreteType();
-//            }
-//            PointerKey p = getPointerKeyForArrayContents(I);
-//            if (DEBUG_ARRAY_STORE) {
-//              System.err.println("ArrayStore add filtered-assign: " + p + " " + pVal);
-//            }
-//
-//            // note that the following is idempotent
-//            if (isJavaLangObject(contents)) {
-//              //              sideEffect |= system.newFieldWrite(p, assignOperator, pVal, object);
-//              sideEffect |= system.newConstraint(p, assignOperator, pVal);
-//            } else {
-//              //              sideEffect |= system.newFieldWrite(p, filterOperator, pVal, object);
-//              sideEffect|= system.newConstraint(p, filterOperator, pVal);
-//            }
-//          }
-//        }else {
-//          if(val.getValue() != null){
-//            instCounter++;
-//            ArrayList<PointsToSetVariable> lhssFilter = new ArrayList<>();
-//            ArrayList<PointsToSetVariable> lhssAssign = new ArrayList<>();
-//
-//            for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-//              InstanceKey I = it.next();
-//              if (!I.getConcreteType().isArrayClass()) {
-//                continue;
-//              }
-//              if (I instanceof ZeroLengthArrayInNode) {
-//                continue;
-//              }
-//              TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-//              if (C.isPrimitiveType()) {
-//                continue;
-//              }
-//              IClass contents = getClassHierarchy().lookupClass(C);
-//              if (contents == null) {
-//                assert false : "null type for " + C + " " + I.getConcreteType();
-//              }
-//              PointerKey p = getPointerKeyForArrayContents(I);
-//              // note that the following is idempotent
-//              PointsToSetVariable pptv = system.findOrCreatePointsToSet(p);
-//              if (isJavaLangObject(contents)) {
-//                lhssAssign.add(pptv);
-//              } else {
-//                lhssFilter.add(pptv);
-//              }
-//            }
-//            MutableIntSet targets = IntSetUtil.makeMutableCopy(val.getValue());
-//            system.addConstraintHasMultiLSeperate(lhssAssign, lhssFilter, assignOperator, filterOperator, val, targets); //sideEffectMask
-//          }
-//        }
-//      }else{
-//        for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-//          InstanceKey I = it.next();
-//          if (!I.getConcreteType().isArrayClass()) {
-//            continue;
-//          }
-//          if (I instanceof ZeroLengthArrayInNode) {
-//            continue;
-//          }
-//          TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-//          if (C.isPrimitiveType()) {
-//            continue;
-//          }
-//          IClass contents = getClassHierarchy().lookupClass(C);
-//          if (contents == null) {
-//            assert false : "null type for " + C + " " + I.getConcreteType();
-//          }
-//          PointerKey p = getPointerKeyForArrayContents(I);
-//          if (DEBUG_ARRAY_STORE) {
-//            System.err.println("ArrayStore add filtered-assign: " + p + " " + pVal);
-//          }
-//
-//          // note that the following is idempotent
-//          if (isJavaLangObject(contents)) {
-//            //              sideEffect |= system.newFieldWrite(p, assignOperator, pVal, object);
-//            sideEffect |= system.newConstraint(p, assignOperator, pVal);
-//          } else {
-//            //              sideEffect |= system.newFieldWrite(p, filterOperator, pVal, object);
-//            sideEffect|= system.newConstraint(p, filterOperator, pVal);
-//          }
-//        }
-//      }
       for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
         InstanceKey I = it.next();
         if (!I.getConcreteType().isArrayClass()) {
@@ -1715,7 +1458,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       List<InstanceKey> instances = system.getInstances(rhs.getValue());
       int size = instances.size();
       boolean sideEffect_del = false;
-//      if(size < 10){
         for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
           InstanceKey I = it.next();
           if (!I.getConcreteType().isArrayClass()) {
@@ -1744,34 +1486,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
             sideEffect_del |= system.delConstraint(p, filterOperator, pVal);
           }
         }
-//      }else{
-//        if(val.getValue() != null){
-//          ArrayList<PointsToSetVariable> lhss = new ArrayList<>();
-//          for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-//            InstanceKey I = it.next();
-//            if (!I.getConcreteType().isArrayClass()) {
-//              continue;
-//            }
-//            if (I instanceof ZeroLengthArrayInNode) {
-//              continue;
-//            }
-//            TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-//            if (C.isPrimitiveType()) {
-//              continue;
-//            }
-//            IClass contents = getClassHierarchy().lookupClass(C);
-//            if (contents == null) {
-//              assert false : "null type for " + C + " " + I.getConcreteType();
-//            }
-//            PointerKey p = getPointerKeyForArrayContents(I);
-//            // note that the following is idempotent
-//            PointsToSetVariable pptv = system.findOrCreatePointsToSet(p);
-//            lhss.add(pptv);
-//          }
-//          MutableIntSet targets = IntSetUtil.makeMutableCopy(val.getValue());
-//          system.delConstraintHasMultiL(lhss, assignOperator, val, targets); //sideEffectMask
-//        }
-//      }
+
       byte sideEffectMask = sideEffect_del ? (byte) SIDE_EFFECT_MASK : 0;
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
@@ -1839,19 +1554,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         }
       };
 
-      //      boolean changed = false;
-      //      int orl = def.getOrderNumber();
-      //      int orr = rhs.getOrderNumber();
-      //      PointsToSetVariable first;
-      //      PointsToSetVariable sec;
-      //      if(orl<orr){
-      //        first = def;
-      //        sec = rhs;
-      //      }else{
-      //        first =rhs;
-      //        sec = def;
-      //      }
-
       final ArrayList<PointsToSetVariable> rhss = new ArrayList<>();
       IntSetAction action2 = new IntSetAction() {
         @Override
@@ -1872,8 +1574,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       };
 
       int size = rhs.getValue().size();
-      //      synchronized(first){
-      //        synchronized (sec) {
+
       if(system.isChange && rhss.size() > 600){
         if (priorInstances != null) {
           value.foreachExcluding(priorInstances, action2);
@@ -1882,8 +1583,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
           value.foreach(action2);
         }
         if(rhss.size() != 0)
-          //              system.addConstraintMultiR(dVal, assignOperator, rhss); //change
-          //jeff's idea
           system.anotherWay(def, assignOperator, rhss, true);
       }else{
         if (priorInstances != null) {
@@ -2001,70 +1700,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
 
-    //jeff's idea
-    //    @Override
-    //    public byte evaluateDel(PointsToSetVariable rhs) {
-    //      if (DEBUG_GET) {
-    //        //--- fixedSet is def
-    //        String S = "DEL EVAL GetField " + getField() + " " + getFixedSet().getPointerKey() + " " + rhs.getPointerKey() + getFixedSet()
-    //            + " " + rhs;
-    //        System.err.println(S);
-    //      }
-    //
-    //      PointsToSetVariable ref = rhs;
-    //      if (ref.size() == 0) {
-    //        return NOT_CHANGED;
-    //      }
-    //      final PointerKey object = ref.getPointerKey();
-    //      PointsToSetVariable def = getFixedSet();
-    //      final PointerKey dVal = def.getPointerKey();
-    //      //~~~ did not implement filter part
-    //      IntSet value = filterInstances(ref.getValue());
-    //      if (DEBUG_GET) {
-    //        System.err.println("filtered value: " + value + " " + value.getClass());
-    //        if (priorInstances != null) {
-    //          System.err.println("prior instances: " + priorInstances + " " + priorInstances.getClass());
-    //        }
-    //      }
-    //      final MutableBoolean sideEffect_del = new MutableBoolean();
-    //      final MutableIntSet delset = IntSetUtil.getDefaultIntSetFactory().make();
-    //      final ArrayList<PointsToSetVariable> rhss = new ArrayList<>();
-    //      IntSetAction action = new IntSetAction() {
-    //        @Override
-    //        public void act(int i) {
-    //          InstanceKey I = system.getInstanceKey(i);
-    //          if (!representsNullType(I)) {
-    //            //--- this for getField is the GetFieldOperator
-    //            PointerKey p = getPointerKeyForInstanceField(I, getField());
-    //
-    //            if (p != null) {
-    //              if (DEBUG_GET) {
-    //                String S = "Getfield del constraint " + dVal + " " + p;
-    //                System.err.println(S);
-    //              }
-    ////              sideEffect_del.b |= system.delConstraint(dVal, assignOperator, p);
-    //              PointsToSetVariable ptv = system.findOrCreatePointsToSet(p);
-    //              if(ptv.getValue() != null){
-    //                rhss.add(ptv);
-    //              }
-    //            }
-    //          }
-    //        }
-    //      };
-    //      //*** always do it for all instance
-    //      value.foreach(action);
-    //      priorInstances.foreach(action);
-    //      if(!rhss.isEmpty()){
-    //        system.anotherWay(def, assignOperator, rhss, false);
-    //      }
-    //      //--- remove all priorInstance
-    //      priorInstances.clear();
-    //      delset.clear();
-    //
-    ////      byte sideEffectMask = sideEffect_del.b ? (byte) SIDE_EFFECT_MASK : 0;
-    ////      return (byte) (NOT_CHANGED | sideEffectMask);
-    //      return (byte) SIDE_EFFECT_MASK;
-    //    }
   }
 
   /**
@@ -2138,18 +1773,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         }
       };
 
-      //      int orl = val.getOrderNumber();
-      //      int orr = rhs.getOrderNumber();
-      //      PointsToSetVariable first;
-      //      PointsToSetVariable sec;
-      //      if(orl<orr){
-      //        first = val;
-      //        sec = rhs;
-      //      }else{
-      //        first =rhs;
-      //        sec = val;
-      //      }
-
       final ArrayList<PointsToSetVariable> lhss = new ArrayList<>();
       IntSetAction action2 = new IntSetAction() {
         @Override
@@ -2166,8 +1789,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
           }
         }
       };
-      //      synchronized(first){
-      //        synchronized (sec) {
+
       if(system.isChange){//incremental
         if (priorInstances != null) {
           int size = value.size() - priorInstances.size();
@@ -2201,8 +1823,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
           value.foreach(action);
         }
       }
-      //        }
-      //      }
+
       byte sideEffectMask = sideEffect.b ? (byte) SIDE_EFFECT_MASK : 0;
       return (byte) (NOT_CHANGED | sideEffectMask);
     }

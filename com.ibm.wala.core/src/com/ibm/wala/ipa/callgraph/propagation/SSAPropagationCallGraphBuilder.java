@@ -3167,9 +3167,6 @@ public void processDiff(CGNode node, ISSABasicBlock bb, SSAInstruction diff){
   @Override
   protected IPointsToSolver makeSolver() {
     return new StandardSolver(system, this);
-    // return usePreTransitiveSolver ? (IPointsToSolver) new PreTransitiveSolver(system, this) : new StandardSolver(system, this);
-    // return true ? (IPointsToSolver)new PreTransitiveSolver(system,this) : new
-    // StandardSolver(system,this);
   }
 
 }
