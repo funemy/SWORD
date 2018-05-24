@@ -63,8 +63,6 @@ public class ConvertHandler extends AbstractHandler {
 	private TIDECGModel currentModel;
 	private IJavaProject currentProject;
 
-	long start_time = System.currentTimeMillis();
-
 	public TIDECGModel getCurrentModel(){
 		return currentModel;
 	}
@@ -81,7 +79,8 @@ public class ConvertHandler extends AbstractHandler {
 			@Override
 			public void run() {
 				HashSet<ITIDEBug> bugs = new HashSet<ITIDEBug>();
-				//Detect Bugs
+				// Detect Bugs
+				long start_time = System.currentTimeMillis();
 				if(num_of_detection == 1){
 					//initial
 					System.err.println("INITIAL DETECTION >>>");
@@ -92,7 +91,7 @@ public class ConvertHandler extends AbstractHandler {
 				//update UI
 				model.updateGUI(javaProject, file, bugs, true);
 				System.err.println("Total Bugs: "+ bugs.size());
-				System.err.println("Total Time: "+(System.currentTimeMillis()-start_time));
+				System.err.println("Total Detection Time: "+(System.currentTimeMillis()-start_time));
 			}
 		}).start();
 	}
@@ -107,6 +106,7 @@ public class ConvertHandler extends AbstractHandler {
 
 			ICompilationUnit cu = (ICompilationUnit) firstElement;
 			if(hasMain(cu)){
+				// record total running time
 				init(cu, selection);//initial
 			}
 		}
@@ -121,16 +121,17 @@ public class ConvertHandler extends AbstractHandler {
 			// exclude some common library
 			// setting in data/EclipseDefaultExclusions.txt
 			TIDECGModel model = new TIDECGModel(javaProject, "EclipseDefaultExclusions.txt", mainSig);
+			// record call graph constructon time
+			long start_time = System.currentTimeMillis();
 			model.buildGraph();
 			System.err.println("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time));
 			modelMap.put(javaProject, model);
-//			excludeView.setProgramInfo(cu, selection);
 			IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(cu.getPath());
 			//set echoview to menuhandler
 			echoRaceView = model.getEchoRaceView();
 			echoRWView = model.getEchoRWView();
 			echoDLView = model.getEchoDLView();
-			//set current model
+			// set current model
 			currentModel = model;
 			currentProject = javaProject;
 			// start concurrent bug detection
