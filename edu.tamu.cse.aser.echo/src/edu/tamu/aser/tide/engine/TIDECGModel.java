@@ -93,9 +93,9 @@ public class TIDECGModel extends WalaProjectCGModel {
 	public ActorSystem akkasys;
 	public ActorRef bughub;
 	public static TIDEEngine bugEngine;
-	private static ClassLoader ourClassLoader = ActorSystem.class.getClassLoader();
+	private static ClassLoader akkaClassLoader = ActorSystem.class.getClassLoader();
 	private final static boolean DEBUG = false;
-	//gui views
+	//Eclipse views
 	public EchoRaceView echoRaceView;
 	public EchoDLView echoDLView;
 	public EchoReadWriteView echoRWView;
@@ -130,7 +130,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 	}
 
 	public HashSet<ITIDEBug> detectBug() {
-	    Thread.currentThread().setContextClassLoader(ourClassLoader);
+	    Thread.currentThread().setContextClassLoader(akkaClassLoader);
 		akkasys = ActorSystem.create("bug");
 		CallGraphBuilder builder = engine.builder_echo;
 		PropagationGraph flowgraph = null;

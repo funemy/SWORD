@@ -119,7 +119,7 @@ public class ConvertHandler extends AbstractHandler {
 			IJavaProject javaProject = cu.getJavaProject();
 			String mainSig = getSignature(cu);
 			// exclude some common library
-			// setting in data/EclipseDefaultExclusions.txt
+			// add new exclusion file in data/EclipseDefaultExclusions.txt
 			TIDECGModel model = new TIDECGModel(javaProject, "EclipseDefaultExclusions.txt", mainSig);
 			// record call graph constructon time
 			long start_time = System.currentTimeMillis();
@@ -127,7 +127,7 @@ public class ConvertHandler extends AbstractHandler {
 			System.err.println("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time));
 			modelMap.put(javaProject, model);
 			IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(cu.getPath());
-			//set echoview to menuhandler
+			// set echoview to menuhandler
 			echoRaceView = model.getEchoRaceView();
 			echoRWView = model.getEchoRWView();
 			echoDLView = model.getEchoDLView();

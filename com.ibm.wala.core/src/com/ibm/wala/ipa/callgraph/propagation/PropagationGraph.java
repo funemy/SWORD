@@ -29,7 +29,6 @@ import com.ibm.wala.scc.Digraph;
 import com.ibm.wala.scc.TarjanSCC;
 import com.ibm.wala.util.collections.CompoundIterator;
 import com.ibm.wala.util.collections.EmptyIterator;
-import com.ibm.wala.util.collections.Filter;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.SmallMap;
 import com.ibm.wala.util.debug.Assertions;
@@ -72,8 +71,6 @@ public class PropagationGraph implements IFixedPointSystem<PointsToSetVariable> 
 
   private final DelegateGraph delegateGraph = new DelegateGraph();
 
-  //private final HashSet<AbstractStatement> delegateStatements = HashSetFactory.make();
- //FIXME: JEFF
   private final HashMap<Integer,AbstractStatement> delegateStatements = new HashMap<Integer,AbstractStatement>();
   /**
    * special representation for implicitly represented unary equations. This is a map from UnaryOperator ->
@@ -449,50 +446,49 @@ public class PropagationGraph implements IFixedPointSystem<PointsToSetVariable> 
 
 //sz
  //*** instead of removing all incident edges, only this statement is deleted
- public void delStatement(IFixedPointStatement<PointsToSetVariable> statement)throws IllegalArgumentException, UnimplementedError{
-     if (statement == null) {
-       throw new IllegalArgumentException("statement == null");
-     }
-     if (statement instanceof UnaryStatement) {
-       delStatement((UnaryStatement<PointsToSetVariable>) statement);
-     } else if (statement instanceof GeneralStatement) {
-       delStatement((GeneralStatement<PointsToSetVariable>) statement);
-     } else {
-       Assertions.UNREACHABLE("unexpected : " + statement.getClass());
-     }
- }
+public void delStatement(IFixedPointStatement<PointsToSetVariable> statement)throws IllegalArgumentException, UnimplementedError{
+  if (statement == null) {
+    throw new IllegalArgumentException("statement == null");
+  }
+  if (statement instanceof UnaryStatement) {
+    delStatement((UnaryStatement<PointsToSetVariable>) statement);
+  } else if (statement instanceof GeneralStatement) {
+    delStatement((GeneralStatement<PointsToSetVariable>) statement);
+  } else {
+    Assertions.UNREACHABLE("unexpected : " + statement.getClass());
+  }
+}
+
  // sz
  @SuppressWarnings("unchecked")
 public void delStatement(UnaryStatement<PointsToSetVariable> eq) throws IllegalArgumentException {
-   if (eq == null) {
-     throw new IllegalArgumentException("eq == null");
-   }
-   if(DEBUG)
-     System.err.println("--- Del Statement: "+eq.toString());
-   if (useImplicitRepresentation(eq)) {
-     removeImplicitStatement(eq);
-   } else {
+  if (eq == null) {
+    throw new IllegalArgumentException("eq == null");
+  }
+  if(DEBUG)
+    System.err.println("--- Del Statement: "+eq.toString());
+  if (useImplicitRepresentation(eq)) {
+    removeImplicitStatement(eq);
+  } else {
 
      //JEFF
-     eq = (UnaryStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
+    eq = (UnaryStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
 
-     PointsToSetVariable lhs = eq.getLHS();
-     PointsToSetVariable rhs = eq.getRightHandSide();
-     if (lhs != null) {
-       //delegateGraph.removeNode(lhs);
-       delegateGraph.removeEdge(eq, lhs);
-     }
-     //delegateGraph.removeNode(rhs);
+    PointsToSetVariable lhs = eq.getLHS();
+    PointsToSetVariable rhs = eq.getRightHandSide();
+    if (lhs != null) {
+      delegateGraph.removeEdge(eq, lhs);
+    }
 
-     //FIXME: node may not exist JEFF
-     try{
-     delegateGraph.removeEdge(rhs, eq);
-     }catch(Exception e)
-     {
+    //FIXME: node may not exist JEFF
+    try {
+      delegateGraph.removeEdge(rhs, eq);
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
 
-     }
-   }
- }
  // sz
  public void delStatement(GeneralStatement<PointsToSetVariable> eq){
    if (eq == null) {
@@ -1201,104 +1197,5 @@ public void delStatement(UnaryStatement<PointsToSetVariable> eq) throws IllegalA
     }
     return result;
   }
-
-  //////////////scc part
-  //find scc in delegategraph
-//  private HashMap<INodeWithNumber, HashSet<INodeWithNumber>> sccEdges = new HashMap<>();
-//
-//  public void findAllSCC(){
-//    System.out.println("num of delegate graph: "+ delegateGraph.getNumberOfNodes() );
-//    int numOfSCC = 0;
-//     SCCIterator<INodeWithNumber> sccIterator = new SCCIterator<INodeWithNumber>(delegateGraph);
-//     while(sccIterator.hasNext()){
-//       numOfSCC++;
-//       Set<INodeWithNumber> scc = sccIterator.next();
-//       Iterator<INodeWithNumber> iterator = scc.iterator();
-//       if(scc.size() != 1){
-//       while(iterator.hasNext()){
-//         INodeWithNumber v = iterator.next();
-//         System.out.println("----------- "+ v.toString());
-////         Iterator<INodeWithNumber> iterOut = sccIterator.getOutGoingEdgesOf(v);
-////         while(iterOut.hasNext()){
-////           INodeWithNumber out = iterOut.next();
-////           System.out.println("----scc: "+ out.toString());
-////           HashSet<INodeWithNumber> outs = sccEdges.get(v);
-////           if(outs == null){
-////             outs = new HashSet<>();
-////             outs.add(out);
-////             sccEdges.put(v, outs);
-////           }else{
-////             sccEdges.get(v).add(out);
-////           }
-////         }
-//       }
-//       }
-//     }
-//     System.out.println("num of sccs: " + numOfSCC);
-//  }
-//
-//  public HashSet<PointsToSetVariable> getSCCRelatedToEdge(PointsToSetVariable in, PointsToSetVariable out){
-//    return null;
-//  }
-//
-//  public boolean hasSCCEdgesBetween(PointsToSetVariable in, PointsToSetVariable out){
-//    HashSet<INodeWithNumber> checks = sccEdges.get(delegateGraph.getNodeManager().getNumber(in));
-//    int outNum = delegateGraph.getNodeManager().getNumber(out);
-//    if(checks.contains(outNum)){
-//      return true;
-//    }else{
-//      return false;
-//    }
-//  }
-
-//  public boolean findPaths(ArrayList<PointerKey> lhss, ArrayList<PointerKey> rhss){
-//    for(int i=0; i<lhss.size(); i++){
-//      PointerKey lhs = lhss.get(i);
-//      if(lhs != null){
-//        Filter<PointerKey> filter = new FilterIterator(rhss.iterator(), f);
-//        BFSPathFinder<INodeWithNumber> paths = new BFSPathFinder<INodeWithNumber>(delegateGraph, lhs, targets)
-//      }
-//    }
-//    return true;
-//  }
-
-//  public int computeSCC(){
-//    digraph = new Digraph(delegateGraph.getNumberOfNodes());
-//    for(int i=0; i<= delegateGraph.getNumberOfNodes(); i++){
-//      INodeWithNumber node = delegateGraph.getNode(i);
-//      Iterator<INodeWithNumber> iterator = delegateGraph.getSuccNodes(node);
-//      while(iterator.hasNext()){
-//        INodeWithNumber next = iterator.next();
-//        digraph.addEdge(node.getGraphNodeId(), next.getGraphNodeId());
-//      }
-//    }
-//
-//    scc = new TarjanSCC(digraph);
-//    return scc.count();
-//  }
-//
-//  public void getAllSCC(){
-//    int m = scc.count();
-//    Queue<Integer>[] components = (Queue<Integer>[]) new Queue[m];
-//    for (int i = 0; i < m; i++) {
-//      components[i] = new Queue<Integer>();
-//    }
-//    for (int v = 0; v < G.V(); v++) {
-//      components[scc.id(v)].enqueue(v);
-//    }
-//    return components;
-//  }
-//
-//  public boolean collapseSCC(){
-//    int m = scc.count();
-//    for(int i=0; i<m; i++){
-//      int sccNodes = scc.id(i);
-//    }
-//    return true;
-//  }
-//
-//  public boolean areStronglyConnected(PointsToSetVariable a, PointsToSetVariable b){
-//    return scc.stronglyConnected(a.getGraphNodeId(), b.getGraphNodeId());
-//  }
 
 }
