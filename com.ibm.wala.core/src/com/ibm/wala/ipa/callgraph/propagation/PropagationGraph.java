@@ -29,6 +29,7 @@ import com.ibm.wala.scc.Digraph;
 import com.ibm.wala.scc.TarjanSCC;
 import com.ibm.wala.util.collections.CompoundIterator;
 import com.ibm.wala.util.collections.EmptyIterator;
+import com.ibm.wala.util.collections.Filter;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.SmallMap;
 import com.ibm.wala.util.debug.Assertions;
