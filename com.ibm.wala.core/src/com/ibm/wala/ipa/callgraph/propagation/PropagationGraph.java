@@ -445,76 +445,72 @@ public class PropagationGraph implements IFixedPointSystem<PointsToSetVariable> 
     }
   }
 
-//sz
- //*** instead of removing all incident edges, only this statement is deleted
-public void delStatement(IFixedPointStatement<PointsToSetVariable> statement)throws IllegalArgumentException, UnimplementedError{
-  if (statement == null) {
-    throw new IllegalArgumentException("statement == null");
+  //sz
+  //*** instead of removing all incident edges, only this statement is deleted
+  public void delStatement(IFixedPointStatement<PointsToSetVariable> statement)throws IllegalArgumentException, UnimplementedError{
+    if (statement == null) {
+      throw new IllegalArgumentException("statement == null");
+    }
+    if (statement instanceof UnaryStatement) {
+      delStatement((UnaryStatement<PointsToSetVariable>) statement);
+    } else if (statement instanceof GeneralStatement) {
+      delStatement((GeneralStatement<PointsToSetVariable>) statement);
+    } else {
+      Assertions.UNREACHABLE("unexpected : " + statement.getClass());
+    }
   }
-  if (statement instanceof UnaryStatement) {
-    delStatement((UnaryStatement<PointsToSetVariable>) statement);
-  } else if (statement instanceof GeneralStatement) {
-    delStatement((GeneralStatement<PointsToSetVariable>) statement);
-  } else {
-    Assertions.UNREACHABLE("unexpected : " + statement.getClass());
-  }
-}
 
- // sz
- @SuppressWarnings("unchecked")
-public void delStatement(UnaryStatement<PointsToSetVariable> eq) throws IllegalArgumentException {
-  if (eq == null) {
-    throw new IllegalArgumentException("eq == null");
-  }
-  if(DEBUG)
-    System.err.println("--- Del Statement: "+eq.toString());
-  if (useImplicitRepresentation(eq)) {
-    removeImplicitStatement(eq);
-  } else {
+  // sz
+  @SuppressWarnings("unchecked")
+  public void delStatement(UnaryStatement<PointsToSetVariable> eq) throws IllegalArgumentException {
+    if (eq == null) {
+      throw new IllegalArgumentException("eq == null");
+    }
+    if(DEBUG)
+      System.err.println("--- Del Statement: "+eq.toString());
+    if (useImplicitRepresentation(eq)) {
+      removeImplicitStatement(eq);
+    } else {
 
-     //JEFF
-    eq = (UnaryStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
+       //JEFF
+      eq = (UnaryStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
+
+      PointsToSetVariable lhs = eq.getLHS();
+      PointsToSetVariable rhs = eq.getRightHandSide();
+      if (lhs != null) {
+        delegateGraph.removeEdge(eq, lhs);
+      }
+
+      //FIXME: node may not exist JEFF
+      try {
+        delegateGraph.removeEdge(rhs, eq);
+      } catch(Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  // sz
+  public void delStatement(GeneralStatement<PointsToSetVariable> eq){
+    if (eq == null) {
+      throw new IllegalArgumentException("eq == null");
+    }
+    if (DEBUG)
+      System.err.println("--- Del Statement2: "+eq.toString());
+
+    //JEFF
+    eq = (GeneralStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
 
     PointsToSetVariable lhs = eq.getLHS();
-    PointsToSetVariable rhs = eq.getRightHandSide();
-    if (lhs != null) {
-      delegateGraph.removeEdge(eq, lhs);
-    }
+      if (lhs != null)
+        delegateGraph.removeEdge(eq, lhs);
 
-    //FIXME: node may not exist JEFF
-    try {
-      delegateGraph.removeEdge(rhs, eq);
-    } catch(Exception e) {
-      e.printStackTrace();
-    }
+      for (int i = 0; i < eq.getRHS().length; i++){
+        PointsToSetVariable rhs = eq.getRHS()[i];
+        if(rhs!=null)
+          delegateGraph.removeEdge(rhs, eq);
+      }
   }
-}
-
- // sz
- public void delStatement(GeneralStatement<PointsToSetVariable> eq){
-   if (eq == null) {
-     throw new IllegalArgumentException("eq == null");
-   }
-   if(DEBUG)
-     System.err.println("--- Del Statement2: "+eq.toString());
-
-   //JEFF
-   eq = (GeneralStatement<PointsToSetVariable>) delegateStatements.remove(eq.hashCode());
-
-   PointsToSetVariable lhs = eq.getLHS();
-     if (lhs != null) {
-       //delegateGraph.removeNode(lhs);
-       delegateGraph.removeEdge(eq, lhs);
-     }
-     for (int i = 0; i < eq.getRHS().length; i++){
-       PointsToSetVariable rhs = eq.getRHS()[i];
-       //delegateGraph.removeNode(rhs);
-       if(rhs!=null)
-       delegateGraph.removeEdge(rhs, eq);
-     }
-
-
- }
 
   @Override
   public void reorder() {
