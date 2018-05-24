@@ -154,9 +154,11 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
       PointsToSetVariable.instanceKeys = instanceKeys;
     }
 
-    nrOfWorkers = 8;//8; //num of threads in akka
+    //num of threads in akka
+    nrOfWorkers = 8;
     if(useAkka){
-      startAkkaSys();//initialize sys
+      //initialize sys
+      startAkkaSys();
     }else{
       System.err.println("Thread pool initialized.");
       threadHub = new ThreadHub(nrOfWorkers);
@@ -403,40 +405,9 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     if(delset == null)
       return false;
     //pack all instance and delete
-//    if(!this.isOptimize)
       corePointsToDelWholeSet(L,delset);
-//    processedPoints.clear();
     return true;
   }
-
-
-//  public boolean addConstraintMultiInstancetoL(PointerKey lhs, MutableIntSet addset) {
-//    if (lhs == null) {
-//      throw new IllegalArgumentException("null lhs");
-//    }
-//    PointsToSetVariable L = findOrCreatePointsToSet(lhs);
-//    if(L == null)
-//      return false;//JEFF
-//
-//    try{//FIXME: JEFF NPE
-//      if(lhs instanceof LocalPointerKey){
-//        LocalPointerKey LocalPK = (LocalPointerKey)L.getPointerKey();
-//        if(LocalPK.getNode().getMethod().isInit() || LocalPK.getNode().getMethod().isClinit())
-//          return false;
-//      }}catch(Exception e){return false;}//need to handle invocation
-//
-//    if(addset == null)
-//      return false;
-//    boolean code = L.addAll(addset);
-//    if(!code)
-//      return false;
-//    //pack all instance and add
-//    ArrayList<PointsToSetVariable> lhss = findFirstUsers(L);
-//    if(lhss.size() == 0)
-//      return false;
-//    addOrDelASetFromMultiLhs(lhss, addset, true);
-//    return true;
-//  }
 
 /**
  * 1 lhs <= multi rhs : Mode: delConstraintMultiR; modify it to another mode: sync(lhs) and add pts(rhs) in parallel
@@ -472,9 +443,7 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     if(delset == null)
       return false;
     //pack all instance and delete
-//    if(!this.isOptimize)
       corePointsToDelWholeSet(L, delset);
-//    processedPoints.clear();
     return true;
   }
 
@@ -484,20 +453,27 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     if (lhs == null) {
       throw new IllegalArgumentException("null lhs");
     }
+
     if (op == null) {
       throw new IllegalArgumentException("op null");
     }
+
     final PointsToSetVariable L = findOrCreatePointsToSet(lhs);
+
     if(L == null)
       return false;//JEFF
 
-    try{//FIXME: JEFF NPE
+    try {//FIXME: JEFF NPE
       if(lhs instanceof LocalPointerKey){
         LocalPointerKey LocalPK = (LocalPointerKey)L.getPointerKey();
         if(LocalPK.getNode().getMethod().isInit() || LocalPK.getNode().getMethod().isClinit())
           return false;
-      }}catch(Exception e){return false;}//need to handle invocation
-  //add edges
+      }
+    } catch (Exception e){
+      return false;
+    }//need to handle invocation
+
+    //add edges
     final MutableIntSet targets = IntSetUtil.getDefaultIntSetFactory().make();
     for (PointsToSetVariable rhs : rhss) {
       addStatement(L, op, rhs, true, true);
@@ -562,39 +538,12 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
   }
 
   public void anotherWay(PointsToSetVariable lhs, AssignOperator assignoperator, ArrayList<PointsToSetVariable> rhss, boolean isAddition) {
-    // TODO Auto-generated method stub
-//    System.out.println("num of rhs: " + rhss.size());
-    //
-//    for (PointsToSetVariable rhs : rhss) {
-//      if(isAddition){
-//        addStatement(lhs, assignoperator, rhs, true, true);
-//        lhs.addAll(rhs);
-//      }else{
-//        delStatement(lhs, assignoperator, rhs, true, true);
-//        if(rhs.getValue() != null)
-//          lhs.removeSome(rhs.getValue());
-//      }
-//    }
     if (lhs == null) {
       return;
     }
     if(rhss.size() == 0)
       return;
-//    //parallel add rhs
-//    akkaSys = ActorSystem.create();
-//    resultListener = akkaSys.actorOf(Props.create(ResultLisenter.class), "listener");
-//    ActorRef scheduler = akkaSys.actorOf(Props.create(SchedulerForMultiRhs.class, nrOfWorkers, lhs, assignoperator, rhss, resultListener), "SchedulerForMultiRhss" + (numOfAkkaSys++));
-//    scheduler.tell(new WorkStart(), scheduler);
-//    akkaSys.awaitTermination();
-//  //propagate
-//    ArrayList<PointsToSetVariable> lhss = new ArrayList<>();
-//    lhss.add(lhs);
-//    long sysStart = System.currentTimeMillis();
-//    akkaSys = ActorSystem.create();
-//    resultListener = akkaSys.actorOf(Props.create(ResultLisenter.class), "listener");
-//    ActorRef scheduler2 = akkaSys.actorOf(Props.create(SchedulerForSpecial.class, nrOfWorkers, lhss, lhs.getValue(), true, resultListener), "SchedulerForSet" + (numOfAkkaSys++));
-//    scheduler2.tell(new WorkStart(), scheduler);
-//    akkaSys.awaitTermination();
+
     return;
   }
 
@@ -652,40 +601,6 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     addOrDelASetFromMultiLhs(lhss, targets, false);
     return true;
   }
-
-
-//  public boolean addConstraintHasMultiLSeperate(ArrayList<PointsToSetVariable> lhssAssign, ArrayList<PointsToSetVariable> lhssFilter,
-//      AssignOperator assignoperator, FilterOperator filterOperator, PointsToSetVariable rhs, MutableIntSet targets) {
-//    if(rhs == null )
-//      return false;
-//    if(lhssAssign.size() == 0 && lhssFilter.size() == 0)
-//      return false;
-//    for (PointsToSetVariable lF : lhssFilter) {
-//      if(lF != null){
-//        pointsToMap.recordTransitiveRoot(lF.getPointerKey());
-//        if (!(lF.getPointerKey() instanceof FilteredPointerKey)) {
-//          Assertions.UNREACHABLE("expected filtered lhs " + lF.getPointerKey() + " " + lF.getPointerKey().getClass() + " " + lF.getPointerKey() + " "
-//              + lF.getPointerKey().getClass());
-//        }
-//        addStatement(lF, filterOperator, rhs, true, true);
-//      }
-//    }
-//
-//    for (PointsToSetVariable lA : lhssAssign) {
-//      if(lA != null){
-//        addStatement(lA, assignoperator, rhs, true, true);
-//      }
-//    }
-//
-//    ArrayList<PointsToSetVariable> lhss = new ArrayList<>();
-//    lhss.addAll(lhssAssign);
-//    lhss.addAll(lhssFilter);
-//    int nrOfWorks = lhss.size();
-//    System.out.println("addConstraintHasMultiLSeperate ---- nrOfWorks = " + nrOfWorks);
-//    addOrDelASetFromMultiLhs(lhss, targets, true);
-//    return true;
-//  }
-
 
   //sz
   public boolean delConstraint(PointerKey lhs, UnaryOperator<PointsToSetVariable> op, PointerKey rhs) {
@@ -772,65 +687,6 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     }
   }
 
-//  HashSet<IVariable> processedPoints = new HashSet<>();
-  /**
-   * Key function for handling deletion
-   * 1. delete instance key id from points to set
-   * 2. add the node to reset
-   * 3. add all affected statements to worklist
-   * @param L
-   * @param index
-   */
-//  private void corePointsToDel(PointsToSetVariable L, final int delIndex)
-//  {
-//    if (L.contains(delIndex)) {
-//      L.remove(delIndex);
-////      if(!changes.contains(L))
-////        changes.add(L);
-//
-//      if(L.getGraphNodeId() > -1) {
-//
-//        addToResetNodes(L);
-//        for (Iterator it = getFixedPointSystem().getStatementsThatUse(L); it.hasNext();) {
-//          AbstractStatement s = (AbstractStatement) it.next();
-//          IVariable iv = s.getLHS();
-//          if(iv instanceof PointsToSetVariable && !processedPoints.contains(iv))
-//          {
-//            processedPoints.add(iv);
-////            System.out.println(iv.toString());
-////            counter++;
-//            PointsToSetVariable pv = (PointsToSetVariable)iv;
-//            corePointsToDel(pv,delIndex);
-//            addToWorkList(s);
-//          }
-//        }
-//
-//      }
-//    }
-//  }
-
-//  public static HashMap<PointsToSetVariable, ArrayList<PointsToSetVariable>> resetTeams = new HashMap<PointsToSetVariable, ArrayList<PointsToSetVariable>>();
-//
-//  private ArrayList<PointsToSetVariable> findAllUsers(PointsToSetVariable L){
-//    ArrayList<PointsToSetVariable> results = new ArrayList<>();
-//    Iterator it = getFixedPointSystem().getStatementsThatUse(L);
-//    while(it.hasNext()){
-//      AbstractStatement s = (AbstractStatement) it.next();
-//      IVariable iv = s.getLHS();
-//      if(iv instanceof PointsToSetVariable && !processedPoints.contains(iv))
-//      {
-//        processedPoints.add(iv);
-//        PointsToSetVariable pv = (PointsToSetVariable)iv;
-////        addToWorkList(s);
-//        results.add(pv);
-//        ArrayList<PointsToSetVariable> secondUsers = findAllSecondUsers(pv);
-//        results.addAll(secondUsers);
-//        resetTeams.putIfAbsent(pv, secondUsers);
-//      }
-//    }
-//    return results;
-//  }
-
   ArrayList<PointsToSetVariable> findFirstUsers(PointsToSetVariable L) {
     ArrayList<PointsToSetVariable> results = new ArrayList<>();
     Iterator it = getFixedPointSystem().getStatementsThatUse(L);
@@ -864,44 +720,6 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     }
     return results;
   }
-
-//  private void corePointsToDelSingle(PointsToSetVariable L, final int delIndex) {
-//    long start = System.currentTimeMillis();
-//    if(L.contains(delIndex)){
-//      //recompute L
-//      boolean reached = recomputeSingle(L, delIndex);
-//      //check change
-//      if(!reached){
-//        L.remove(delIndex);
-//        MutableIntSet delSet = IntSetUtil.make();
-//        delSet.add(delIndex);
-//        AbstractFixedPointSolver.changes.add(L);
-//        if(L.getGraphNodeId() > -1){
-//          final ArrayList<PointsToSetVariable> firstUsers = findFirstUsers(L);
-//          final int nrOfWorks = firstUsers.size();
-//          if(nrOfWorks == 0){
-//            System.out.println("---- nrOfWorks = 0");
-//          }else if(nrOfWorks == 1){
-//            PointsToSetVariable first = firstUsers.get(0);
-//            simpleCorePointsToDelSingle(first, delSet);
-//          }else {
-//            System.out.println("Start AkkaSys for Deleting (re & re) single ---- nrOfWorks = " + nrOfWorks);
-////            long sysStart = System.currentTimeMillis();
-//            hub.tell(new SchedulerForResetSetAndRecompute(delSet, firstUsers), hub);
-//            boolean goon = true;
-//            while(goon){
-//              try {
-//                Thread.sleep(10);
-//              } catch (InterruptedException e) {
-//                e.printStackTrace();
-//              }
-//              goon = Hub.askstatus();
-//            }
-//          }
-//        }
-//      }
-//    }
-//  }
 
   private void simpleCorePointsToDelSingle(final PointsToSetVariable L, final MutableIntSet targets){
     if(theRoot.contains(L))
@@ -970,148 +788,6 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
       }
     }
   }
-
-//  private MutableSparseIntSet recomputeSet(PointsToSetVariable L, final MutableIntSet targets){
-//    final MutableSparseIntSet remaining = new MutableSparseIntSetFactory().makeCopy(targets);
-//    for (Iterator it = flowGraph.getStatementsThatDef(L); it.hasNext();) {
-//      UnaryStatement s = (UnaryStatement) it.next();
-//      IVariable iv = s.getRightHandSide();
-//      if(iv instanceof PointsToSetVariable){
-//        PointsToSetVariable pv = (PointsToSetVariable)iv;
-//        if(pv.getValue() != null){
-//          IntSetAction action = new IntSetAction() {
-//            @Override
-//            public void act(int i) {
-//              if(remaining.isEmpty())
-//                return;
-//              if(targets.contains(i)){
-//                remaining.remove(i);
-//              }
-//            }
-//          };
-//          pv.getValue().foreach(action);
-//        }
-//      }
-//    }
-//    //reachability user
-////    boolean isReachable = false;
-////    IntIterator intIterator = targets.intIterator();
-////    while(intIterator.hasNext()){
-////      int delIndex = intIterator.next();
-////      InstanceKey instKey = PropagationCallGraphBuilder.system.getInstanceKey(delIndex);
-////      Iterator<Pair<CGNode, NewSiteReference>> pairIt = instKey.getCreationSites(PropagationSystem.cg);
-////      while(pairIt.hasNext()){//should be unique??
-////        Pair<CGNode, NewSiteReference> pair = pairIt.next();
-////        CGNode n = pair.fst;
-////        NewSiteReference site = pair.snd;
-////        SSAInstruction inst2;
-////        if(n.getIR().existNew(site)){
-////          inst2 = n.getIR().getNew(site);
-////        }else{
-////          continue;
-////        }
-////        Iterator<SSAInstruction> useIt =n.getDU().getUses(inst2.getDef());
-////        while(useIt.hasNext()){//may have multiple
-////          SSAInstruction useInstruction = useIt.next();
-////          int defIndex = useInstruction.getDef();
-////          if(defIndex==-1) continue;
-////          PointerKey basePointerKey = PropagationCallGraphBuilder.system.pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, defIndex);
-////          PointsToSetVariable baseVar = PropagationCallGraphBuilder.system.findOrCreatePointsToSet(basePointerKey);
-////          //the statement should have already been removed from the graph
-////          if(baseVar!=null){
-////            isReachable = isReachableInFlowGraph(baseVar, L);//isReachableWithoutEdgeR2L(baseVar,L,R);
-////            if(isReachable) {
-////              localtargets.remove(delIndex);
-////              store.clear();
-////              break;
-////            }
-////          }
-////          store.clear();
-////        }
-////      }
-////    }
-//    return remaining;
-//  }
-
-//  private boolean recomputeSingle(PointsToSetVariable L, int delIndex){
-//    //reachability user
-//    boolean isReachable = false;
-//    InstanceKey instKey = PropagationCallGraphBuilder.system.getInstanceKey(delIndex);
-//    Iterator<Pair<CGNode, NewSiteReference>> pairIt = instKey.getCreationSites(PropagationSystem.cg);
-//    while(pairIt.hasNext()){//should be unique??
-//      Pair<CGNode, NewSiteReference> pair = pairIt.next();
-//      CGNode n = pair.fst;
-//      NewSiteReference site = pair.snd;
-//      SSAInstruction inst2;
-//      if(n.getIR().existNew(site)){
-//        inst2 = n.getIR().getNew(site);
-//      }else{
-//        continue;
-//      }
-//      Iterator<SSAInstruction> useIt =n.getDU().getUses(inst2.getDef());
-//      while(useIt.hasNext()){//may have multiple
-//        SSAInstruction useInstruction = useIt.next();
-//        int defIndex = useInstruction.getDef();
-//        if(defIndex==-1) continue;
-//        PointerKey basePointerKey = PropagationCallGraphBuilder.system.pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, defIndex);
-//        PointsToSetVariable baseVar = PropagationCallGraphBuilder.system.findOrCreatePointsToSet(basePointerKey);
-//        //the statement should have already been removed from the graph
-//        if(baseVar!=null){
-//          isReachable = isReachableInFlowGraph(baseVar, L);//isReachableWithoutEdgeR2L(baseVar,L,R);
-//          if(isReachable) {
-//            store.clear();
-//            return isReachable;
-//          }
-//        }
-//        store.clear();
-//      }
-//    }
-//    return isReachable;
-//  }
-
-
-
-//  public boolean reConstruct3(IProgressMonitor monitor){
-//    if(!resetTeams.keySet().isEmpty()){
-//        final int nrOfWorks = resetTeams.keySet().size();
-//        //create akka reset system
-//        System.out.println("Start AkkaSys for Reset ---- nrOfWorks: "+ nrOfWorks);
-//        long sysStart = System.currentTimeMillis();
-//        akkaSys = ActorSystem.create();
-//        resultListener = akkaSys.actorOf(Props.create(ResultLisenter.class), "listener");
-//            //akkaSys.actorOf(new Props(ResultLisenter.class), "listener");
-//        ActorRef scheduler = akkaSys.actorOf(Props.create(SchedulerForRecompute.class, nrOfWorks, nrOfWorkers, resetTeams, resultListener), "SchedulerForRcompute" + (numOfAkkaSys++));
-//            //akkaSys.actorOf(new Props(new UntypedActorFactory() {
-////          @Override
-////          public Actor create() {
-////            return new SchedulerForReset(nrOfWorks, nrOfWorkers, resetTeams, resultListener);
-////          }
-////        }), "SchedulerForReset" + (numOfAkkaSys++));
-//        scheduler.tell(new WorkStart(), scheduler);
-////        scheduler.tell(new WorkStart());
-//        akkaSys.awaitTermination();
-//        System.out.println("AKKA SYSTEM TIME: " + (System.currentTimeMillis() - sysStart) + "\t");
-//      }
-//    resetTeams.clear();
-//    return true;
-//  }
-
-//  private void findAllVariable(PointsToSetVariable root){
-//    if(root.getGraphNodeId() > -1){
-//      addToResetNodes(root);
-//      for(Iterator it = getFixedPointSystem().getStatementsThatUse(root); it.hasNext();){
-//        AbstractStatement s = (AbstractStatement) it.next();
-//        IVariable iv = s.getLHS();
-//        if(iv instanceof PointsToSetVariable)
-//        {
-////          processedPoints.add(iv);
-//          PointsToSetVariable pv = (PointsToSetVariable)iv;
-//          findAllVariable(root);
-//          addToWorkList(s);
-//        }
-//      }
-//    }
-//  }
 
   private void corePointsToDelWholeSet(PointsToSetVariable L, final IntSet delSet) {
     if(theRoot.contains(L))
