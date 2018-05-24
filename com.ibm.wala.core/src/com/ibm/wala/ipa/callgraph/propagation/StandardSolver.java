@@ -41,19 +41,12 @@ public class StandardSolver extends AbstractPointsToSolver {
         SSAInstruction diff = (SSAInstruction)key;
         ISSABasicBlock bb = (ISSABasicBlock)deleted.get(key);
 
-//        long start_time = System.currentTimeMillis();
-
         system.setFirstDel(true);
         builder.setDelete(true);
         builder.processDiff(node,bb,diff);//only for those affecting data flow facts
         system.setFirstDel(false);
 
         system.solveDel(null);
-
-//        if(system.reConstruct(null)){
-//          system.solve(null);
-//        }
-        System.out.print((System.currentTimeMillis()-start_time) + "\t");
 
       }
       //added instructions
@@ -85,9 +78,6 @@ public class StandardSolver extends AbstractPointsToSolver {
     }
   }
 
-  long start_time;
-  long end_time;
-  long total_time = 0;
   /*
    * @see com.ibm.wala.ipa.callgraph.propagation.IPointsToSolver#solve()
    */
@@ -104,15 +94,8 @@ public class StandardSolver extends AbstractPointsToSolver {
       if (DEBUG_PHASES) {
         System.err.println("Iteration " + i);
       }
-      start_time = System.currentTimeMillis();
-      system.solve(monitor);
-      end_time = System.currentTimeMillis();
-      total_time = total_time + end_time - start_time;
 
-//      if(total_time >= 10800000){
-//        //3h = 10800000ms
-//        break;
-//      }
+      system.solve(monitor);
 
       if (DEBUG_PHASES) {
         System.err.println("Solved " + i);
@@ -152,77 +135,11 @@ public class StandardSolver extends AbstractPointsToSolver {
       // worklist; so,
     } while (!system.emptyWorkList());
 
-//    System.out.println("total time: " + total_time);
-//    System.out.println(" wl: " + AbstractFixedPointSolver.countforTotalWL);
-
-    /*
- // sz: manually go through all pre-recorded ssa instructions, delete it first
-    // then add it back. Some validation is based on comparison between original call graph
-    // with delete then add call graph.
-    System.out.println("num of instructions: "+((SSAPropagationCallGraphBuilder)builder).numInstructions);
-    system.closeFirstSolve();
-    // sz: considering properties of ssa instructions and this framework, both CGNode and Block info is needed
-    // and stored in ArrayList<Object>>
-    HashMap<SSAInstruction, ArrayList<Object>> del = ((SSAPropagationCallGraphBuilder)builder).del;
-    if(del == null)
-      return;
-    for(SSAInstruction diff: del.keySet()){
-      long start_time = System.currentTimeMillis();
-
-      system.setFirstDel();
-      builder.delDiff(diff);
-      // sz: only directly effected edges are deleted
-      system.closeFirstDel();
-
-      system.solveDel(null);
-
-      if(system.reConstruct(null)){
-        system.solve(null);
-      }
-      System.out.print((System.currentTimeMillis()-start_time) + "\t");
-
-      //System.out.println("del instruction "+ diff.toString() + " : " + (System.currentTimeMillis()-start_time));
-      //--- add then delete
-      start_time = System.currentTimeMillis();
-      builder.addDiff(diff);
-      system.solve(null);
-      System.out.println((System.currentTimeMillis()-start_time));
   }
-      */
 
+  // return points to map, make it accessable for users
+  public PointsToMap getPointsToMap(){
+    return getSystem().pointsToMap;
   }
- // sz: return points to map, make it accessable for users
-    public PointsToMap getPointsToMap(){
-      return getSystem().pointsToMap;
-    }
-
-    //seems not used anymore, codes above is used instead.
-    // sz: manually go through all SSA instructions, delete all one by one first
-    // then add them back one by one again.
-//    public void addDel() throws IllegalArgumentException, CancelException {
-//        final PropagationSystem system = getSystem();
-//        final PropagationCallGraphBuilder builder = getBuilder();
-//        system.closeFirstSolve();
-//
-//        // sz: when building the graph, save all ssa instruction and corresponding cgnode
-//        HashMap<SSAInstruction, CGNode> del = builder.del;
-//        for(SSAInstruction diff: del.keySet()){
-//          long start_time = System.currentTimeMillis();
-//          builder.processDiff(diff,true);
-//          system.solveDel(null);
-//          if(system.reConstruct(null)){
-//            system.solve(null);
-//          }
-//          System.out.println("del instruction "+ diff.toString() + " : " + (System.currentTimeMillis()-start_time));
-//        }
-//        HashMap<SSAInstruction, CGNode> add = builder.add;
-//        for(SSAInstruction diff : add.keySet()){
-//          long start_time = System.currentTimeMillis();
-//          builder.processDiff(diff,false);
-//          system.solve(null);
-//          System.out.println("add instruction "+ diff.toString() + " : " + (System.currentTimeMillis()-start_time));
-//        }
-//
-//    }
 
 }

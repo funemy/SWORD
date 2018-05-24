@@ -610,6 +610,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       if (DEBUG_ENTRYPOINTS) {
         System.err.println("Entrypoint: " + E);
       }
+
       SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 
       if (call == null) {
