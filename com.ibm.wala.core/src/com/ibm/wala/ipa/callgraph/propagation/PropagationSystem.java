@@ -865,105 +865,8 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     }
     return;
   }
-//long comb = System.currentTimeMillis();
-//System.out.println("finish combine: "+(comb-wait));
-
 
   HashSet<PointsToSetVariable> store = new HashSet<>();// for isreachable
-//  HashSet<PointsToSetVariable> already = new HashSet<>();
-
-//  private void corePointsToDel2(PointsToSetVariable L, final int delIndex)
-//  {
-//    if (L.contains(delIndex)) {
-////             System.out.println();
-////             System.out.println("start opt:   "+L.toString());
-//      //an alternative -- optimization
-//      //if(delOptimal)
-//      {
-//        //should have already removed the edge from points to graph
-//
-//        //for each id in delSet, find out the points-to-set variable corresponding to this id
-//        boolean isReachable = false;
-//        //TODO:
-//        //1. find root node for this id  -- HOW??
-//        //2. check reachability -- if not reachable, delete and repeat, otherwise, stop
-//
-//        InstanceKey instKey = this.getInstanceKey(delIndex);
-//        Iterator<Pair<CGNode, NewSiteReference>> pairIt = instKey.getCreationSites(cg);
-////        int sizeOfNSR = 0;
-//        while(pairIt.hasNext())//should be unique??
-//        {
-//          Pair<CGNode, NewSiteReference> pair = pairIt.next();
-//          CGNode n = pair.fst;
-//          NewSiteReference site = pair.snd;
-//          SSAInstruction inst2;
-//          if(n.getIR().existNew(site)){
-//            inst2 = n.getIR().getNew(site);
-//          }else{
-//            continue;
-//          }
-////          sizeOfNSR++;
-//          Iterator<SSAInstruction> useIt =n.getDU().getUses(inst2.getDef());
-//          while(useIt.hasNext())
-//          {//may have multiple
-//            SSAInstruction useInstruction = useIt.next();
-//            //consider different types of instructions
-//            //return, field, call, array
-//            int defIndex = useInstruction.getDef();
-//            if(defIndex==-1) continue;
-//            PointerKey basePointerKey = this.pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, defIndex);
-//            PointsToSetVariable baseVar = findOrCreatePointsToSet(basePointerKey);
-//            //the statement should have already been removed from the graph
-//            if(baseVar!=null)
-//            {
-//              //is there a path in the points-to graph from baseVar to L, without going through R->L
-//              //              System.out.println("test reachable:   "+baseVar.toString());
-//              isReachable = isReachableInFlowGraph(baseVar,L);//isReachableWithoutEdgeR2L(baseVar,L,R);
-////              counter++;
-//              if(isReachable) {
-//                //                System.out.println("is reachable:   "+baseVar.toString());
-//                store.clear();
-//                return;
-//              }
-//            }
-//            store.clear();
-//          }
-////          if(sizeOfNSR>1)
-////            System.out.println("NSR >1");
-//        }
-//        //         if(!(instKey instanceof NormalAllocationInNode))
-//        //         {
-//        //           L.remove(index);continue;//we only care about AllocationSiteInNode
-//        //         }
-//        //         CGNode n = ((AllocationSiteInNode) instKey).getNode();
-//        //         NewSiteReference site = ((AllocationSiteInNode) instKey).getSite();
-////        System.out.println("nsr num: "+sizeOfNSR);
-//
-//        //if not reachable, deleting, and continue for other nodes
-//        {
-//          L.remove(delIndex);
-////          System.out.println("remove del index:   " + delIndex);
-//          if(!changes.contains(L))
-//            changes.add(L);
-//
-//          for (Iterator it = flowGraph.getStatementsThatUse(L); it.hasNext();) {
-//            AbstractStatement s = (AbstractStatement) it.next();
-//            IVariable iv = s.getLHS();
-//            if(iv instanceof PointsToSetVariable && !processedPoints.contains(iv))
-//            {
-//              processedPoints.add(iv);
-//              PointsToSetVariable pv = (PointsToSetVariable)iv;
-//              corePointsToDel2(pv,delIndex);
-//              //               System.out.println("recursive callback:   "+pv.toString());
-//            }
-//          }
-//        }
-//      }
-//
-//    }
-//
-//
-//  }
 
   private boolean isReachableInFlowGraph(PointsToSetVariable startVar, PointsToSetVariable endVar) {
 
@@ -1026,14 +929,8 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     int index = findOrCreateIndexForInstanceKey(value);
     MutableIntSet delSet = IntSetUtil.make();
     delSet.add(index);
-//    L.remove(index);
-//    if(isChange && !changes.contains(L)){
-//      changes.add(L);
-//    }
 
-//    if(!this.isOptimize)
       corePointsToDelWholeSet(L, delSet);
-//    processedPoints.clear();
 
     return true;
   }
@@ -1677,16 +1574,10 @@ public class PropagationSystem extends DefaultFixedPointSolver<PointsToSetVariab
     return new PointsToSetVariable[size];
   }
 
-
-  public void checkScenarioAmongEdges(ArrayList<PointerKey> lhss, ArrayList<PointerKey> rhss) {
-//    flowGraph.findPaths(lhss, rhss);
-  }
-
-  private static ClassLoader ourClassLoader = ActorSystem.class.getClassLoader();
+  private static ClassLoader akkaClassLoader = ActorSystem.class.getClassLoader();
   //start akka system
   private void startAkkaSys(){
-//    resultListener = akkaSys.actorOf(Props.create(ResultLisenter.class), "listener");
-    Thread.currentThread().setContextClassLoader(ourClassLoader);
+    Thread.currentThread().setContextClassLoader(akkaClassLoader);
     akkaSys = ActorSystem.create("pta");
     hub = akkaSys.actorOf(Props.create(PTAHub.class, nrOfWorkers), "hub");
     System.err.println("Akka sys initialized. ");
