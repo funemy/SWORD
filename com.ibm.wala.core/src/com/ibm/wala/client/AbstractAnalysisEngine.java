@@ -138,6 +138,7 @@ public abstract class AbstractAnalysisEngine implements AnalysisEngine {
 
   protected CallGraphBuilder buildCallGraph(IClassHierarchy cha, AnalysisOptions options, boolean savePointerAnalysis,
       IProgressMonitor monitor) throws IllegalArgumentException, CancelException {
+
     CallGraphBuilder builder = getCallGraphBuilder(cha, options, cache);
 
     cg = builder.makeCallGraph(options, monitor);

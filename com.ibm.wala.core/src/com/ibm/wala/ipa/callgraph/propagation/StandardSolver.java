@@ -57,21 +57,6 @@ public class StandardSolver extends AbstractPointsToSolver {
       builder.addConstraintsFromNewNodes(null);
     } while (!system.emptyWorkList());
 
-      /*
-      for(Object key: added.keySet()){
-        SSAInstruction diff = (SSAInstruction)key;
-        ISSABasicBlock bb = (ISSABasicBlock)added.get(key);
-
-
-    //System.out.println("del instruction "+ diff.toString() + " : " + (System.currentTimeMillis()-start_time));
-      //--- add then delete
-      long start_time = System.currentTimeMillis();
-      builder.processDiff(node,bb,diff,false);
-      system.solve(null);
-      System.out.println((System.currentTimeMillis()-start_time));
-      }
-
-      */
     } catch (CancelException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -114,6 +99,7 @@ public class StandardSolver extends AbstractPointsToSolver {
       if (DEBUG_PHASES) {
         System.err.println("adding constraints");
       }
+
       builder.addConstraintsFromNewNodes(monitor);
 
       // getBuilder().callGraph.summarizeByPackage();
@@ -121,14 +107,19 @@ public class StandardSolver extends AbstractPointsToSolver {
       if (DEBUG_PHASES) {
         System.err.println("handling reflection");
       }
+
       if (i <= builder.getOptions().getReflectionOptions().getNumFlowToCastIterations()) {
         getReflectionHandler().updateForReflection(monitor);
       }
+
       // Handling reflection may have discovered new nodes!
+      // Therefore we need to add constraints twice
       if (DEBUG_PHASES) {
         System.err.println("adding constraints again");
       }
+
       builder.addConstraintsFromNewNodes(monitor);
+
 
       if (monitor != null) { monitor.worked(i); }
 

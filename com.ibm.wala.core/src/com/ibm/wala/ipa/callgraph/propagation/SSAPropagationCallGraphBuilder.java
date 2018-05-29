@@ -284,17 +284,6 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       MonitorUtil.throwExceptionIfCanceled(monitor);
       SSAInstruction s = it.next();
       if (s != null) {
-
-//        if(DEBUG)
-//          System.out.println("--- we're going to visit Instrcution: "+s.toString());
-//          // sz: record all instructions in main
-//          if(node.toString().contains("main")){
-//            ArrayList val = new ArrayList();
-//            val.add(node);
-//            val.add(b);
-//            del.put(s, val);
-//          }
-
         s.visit(v);
         if (wasChanged(node)) {
           if(DEBUG){
@@ -308,21 +297,24 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
 
     addPhiConstraints(node, cfg, b, v);
   }
+
   @Override
   public void setDelete(boolean delete)
   {
     this.isDelete = delete;
   }
-//sz: manually delete or add a ssa instruction
- @Override
-public void processDiff(CGNode node, ISSABasicBlock bb, SSAInstruction diff){
 
-   ConstraintVisitor v = makeVisitor(node);
-   IR ir = v.ir;
-   v.setBasicBlock(bb);
-   diff.visit(v);
+  //sz: manually delete or add a ssa instruction
+  @Override
+  public void processDiff(CGNode node, ISSABasicBlock bb, SSAInstruction diff){
 
-}
+     ConstraintVisitor v = makeVisitor(node);
+     IR ir = v.ir;
+     v.setBasicBlock(bb);
+     diff.visit(v);
+
+  }
+
   private void addPhiConstraints(CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, BasicBlock b,
       ConstraintVisitor v) {
     // visit each phi instruction in each successor block

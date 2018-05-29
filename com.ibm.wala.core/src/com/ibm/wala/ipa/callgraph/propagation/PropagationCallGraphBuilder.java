@@ -462,19 +462,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
       this.setDelete(false);//add
 
-      //for additions, solved when updating call graph??
-
-//      for(Object key: added.keySet()){
-//        SSAInstruction diff = (SSAInstruction)key;
-//        ISSABasicBlock bb = (ISSABasicBlock)added.get(key);
-//        v_new.setBasicBlock(bb);
-//        diff.visit(v_new);
-//        do{
-//          system.solveAkkaAdd(null);
-//          addConstraintsFromNewNodes(null);
-//        } while (!system.emptyAkkaWorkList());
-//      }
-
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -485,8 +472,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
   @Override
   public void updatePointerAnalaysis(CGNode node, Map added, Map deleted) {
 
-    //	CGNode node = callGraph.findOrCreateNode(method, Everywhere.EVERYWHERE);
-    //    this.markChanged(node);
     try {
       solver.solve(node, added, deleted);
     } catch (Exception e) {
