@@ -9,10 +9,8 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.routing.BalancingPool;
-import edu.tamu.aser.tide.engine.ITIDEBug;
 import edu.tamu.aser.tide.engine.TIDECGModel;
 import edu.tamu.aser.tide.engine.TIDEEngine;
-import edu.tamu.aser.tide.engine.TIDERace;
 import edu.tamu.aser.tide.nodes.DLPair;
 import edu.tamu.aser.tide.nodes.ReadNode;
 import edu.tamu.aser.tide.nodes.WriteNode;
@@ -47,6 +45,7 @@ public class BugHub extends UntypedActor{
 						variableReadMap.get(sig)), getSelf());
 			}
 			nrOfWorks = variableWriteMap.keySet().size();
+
 		}else if(message instanceof RemoveLocalVar){//trace, remove local nodes
 			TIDEEngine engine;
 			if(DEBUG){
@@ -74,6 +73,7 @@ public class BugHub extends UntypedActor{
 				workerRouter.tell(new RemoveLocalJob(team), getSelf());
 				nrOfWorks++;
 			}
+
 		}else if(message instanceof DistributeDatarace){//parallel check bugs
 			TIDEEngine engine;
 			if(DEBUG){
@@ -93,6 +93,7 @@ public class BugHub extends UntypedActor{
 			if(nrOfWorks == 0){
 				doWeTerminate();
 			}
+
 		}else if(message instanceof DistributeDeadlock){//parallel check bugs
 			TIDEEngine engine;
 			if(DEBUG){
@@ -121,7 +122,6 @@ public class BugHub extends UntypedActor{
 			unhandled(message);
 		}
 	}
-
 
 	public static boolean askstatus(){
 		if(finished){

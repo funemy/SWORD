@@ -37,10 +37,9 @@ public class BugWorker extends UntypedActor{
 
 	private final static boolean DEBUG = false;
 
-
 	@Override
 	public void onReceive(Object message) throws Throwable {
-		//initial
+		// dispatch task
 		if(message instanceof FindSharedVarJob){
 			FindSharedVarJob job = (FindSharedVarJob) message;
 			processFindSharedVarJob(job);
@@ -54,16 +53,10 @@ public class BugWorker extends UntypedActor{
 			CheckDeadlock job = (CheckDeadlock) message;
 			processCheckDeadlock(job);
 		}
-//		else if(message instanceof IncreRecheckCommonLock){
-//			IncreRecheckCommonLock job = (IncreRecheckCommonLock) message;
-//			processIncreRecheckCommonLocks(job);
-//		}
 		else{
 			unhandled(message);
 		}
 	}
-
-
 
 	private TIDEDeadlock checkDeadlock(DLPair dllp1, DLPair dllp2, int tid1, int tid2) {
 		HashSet<String> l11sig = dllp1.lock1.getLockSig();
@@ -93,7 +86,6 @@ public class BugWorker extends UntypedActor{
 		}
 		return null;
 	}
-
 
 	private void processCheckDeadlock(CheckDeadlock job) {
 		TIDEEngine engine;
@@ -128,8 +120,6 @@ public class BugWorker extends UntypedActor{
 
 	}
 
-
-
 	private boolean containAny(HashSet<String> sigs1, HashSet<String> sigs2) {
 		for (String sig2 : sigs2) {
 			if(sigs1.contains(sig2)){
@@ -138,8 +128,6 @@ public class BugWorker extends UntypedActor{
 		}
 		return false;
 	}
-
-
 
 	private void processCheckDatarace(CheckDatarace job) {
 		HashSet<WriteNode> writes = job.getWrites();
@@ -208,7 +196,6 @@ public class BugWorker extends UntypedActor{
 		getSender().tell(new ReturnResult(), getSelf());
 	}
 
-
 	private void filterRWNodesBySig(HashSet<String> sigs, String sig, INode node,
 			HashMap<String, HashSet<ReadNode>> sigReadNodes, HashMap<String, HashSet<WriteNode>> sigWriteNodes) {
 		if(sigs.contains(sig)){
@@ -233,8 +220,6 @@ public class BugWorker extends UntypedActor{
 			}
 		}
 	}
-
-
 
 	private void processRemoveLocalJob(RemoveLocalJob job) {
 		ArrayList<Trace> team = job.getTeam();
@@ -395,8 +380,6 @@ public class BugWorker extends UntypedActor{
 		return false;
 	}
 
-
-
 	private StartNode sameParent(int tid1, int tid2) {
 		HashMap<Integer, StartNode> mapOfStartNode;
 		if(DEBUG){
@@ -416,7 +399,6 @@ public class BugWorker extends UntypedActor{
 		}
 		return null;
 	}
-
 
 	private boolean hasHBRelation(int erTID, INode comper, int eeTID, INode compee){
 		boolean donothave = false;
@@ -510,8 +492,5 @@ public class BugWorker extends UntypedActor{
 		}
 		return donothave;
 	}
-
-
-
 
 }
