@@ -82,6 +82,7 @@ public class BugHub extends UntypedActor{
 				engine = TIDECGModel.bugEngine;
 			}
 			for(String sig: engine.sharedFields){
+				System.out.println("-----checking: " + sig);
 				HashSet<WriteNode> writes = engine.sigWriteNodes.get(sig);
 				if(writes != null){
 					HashSet<ReadNode> reads = engine.sigReadNodes.get(sig);

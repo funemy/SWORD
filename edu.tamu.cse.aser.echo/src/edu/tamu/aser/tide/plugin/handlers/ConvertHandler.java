@@ -85,6 +85,7 @@ public class ConvertHandler extends AbstractHandler {
 					//initial
 					System.err.println("INITIAL DETECTION >>>");
 					bugs =  model.detectBug();
+					System.out.println("DETECTION FINISHED");
 				}else{
 					System.out.println("wrong call");
 				}

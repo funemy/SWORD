@@ -153,47 +153,53 @@ public class BugWorker extends UntypedActor{
 			engine = TIDECGModel.bugEngine;
 		}
 		SHBGraph shb = engine.shb;
-	    for (WriteNode wnode : writes) {
 	    	//check read & write
-	    	Trace wTrace = shb.getTrace(wnode.getBelonging());
-	    	if (wTrace == null) {
+	    for (WriteNode wnode : writes) {
+	    		Trace wTrace = shb.getTrace(wnode.getBelonging());
+			if (wTrace == null) {
 				continue;
 			}
 			ArrayList<Integer> wtids = wTrace.getTraceTids();
-	    	if(reads!=null){
-	    		for(ReadNode read : reads){//write->read
-	    			MemNode xnode = read;
-	    			Trace xTrace = shb.getTrace(xnode.getBelonging());
-	    			if (xTrace == null) {//this xnode shoudl be deleted already!!!!!!
+	    		if(reads!=null){
+				//write->read
+	    			for(ReadNode read : reads){
+	    				System.err.println("---read: " + read);
+	    				MemNode xnode = read;
+	    				Trace xTrace = shb.getTrace(xnode.getBelonging());
+	    				if (xTrace == null) {//this xnode shoudl be deleted already!!!!!!
 						continue;
 					}
 					ArrayList<Integer> xtids = xTrace.getTraceTids();
 					for (int wtid : wtids) {
 						for (int xtid : xtids) {
 							if(checkLockSetAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
+								System.out.println("+++++race detected!!");
 								TIDERace race = new TIDERace(sig,xnode,xtid,wnode, wtid);
 								bugs.add(race);
 							}
 						}
 					}
+	    			}
 	    		}
-	    	}
-	    	for(WriteNode write : writes){//write->write
-	    		WriteNode xnode = write;
-	    		Trace xTrace = shb.getTrace(xnode.getBelonging());
-	    		if (xTrace == null) {
-	    			continue;
+	    		//write->write
+	    		for(WriteNode write : writes){
+	    			System.err.println("---write: " + write);
+	    			WriteNode xnode = write;
+	    			Trace xTrace = shb.getTrace(xnode.getBelonging());
+	    			if (xTrace == null) {
+	    				continue;
 				}
 				ArrayList<Integer> xtids = xTrace.getTraceTids();
 				for (int wtid : wtids) {
 					for (int xtid : xtids) {
 						if(checkLockSetAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
+							System.out.println("+++++race detected!!");
 							TIDERace race = new TIDERace(sig,xnode, xtid, wnode, wtid);
 							bugs.add(race);
 						}
 					}
 				}
-	    	}
+	    		}
 	    }
 
 	    if(bugs.size() > 0){

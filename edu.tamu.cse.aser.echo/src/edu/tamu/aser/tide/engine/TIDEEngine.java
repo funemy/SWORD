@@ -234,7 +234,8 @@ public class TIDEEngine{
 
 			IFile file = null;
 			int sourceLineNum = 0;
-			try{//get source code line number and ifile of this inst
+			try{
+				//get source code line number and ifile of this inst
 				if(main.getIR().getMethod() instanceof IBytecodeMethod){
 					int bytecodeindex = ((IBytecodeMethod) main.getIR().getMethod()).getBytecodeIndex(inst1st.iindex);
 					sourceLineNum = (int)main.getIR().getMethod().getLineNumber(bytecodeindex);
@@ -299,7 +300,9 @@ public class TIDEEngine{
 
 			//race detection
 			//organize variable read/write map
+			System.out.println("-----race detection start");
 			organizeRWMaps();
+			System.out.println("-----find shared variables");
 			//1. find shared variables
 			if(wsig_tid_num_map.size() >= 10){
 				//use hub to speed up
@@ -325,10 +328,12 @@ public class TIDEEngine{
 			}
 
 			//2. remove local nodes
+			System.out.println("-----remove local nodes");
 			bughub.tell(new RemoveLocalVar(), bughub);
 			awaitBugHubComplete();
 
 			//3. performance race detection with Fork-Join
+			System.out.println("-----perform race detection with Fork-Join");
 			bughub.tell(new DistributeDatarace(), bughub);
 			awaitBugHubComplete();
 
@@ -336,6 +341,7 @@ public class TIDEEngine{
 			start = System.currentTimeMillis();
 
 			//detect deadlocks
+			System.out.println("-----deadlocks detection start");
 			bughub.tell(new DistributeDeadlock(), bughub);
 			awaitBugHubComplete();
 
