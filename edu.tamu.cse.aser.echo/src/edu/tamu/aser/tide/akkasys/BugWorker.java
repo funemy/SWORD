@@ -54,10 +54,10 @@ public class BugWorker extends UntypedActor{
 			CheckDeadlock job = (CheckDeadlock) message;
 			processCheckDeadlock(job);
 		}
-		else if(message instanceof IncreRecheckCommonLock){
-			IncreRecheckCommonLock job = (IncreRecheckCommonLock) message;
-			processIncreRecheckCommonLocks(job);
-		}
+//		else if(message instanceof IncreRecheckCommonLock){
+//			IncreRecheckCommonLock job = (IncreRecheckCommonLock) message;
+//			processIncreRecheckCommonLocks(job);
+//		}
 		else{
 			unhandled(message);
 		}
@@ -289,47 +289,14 @@ public class BugWorker extends UntypedActor{
 		getSender().tell(new ReturnResult(), getSelf());
 	}
 
-	private boolean checkLockSetAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {//ReachabilityEngine reachEngine,
-		TIDEEngine engine;
-		if(DEBUG){
-			engine = Test.engine;
-		}else{
-			engine = TIDECGModel.bugEngine;
-		}
+	//ReachabilityEngine reachEngine,
+	private boolean checkLockSetAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {
 		if(wtid != xtid){
 			if(!haveCommonLock(xtid, xnode, wtid, wnode)){
 				return hasHBRelation(wtid, wnode, xtid, xnode);
 			}
 		}
 		return false;
-	}
-
-	private void processIncreRecheckCommonLocks(IncreRecheckCommonLock job){
-		TIDEEngine engine;
-		if(DEBUG){
-			engine = Test.engine;
-		}else{
-			engine = TIDECGModel.bugEngine;
-		}
-		HashSet<TIDERace> group = job.getGroup();
-		//has common lock, update the race inside lock
-		HashSet<TIDERace> recheckRaces = engine.recheckRaces;
-		HashSet<TIDERace> removes = new HashSet<>();
-		for (TIDERace check : group) {
-			for (ITIDEBug bug : recheckRaces) {
-				if(bug instanceof TIDERace){
-					TIDERace exist = (TIDERace) bug;
-					if (exist.equals(check)) {
-						removes.add(check);
-					}
-				}
-			}
-		}
-
-		if (removes.size() > 0) {
-			engine.removeBugs(removes);
-		}
-		getSender().tell(new ReturnResult(), getSelf());
 	}
 
 	private boolean haveCommonLock(int xtid, INode xnode, int wtid, INode wnode) {

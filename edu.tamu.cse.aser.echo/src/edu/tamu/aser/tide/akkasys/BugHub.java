@@ -117,38 +117,6 @@ public class BugHub extends UntypedActor{
 			doWeTerminate();
 		}
 
-		else if(message instanceof IncrementalRecheckCommonLock){
-			TIDEEngine engine;
-			if(DEBUG){
-				engine = Test.engine;
-			}else{
-				engine = TIDECGModel.bugEngine;
-			}
-			Object[] bugs = engine.bugs.toArray();
-			int total = bugs.length;
-			int num_in_group = total/8 + total%8;
-			HashSet<TIDERace> group = new HashSet<>();
-			for(int i=0;i<bugs.length;i++){
-				ITIDEBug bug = (ITIDEBug) bugs[i];
-				if(bug instanceof TIDERace){
-					group.add((TIDERace) bug);
-					if(group.size() == num_in_group){
-						HashSet<TIDERace> team1 = new HashSet<>();
-						team1.addAll(group);
-						workerRouter.tell(new IncreRecheckCommonLock(team1), getSelf());
-						group.clear();
-						nrOfWorks++;
-					}
-				}
-			}
-			if(group.size() > 0){
-				workerRouter.tell(new IncreRecheckCommonLock(group), getSelf());
-				nrOfWorks++;
-			}
-			if(nrOfWorks == 0){
-				doWeTerminate();
-			}
-		}
 		else{
 			unhandled(message);
 		}
