@@ -89,7 +89,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 	private Iterable<Entrypoint> entryPoints;
 
 	//start bug akka system
-	int nrOfWorkers = 8;
+	int nrOfWorkers = 1;
 	public ActorSystem akkasys;
 	public ActorRef bughub;
 	public static TIDEEngine bugEngine;
@@ -169,57 +169,10 @@ public class TIDECGModel extends WalaProjectCGModel {
 						showDeadlock(fullPath,(TIDEDeadlock) bug);
 				}
 				initialEchoView(bugs);
-			}else{
-				if(bugEngine.removedbugs.isEmpty() && bugEngine.addedbugs.isEmpty())
-					return;
-				//remove deleted markers
-				for (ITIDEBug removed : bugEngine.removedbugs) {
-					String key;
-					if(removed instanceof TIDERace){
-						TIDERace race = (TIDERace) removed;
-						key = race.raceMsg;
-					}else{
-						TIDEDeadlock dl = (TIDEDeadlock) removed;
-					    key = dl.deadlockMsg;
-					}
-					HashSet<IMarker> markers = bug_marker_map.get(key);
-					if(markers != null){
-						for (IMarker marker : markers) {
-							try {
-								IMarker[] dels = new IMarker[1];
-								dels[0] = marker;
-								IWorkspace workspace = marker.getResource().getWorkspace();
-								workspace.deleteMarkers(dels);
-							} catch (CoreException e) {
-								e.printStackTrace();
-							}
-						}
-						bug_marker_map.remove(key);
-					}
-				}
-				//show up new markers
-				IPath fullPath = file.getProject().getFullPath();//full path of the project
-				for (ITIDEBug add : bugEngine.addedbugs) {
-					if(add instanceof TIDERace)
-						showRace(fullPath, (TIDERace) add);
-					else
-						showDeadlock(fullPath,(TIDEDeadlock) add);
-				}
-				updateEchoView();
 			}
-
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void addBugMarkersForConsider(HashSet<ITIDEBug> considerbugs, IFile file) throws CoreException {
-		IPath fullPath = file.getProject().getFullPath();//full path of the project
-		for (ITIDEBug add : bugEngine.addedbugs) {
-			if(add instanceof TIDERace)
-				showRace(fullPath, (TIDERace) add);
-		}
-		updateEchoView();
 	}
 
 	public void removeBugMarkersForIgnore(HashSet<ITIDEBug> removedbugs){
@@ -281,51 +234,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
 							echoRWView.initialGUI(bugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-	}
-
-	private void updateEchoView() {
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRaceView.updateGUI(bugEngine.addedbugs, bugEngine.removedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoDLView.updateGUI(bugEngine.addedbugs, bugEngine.removedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRWView.updateGUI(bugEngine.addedbugs, bugEngine.removedbugs);
 						}
 					});
 					break;

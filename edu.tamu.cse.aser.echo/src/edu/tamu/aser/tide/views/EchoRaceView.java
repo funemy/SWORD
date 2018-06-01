@@ -1,5 +1,6 @@
 package edu.tamu.aser.tide.views;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,6 +30,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
+
+import com.ibm.wala.model.java.lang.reflect.Array;
 
 import edu.tamu.aser.tide.engine.ITIDEBug;
 import edu.tamu.aser.tide.engine.TIDEEngine;
@@ -204,7 +207,7 @@ public class EchoRaceView extends ViewPart{
 		existingbugs.clear();
 		//refresh
 		treeViewer.refresh();
-		translateToInput2((HashSet<ITIDEBug>) bugs);
+		translateToInput((HashSet<ITIDEBug>) bugs);
 		treeViewer.setInput(raceDetail);
 		existingbugs.addAll(bugs);
 		treeViewer.expandToLevel(raceDetail, 1);
@@ -213,7 +216,7 @@ public class EchoRaceView extends ViewPart{
 
 	@SuppressWarnings("unchecked")
 	public void updateGUI(HashSet<ITIDEBug> addedbugs, HashSet<ITIDEBug> removedbugs) {
-		HashSet<ITIDEBug> addedbugsClone = (HashSet<ITIDEBug>)addedbugs.clone();
+//		HashSet<ITIDEBug> addedbugsClone = (HashSet<ITIDEBug>)addedbugs.clone();
 //		addedbugs.removeAll(removedbugs);
 //		removedbugs.removeAll(addedbugsClone);
 		//only update changed bugs
@@ -265,17 +268,29 @@ public class EchoRaceView extends ViewPart{
 		treeViewer.remove(raceDetail);
 		treeViewer.refresh();
 		//also remove things in bugdetail
-		translateToInput2((HashSet<ITIDEBug>) bugs);
+		translateToInput((HashSet<ITIDEBug>) bugs);
 		treeViewer.setInput(raceDetail);
 		return true;
 	}
 
 
-	private void translateToInput2(HashSet<ITIDEBug> bugs) {
+	private void translateToInput(HashSet<ITIDEBug> bugs) {
 		raceDetail.clear();
+		HashSet<ITIDEBug> displayedBugs = new HashSet<>();
+		boolean repeat;
 		for (ITIDEBug bug : bugs) {
+			repeat = false;
 			if(bug instanceof TIDERace){
-				raceDetail.createChild((TIDERace) bug);
+				for (ITIDEBug b : displayedBugs) {
+					if (((TIDERace) b).compareSig((TIDERace) bug)) {
+						repeat = true;
+						break;
+					}
+				}
+				if (!repeat) {
+					raceDetail.createChild((TIDERace) bug);
+					displayedBugs.add(bug);
+				}
 			}
 		}
 	}

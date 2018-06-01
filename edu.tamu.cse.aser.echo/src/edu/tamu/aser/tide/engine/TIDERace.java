@@ -6,7 +6,9 @@ import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
 
+import akka.io.Tcp.Write;
 import edu.tamu.aser.tide.nodes.MemNode;
+import edu.tamu.aser.tide.nodes.ReadNode;
 import edu.tamu.aser.tide.nodes.WriteNode;
 
 public class TIDERace implements ITIDEBug{
@@ -87,16 +89,39 @@ public class TIDERace implements ITIDEBug{
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof TIDERace){
-			if(this.sig.equals(((TIDERace) o).sig)
-					&& ((this.node1.getSig().equals(((TIDERace) o).node1.getSig())
-							&& this.node2.getSig().equals(((TIDERace) o).node2.getSig()))
-							||(this.node1.getSig().equals(((TIDERace) o).node2.getSig())
-									&& this.node2.getSig().equals(((TIDERace) o).node1.getSig()))
-							))
+			if(this.sig.equals(((TIDERace) o).sig) && compareType((TIDERace) o) && compareSig((TIDERace) o))
 				return true;
 		}
-
 		return false;
+	}
+	
+	public boolean compareSig(TIDERace race) {
+		return this.node1.getSig().equals(((TIDERace) race).node1.getSig()) 
+				&& this.node2.getSig().equals(((TIDERace) race).node2.getSig()) 
+				|| this.node1.getSig().equals(((TIDERace) race).node2.getSig()) 
+				&& this.node2.getSig().equals(((TIDERace) race).node1.getSig());
+	}
+	
+	// check if two races have the same race type
+	// i.e. w/w or w/r
+	// 0 stands for write
+	// 1 stands for read
+	// Type 0 is w/w
+	// Type 1 is w/r
+	public boolean compareType(TIDERace race) {
+		int thisType = 0;
+		int oType = 0;
+		if (this.node1 instanceof ReadNode)
+			thisType += 1;
+		if (this.node2 instanceof ReadNode)
+			thisType += 1;
+		
+		if (race.node1 instanceof ReadNode)
+			oType += 1;
+		if (race.node2 instanceof ReadNode)
+			oType += 1;
+		
+		return (thisType == oType);
 	}
 
 	public void setBugInfo(String raceMsg, ArrayList<LinkedList<String>> traceMsg2, String fixMsg) {

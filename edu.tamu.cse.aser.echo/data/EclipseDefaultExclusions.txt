@@ -21,3 +21,5 @@ com\/oracle\/.*
 apple\/.*
 org\/xml\/.*
 jdbm\/.*
+
+avrora\/sim\/.*

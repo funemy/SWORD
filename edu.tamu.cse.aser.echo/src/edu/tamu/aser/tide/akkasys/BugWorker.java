@@ -12,7 +12,8 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.util.intset.MutableIntSet;
 
 import akka.actor.UntypedActor;
-import edu.tamu.aser.tide.engine.AstCGNode2;
+import akka.io.Tcp.Write;
+import edu.tamu.aser.tide.engine.AstCGNode;
 import edu.tamu.aser.tide.engine.ITIDEBug;
 import edu.tamu.aser.tide.engine.TIDECGModel;
 import edu.tamu.aser.tide.engine.TIDEDeadlock;
@@ -140,50 +141,60 @@ public class BugWorker extends UntypedActor{
 		}else{
 			engine = TIDECGModel.bugEngine;
 		}
+		System.out.println("all writes: " + writes + "[" + self().path().name() + "]");
+		System.out.println("all reads: " + reads + "[" + self().path().name() + "]");
 		SHBGraph shb = engine.shb;
-	    	//check read & write
-	    for (WriteNode wnode : writes) {
+	    	// check read & write
+		WriteNode[] writes_array = writes.toArray(new WriteNode[writes.size()]);
+		for (int i = 0; i < writes_array.length; i++ ) {
+			WriteNode wnode = writes_array[i];
 	    		Trace wTrace = shb.getTrace(wnode.getBelonging());
-			if (wTrace == null) {
-				continue;
-			}
+			if (wTrace == null) continue;
+
 			ArrayList<Integer> wtids = wTrace.getTraceTids();
 	    		if(reads!=null){
-				//write->read
+				// write->read
 	    			for(ReadNode read : reads){
-	    				System.err.println("---read: " + read);
 	    				MemNode xnode = read;
+//					System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+
 	    				Trace xTrace = shb.getTrace(xnode.getBelonging());
-	    				if (xTrace == null) {//this xnode shoudl be deleted already!!!!!!
-						continue;
-					}
+	    				if (xTrace == null) continue;
+
 					ArrayList<Integer> xtids = xTrace.getTraceTids();
 					for (int wtid : wtids) {
 						for (int xtid : xtids) {
+							if (wtid == xtid) continue;
+							System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 							if(checkLockSetAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
-								System.out.println("+++++race detected!!");
+								System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 								TIDERace race = new TIDERace(sig,xnode,xtid,wnode, wtid);
 								bugs.add(race);
+//								System.out.println("bugs: " + bugs);
 							}
 						}
 					}
 	    			}
 	    		}
-	    		//write->write
-	    		for(WriteNode write : writes){
-	    			System.err.println("---write: " + write);
-	    			WriteNode xnode = write;
+	    		// write->write
+	    		for (int j = i; j < writes_array.length; j++) {
+	    			WriteNode xnode = writes_array[j];
+//				System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+
 	    			Trace xTrace = shb.getTrace(xnode.getBelonging());
-	    			if (xTrace == null) {
-	    				continue;
-				}
+	    			if (xTrace == null) continue;
+
 				ArrayList<Integer> xtids = xTrace.getTraceTids();
 				for (int wtid : wtids) {
 					for (int xtid : xtids) {
+						// memory access in same thread don't need to be checked
+						if (wtid == xtid) continue;
+						System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 						if(checkLockSetAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
-							System.out.println("+++++race detected!!");
+							System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 							TIDERace race = new TIDERace(sig,xnode, xtid, wnode, wtid);
 							bugs.add(race);
+//							System.out.println("bugs: " + bugs);
 						}
 					}
 				}
@@ -191,7 +202,7 @@ public class BugWorker extends UntypedActor{
 	    }
 
 	    if(bugs.size() > 0){
-	    	engine.addBugsBack(bugs);
+			engine.addBugsBack(bugs);
 		}
 		getSender().tell(new ReturnResult(), getSelf());
 	}
@@ -258,12 +269,10 @@ public class BugWorker extends UntypedActor{
 		int writeTids = writeMap.size();
 		if(writeTids > 1){
 			sharedFields.add(sig);
-		}else{
-			if(readMap != null){
-				int readTids = readMap.size();
-				if (readTids + writeTids > 1) {
-					sharedFields.add(sig);
-				}
+		}else if(readMap != null){
+			int readTids = readMap.size();
+			if (readTids + writeTids > 1) {
+				sharedFields.add(sig);
 			}
 		}
 		if (DEBUG) {
@@ -278,6 +287,7 @@ public class BugWorker extends UntypedActor{
 	private boolean checkLockSetAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {
 		if(wtid != xtid){
 			if(!haveCommonLock(xtid, xnode, wtid, wnode)){
+//				System.err.println("-Have no common lock!");
 				return hasHBRelation(wtid, wnode, xtid, xnode);
 			}
 		}
@@ -323,8 +333,8 @@ public class BugWorker extends UntypedActor{
 			CGNode cgNode = node.getBelonging();
 			Trace trace = shb.getTrace(cgNode);
 			if(trace == null){
-				if (cgNode instanceof AstCGNode2) {
-					cgNode = ((AstCGNode2) cgNode).getCGNode();
+				if (cgNode instanceof AstCGNode) {
+					cgNode = ((AstCGNode) cgNode).getCGNode();
 					trace = shb.getTrace(cgNode);
 				}
 			}
