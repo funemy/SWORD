@@ -156,7 +156,7 @@ public class BugWorker extends UntypedActor{
 				// write->read
 	    			for(ReadNode read : reads){
 	    				MemNode xnode = read;
-//					System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+					System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
 
 	    				Trace xTrace = shb.getTrace(xnode.getBelonging());
 	    				if (xTrace == null) continue;
@@ -165,7 +165,7 @@ public class BugWorker extends UntypedActor{
 					for (int wtid : wtids) {
 						for (int xtid : xtids) {
 							if (wtid == xtid) continue;
-							System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
+//							System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 							if(checkLockSetAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
 								System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 								TIDERace race = new TIDERace(sig,xnode,xtid,wnode, wtid);
@@ -179,7 +179,7 @@ public class BugWorker extends UntypedActor{
 	    		// write->write
 	    		for (int j = i; j < writes_array.length; j++) {
 	    			WriteNode xnode = writes_array[j];
-//				System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+				System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
 
 	    			Trace xTrace = shb.getTrace(xnode.getBelonging());
 	    			if (xTrace == null) continue;
@@ -189,7 +189,7 @@ public class BugWorker extends UntypedActor{
 					for (int xtid : xtids) {
 						// memory access in same thread don't need to be checked
 						if (wtid == xtid) continue;
-						System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
+//						System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 						if(checkLockSetAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
 							System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 							TIDERace race = new TIDERace(sig,xnode, xtid, wnode, wtid);

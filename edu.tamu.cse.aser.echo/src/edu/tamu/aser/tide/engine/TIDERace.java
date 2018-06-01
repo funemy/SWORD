@@ -109,18 +109,18 @@ public class TIDERace implements ITIDEBug{
 	// Type 1 is w/r
 	public boolean compareType(TIDERace race) {
 		int thisType = 0;
-		int oType = 0;
+		int thatType = 0;
 		if (this.node1 instanceof ReadNode)
 			thisType += 1;
 		if (this.node2 instanceof ReadNode)
 			thisType += 1;
 		
 		if (race.node1 instanceof ReadNode)
-			oType += 1;
+			thatType += 1;
 		if (race.node2 instanceof ReadNode)
-			oType += 1;
+			thatType += 1;
 		
-		return (thisType == oType);
+		return (thisType == thatType);
 	}
 
 	public void setBugInfo(String raceMsg, ArrayList<LinkedList<String>> traceMsg2, String fixMsg) {

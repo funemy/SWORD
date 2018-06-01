@@ -259,7 +259,6 @@ public class TIDEEngine{
 				CGNode n = threadNodes.removeFirst();
 				curTID = n.getGraphNodeId();
 
-				System.out.println(n.getClass());
 				if(n instanceof AstCGNodeEcho){
 					CGNode real = ((AstCGNodeEcho)n).getCGNode();
 					if(thirdProcessedNodes.contains(real))//already processed once
@@ -1145,8 +1144,7 @@ public class TIDEEngine{
 								processNewThreadInvoke(n, node, imethod, inst, ins, sourceLineNum, file, curTrace, true);
 							}
 							hasSyncBetween = true;
-						}
-						else if(sig.contains("java.util.concurrent.Future.get()Ljava/lang/Object")){
+						} else if(sig.contains("java.util.concurrent.Future.get()Ljava/lang/Object")){
 							//Future join
 							PointerKey key = pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, ((SSAAbstractInvokeInstruction) inst).getReceiver());
 							OrdinalSet<InstanceKey> instances = pointerAnalysis.getPointsToSet(key);
