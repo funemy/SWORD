@@ -173,31 +173,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		}
 	}
 
-	public void removeBugMarkersForIgnore(HashSet<ITIDEBug> removedbugs){
-		String key;
-		for (ITIDEBug bug : removedbugs) {
-			if(bug instanceof TIDERace){
-				TIDERace race = (TIDERace) bug;
-				key = race.raceMsg;
-			}else{
-				TIDEDeadlock dl = (TIDEDeadlock) bug;
-			    key = dl.deadlockMsg;
-			}
-			HashSet<IMarker> markers = bug_marker_map.get(key);
-			for (IMarker marker : markers) {
-				try {
-					IMarker[] dels = new IMarker[1];
-					dels[0] = marker;
-					IWorkspace workspace = marker.getResource().getWorkspace();
-					workspace.deleteMarkers(dels);
-				} catch (CoreException e) {
-					e.printStackTrace();
-				}
-			}
-			bug_marker_map.remove(key);
-		}
-	}
-
 	private void initialEchoView(Set<ITIDEBug> bugs) {
 		new Thread(new Runnable() {
 			public void run() {
@@ -239,98 +214,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 			}
 		}).start();
 	}
-
-	public void updateEchoViewForIgnore() {
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRaceView.ignoreBugs(bugEngine.removedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRWView.ignoreBugs(bugEngine.removedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoDLView.ignoreBugs(bugEngine.removedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-	}
-
-	public void updateEchoViewForConsider() {
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRaceView.considerBugs(bugEngine.addedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoRWView.considerBugs(bugEngine.addedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			public void run() {
-				while (true) {
-					try { Thread.sleep(10);} catch (Exception e) {e.printStackTrace();}
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							//do update
-							echoDLView.considerBugs(bugEngine.addedbugs);
-						}
-					});
-					break;
-				}
-			}
-		}).start();
-	}
-
-
 
 	private void showDeadlock(IPath fullPath, TIDEDeadlock bug) throws CoreException {
 		DLockNode l11 = bug.lp1.lock1;
@@ -479,6 +362,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 
 	private LinkedList<String> obtainTraceOfINode(int tid, INode rw1, ITIDEBug bug, int idx) {
 		LinkedList<String> trace = new LinkedList<>();
+		HashSet<CGNode> traversed = new HashSet<>();
 		TIDEEngine engine;
 		if(DEBUG){
 			engine = Test.engine;
@@ -489,6 +373,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 		writeDownMyInfo(trace, rw1, bug);
 		CGNode node = rw1.getBelonging();
 		SHBEdge edge = shb.getIncomingEdgeWithTidForShowTrace(node, tid);
+		traversed.add(node);
 		INode parent = null;
 		if(edge == null){
 			StartNode startNode = engine.mapOfStartNode.get(tid);
@@ -506,7 +391,8 @@ public class TIDECGModel extends WalaProjectCGModel {
 			CGNode node_temp = parent.getBelonging();
 			if(node_temp != null){
 				//this is a kid thread start node
-				if(!node.equals(node_temp)){
+				if(!traversed.contains(node_temp)){
+					traversed.add(node_temp);
 					node = node_temp;
 					edge = shb.getIncomingEdgeWithTidForShowTrace(node, tid);
 					if(edge == null){
@@ -526,15 +412,23 @@ public class TIDECGModel extends WalaProjectCGModel {
 						tid = ((StartNode) parent).getParentTID();
 					}
 				}else{//recursive calls
+					boolean found = false;
 					HashSet<SHBEdge> edges = shb.getAllIncomingEdgeWithTid(node, tid);
 					for (SHBEdge edge0 : edges) {
 						if(!edge.equals(edge0)){
 							parent = edge0.getSource();
-							if(parent instanceof StartNode){
-								tid = ((StartNode) parent).getParentTID();
+							node_temp = parent.getBelonging();
+							if(!traversed.contains(node_temp)){
+								if(parent instanceof StartNode){
+									tid = ((StartNode) parent).getParentTID();
+								}
+								found = true;
+								break;
 							}
-							break;
 						}
+					}
+					if(!found){
+						parent = null;
 					}
 				}
 			}else
@@ -673,19 +567,17 @@ public class TIDECGModel extends WalaProjectCGModel {
 			IClass klass = classIterator.next();
 			if (!AnalysisUtils.isJDKClass(klass)) {
 				for (IMethod method : klass.getDeclaredMethods()) {
+					System.out.println(klass.toString()+ "   " + method.toString());
 					try {
 						if(method.isStatic()&&method.isPublic()
 								&&method.getName().toString().equals("main")
-								&&method.getDescriptor().toString().equals(ConvertHandler.DESC_MAIN))
-
+								&&method.getDescriptor().toString().equals(ConvertHandler.DESC_MAIN)){
 							result.add(new DefaultEntrypoint(method, classHierarchy));
-						else if(method.isPublic()&&!method.isStatic()
+						}else if(method.isPublic()&&!method.isStatic()
 								&&method.getName().toString().equals("run")
-								&&method.getDescriptor().toString().equals("()V"))
-						{
+								&&method.getDescriptor().toString().equals("()V")){
 							if (AnalysisUtils.implementsRunnableInterface(klass) || AnalysisUtils.extendsThreadClass(klass))
 							result.add(new DefaultEntrypoint(method, classHierarchy));
-
 						}
 					} catch (Exception e) {
 						throw new RuntimeException(e);

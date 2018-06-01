@@ -182,6 +182,7 @@ public class SHBGraph{
 			return -1;
 	}
 
+	int bugget = 10;
 
 	public HashSet<INode> findTheTopNode(INode node, Integer tid){
 		HashSet<INode> tops = new HashSet<>();
@@ -197,6 +198,9 @@ public class SHBGraph{
 		}
 		if(!traversed.contains(inCgNode)){
 			traversed.add(inCgNode);
+			if(traversed.size() > 10){
+				return;
+			}
 		}else{
 			//recursive call chain, not useful
 			return;

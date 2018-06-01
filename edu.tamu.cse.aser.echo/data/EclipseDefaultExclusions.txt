@@ -1,16 +1,4 @@
-java\/applet\/.*
-java\/awt\/.*
-java\/beans\/.*
-java\/io\/.*
-java\/lang\/.*
-java\/math\/.*
-java\/net\/.*
-java\/nio\/.*
-java\/rmi\/.*
-java\/security\/.*
-java\/sql\/.*
-java\/text\/.*
-
+java\/.*
 javax\/.*
 sun\/.*
 sunw\/.*
@@ -18,8 +6,12 @@ com\/sun\/.*
 com\/ibm\/.*
 com\/apple\/.*
 com\/oracle\/.*
+com\/vividsolutions\/.*
 apple\/.*
 org\/xml\/.*
+org\/netbeans\/.*
+org\/openide\/.*
+org\/apache\/xerces\/.*
 jdbm\/.*
 
 avrora\/sim\/.*
