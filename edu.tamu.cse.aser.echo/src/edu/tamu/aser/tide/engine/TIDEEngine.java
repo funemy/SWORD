@@ -87,7 +87,7 @@ public class TIDEEngine{
 	private LinkedList<CGNode> twiceProcessedNodes = new LinkedList<CGNode>();
 	private LinkedList<CGNode> thirdProcessedNodes = new LinkedList<CGNode>();
 	private HashSet<CGNode> scheduledAstNodes = new HashSet<CGNode>();
-	
+
 	private LinkedList<CGNode> mainEntryNodes = new LinkedList<CGNode>();
 	private LinkedList<CGNode> threadNodes = new LinkedList<CGNode>();
 
@@ -494,7 +494,7 @@ public class TIDEEngine{
 		SSACFG cfg = n.getIR().getControlFlowGraph();
 		HashSet<SSAInstruction> catchinsts = InstInsideCatchBlock(cfg);//won't consider rw,lock related to catch blocks
 		SSAInstruction[] insts = n.getIR().getInstructions();
-		
+
 
 		for(int i=0; i<insts.length; i++){
 			SSAInstruction inst = insts[i];
@@ -1571,7 +1571,10 @@ public class TIDEEngine{
 					sigs.add(sig2);
 				}
 				writeNode = new WriteNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
-				writeNode.setObjSigs(sigs);;
+				writeNode.setObjSigs(sigs);
+				for (String sig2 : sigs) {
+					curTrace.addWsigMapping(sig2, writeNode);
+				}
 				//add node to trace
 				curTrace.add(writeNode);
 			}else{//static
