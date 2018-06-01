@@ -14,7 +14,7 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.collections.SparseVector;
 import com.ibm.wala.util.graph.impl.NodeWithNumber;
 
-public class AstCGNode extends NodeWithNumber implements CGNode {
+public class AstCGNodeEcho extends NodeWithNumber implements CGNode {
 
 	/**
 	 * A Mapping from call site program counter (int) -> Object, where Object is a CGNode if we've discovered exactly one target for
@@ -38,7 +38,7 @@ public class AstCGNode extends NodeWithNumber implements CGNode {
 	{
 		this.ir = new WeakReference<IR>(ir);
 	}
-	public AstCGNode(IMethod method, Context C) {
+	public AstCGNodeEcho(IMethod method, Context C) {
 		this.method = method;
 		this.context = C;
 		if (method != null && !method.isSynthetic() && method.isAbstract()) {
@@ -91,8 +91,8 @@ public class AstCGNode extends NodeWithNumber implements CGNode {
 		return du;
 	}
 
-	public AstCGNode getCallGraph() {
-		return AstCGNode.this;
+	public AstCGNodeEcho getCallGraph() {
+		return AstCGNodeEcho.this;
 	}
 
 

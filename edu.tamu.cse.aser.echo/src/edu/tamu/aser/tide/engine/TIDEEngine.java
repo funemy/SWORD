@@ -63,7 +63,6 @@ import edu.tamu.aser.tide.akkasys.RemoveLocalVar;
 import edu.tamu.aser.tide.nodes.DLPair;
 import edu.tamu.aser.tide.nodes.DLockNode;
 import edu.tamu.aser.tide.nodes.DUnlockNode;
-import edu.tamu.aser.tide.nodes.INode;
 import edu.tamu.aser.tide.nodes.JoinNode;
 import edu.tamu.aser.tide.nodes.LockPair;
 import edu.tamu.aser.tide.nodes.MemNode;
@@ -101,7 +100,7 @@ public class TIDEEngine{
 	private LinkedList<CGNode> threadNodes = new LinkedList<CGNode>();
 
 	private MutableIntSet stidpool = IntSetUtil.make();//start
-	private HashMap<Integer, AstCGNode> dupStartJoinTidMap = new HashMap<>();//join with dup tid
+	private HashMap<Integer, AstCGNodeEcho> dupStartJoinTidMap = new HashMap<>();//join with dup tid
 	private HashMap<TypeName, CGNode> threadSigNodeMap = new HashMap<TypeName,CGNode>();
 
 	private boolean hasSyncBetween = false;
@@ -113,7 +112,7 @@ public class TIDEEngine{
 	//currently locked objects
 	public 	HashMap<Integer, HashSet<DLockNode>> threadLockNodes = new HashMap<Integer, HashSet<DLockNode>>();
 	//node <-> since it's in a loop and we create an astnode
-	public HashMap<CGNode, AstCGNode> n_loopn_map = new HashMap<>();
+	public HashMap<CGNode, AstCGNodeEcho> n_loopn_map = new HashMap<>();
 
 	private static HashMap<CGNode,Collection<Loop>> nodeLoops = new HashMap<CGNode,Collection<Loop>>();
 
@@ -260,8 +259,9 @@ public class TIDEEngine{
 				CGNode n = threadNodes.removeFirst();
 				curTID = n.getGraphNodeId();
 
-				if(n instanceof AstCGNode){
-					CGNode real = ((AstCGNode)n).getCGNode();
+				System.out.println(n.getClass());
+				if(n instanceof AstCGNodeEcho){
+					CGNode real = ((AstCGNodeEcho)n).getCGNode();
 					if(thirdProcessedNodes.contains(real))//already processed once
 						continue;
 					else
@@ -498,8 +498,8 @@ public class TIDEEngine{
 			}
 			return curTrace;
 		}else{
-			if(n instanceof AstCGNode){
-				n = ((AstCGNode)n).getCGNode();
+			if(n instanceof AstCGNodeEcho){
+				n = ((AstCGNodeEcho)n).getCGNode();
 			}
 			curTrace = new Trace(curTID);
 		}
@@ -685,10 +685,10 @@ public class TIDEEngine{
 
 	private void processNewMethodInvoke(CGNode n, CallSiteReference csr, SSAInstruction inst, int sourceLineNum, IFile file, Trace curTrace) {
 		Set<CGNode> set = new HashSet<>();
-		if(n instanceof AstCGNode){
+		if(n instanceof AstCGNodeEcho){
 			CGNode temp = n;
-			while (temp instanceof AstCGNode) {
-				temp = ((AstCGNode)temp).getCGNode();
+			while (temp instanceof AstCGNodeEcho) {
+				temp = ((AstCGNodeEcho)temp).getCGNode();
 			}
 			set = callGraph.getPossibleTargets(temp, csr);
 		}else{
@@ -899,7 +899,7 @@ public class TIDEEngine{
 
 		boolean isInLoop = isInLoop(n,inst);
 		if(isInLoop || isThreadPool){
-			AstCGNode node2 = n_loopn_map.get(node);//should find created node2 during start
+			AstCGNodeEcho node2 = n_loopn_map.get(node);//should find created node2 during start
 			if(node2 == null){
 				node2 = dupStartJoinTidMap.get(tid_child);
 				if(node2 == null){
@@ -926,7 +926,7 @@ public class TIDEEngine{
 				scheduled_this_thread = true;
 			}else{
 				scheduledAstNodes.add(node);
-				AstCGNode threadNode = new AstCGNode(method, node.getContext());
+				AstCGNodeEcho threadNode = new AstCGNodeEcho(method, node.getContext());
 				int threadID = ++maxGraphNodeID;
 				threadNode.setGraphNodeId(threadID);
 				threadNode.setCGNode(node);
@@ -963,7 +963,7 @@ public class TIDEEngine{
 
 			boolean isInLoop = isInLoop(n,inst);
 			if(isInLoop){
-				AstCGNode node2 = new AstCGNode(node.getMethod(),node.getContext());
+				AstCGNodeEcho node2 = new AstCGNodeEcho(node.getMethod(),node.getContext());
 				threadNodes.add(node2);
 				int newID = ++maxGraphNodeID;
 				astCGNode_ntid_map.put(node, newID);
@@ -1222,10 +1222,10 @@ public class TIDEEngine{
 						}else{
 							//other method calls
 							Set<CGNode> set = new HashSet<>();
-							if(n instanceof AstCGNode){
+							if(n instanceof AstCGNodeEcho){
 								CGNode temp = n;
-								while (temp instanceof AstCGNode) {
-									temp = ((AstCGNode)temp).getCGNode();
+								while (temp instanceof AstCGNodeEcho) {
+									temp = ((AstCGNodeEcho)temp).getCGNode();
 								}
 								set = callGraph.getPossibleTargets(temp, csr);
 							}else{

@@ -13,7 +13,7 @@ import com.ibm.wala.util.intset.MutableIntSet;
 
 import akka.actor.UntypedActor;
 import akka.io.Tcp.Write;
-import edu.tamu.aser.tide.engine.AstCGNode;
+import edu.tamu.aser.tide.engine.AstCGNodeEcho;
 import edu.tamu.aser.tide.engine.ITIDEBug;
 import edu.tamu.aser.tide.engine.TIDECGModel;
 import edu.tamu.aser.tide.engine.TIDEDeadlock;
@@ -333,8 +333,8 @@ public class BugWorker extends UntypedActor{
 			CGNode cgNode = node.getBelonging();
 			Trace trace = shb.getTrace(cgNode);
 			if(trace == null){
-				if (cgNode instanceof AstCGNode) {
-					cgNode = ((AstCGNode) cgNode).getCGNode();
+				if (cgNode instanceof AstCGNodeEcho) {
+					cgNode = ((AstCGNodeEcho) cgNode).getCGNode();
 					trace = shb.getTrace(cgNode);
 				}
 			}
