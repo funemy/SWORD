@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -50,7 +49,6 @@ import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAArrayReferenceInstruction;
 import com.ibm.wala.ssa.SSAFieldAccessInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.HashSetFactory;
@@ -353,7 +351,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		String deadlockMsg = "Deadlock: ("+sig11  +" => "+sig12+ ";  "+sig21+ " => "+sig22+ ")";
 //		System.err.println(deadlockMsg);
 		ArrayList<LinkedList<String>> traceMsg = obtainTraceOfDeadlock(bug);
-//		String fixMsg = obtainFixOfDeadlock(bug);
 		bug.setBugInfo(deadlockMsg, traceMsg, null);
 
 		IMarker marker1 = null;
@@ -406,7 +403,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		String raceMsg = "Race: "+sig+" ("+rnode.getSig()+", "+wnode.getSig()+")";
 //		System.err.println(raceMsg + rnode.getObjSig().toString());
 		ArrayList<LinkedList<String>> traceMsg = obtainTraceOfRace(race);
-//		String fixMsg = obtainFixOfRace(race);
 		race.setBugInfo(raceMsg, traceMsg, null);
 
 		IMarker marker1 = null;
@@ -431,75 +427,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		newMarkers.add(marker2);
 		bug_marker_map.put(raceMsg, newMarkers);
 	}
-
-	private String obtainFixOfRace(TIDERace race) {
-		MemNode node1 = race.node1;
-		MemNode node2 = race.node2;
-		String prefix1 = node1.getPrefix();
-		String prefix2 = node2.getPrefix();
-		FieldReference field1 = null;
-		FieldReference field2 = null;
-		if(node1.inst instanceof SSAFieldAccessInstruction){
-			field1 = ((SSAFieldAccessInstruction)node1.inst).getDeclaredField();
-		}
-		if(node2.inst instanceof SSAFieldAccessInstruction){
-			field2 = ((SSAFieldAccessInstruction)node2.inst).getDeclaredField();
-		}
-
-		StringBuffer sb = new StringBuffer("Fix Suggestion Of Race: ");
-		if(prefix1.equals(prefix2)){
-			if(field1 == null || field2 == null){
-				//array
-				String class1 = node1.getSig().substring(0, node1.getSig().indexOf(':'));
-				String class2 = node2.getSig().substring(0, node2.getSig().indexOf(':'));
-				if(class1.equals(class2)){
-					//same var
-					sb.append("add synchronizations to protect the array: " +
-							" in " + class1.toString());
-				}else{
-					sb.append("add common synchronizations to protect the array: " +
-							" in " + class1.toString() + " and " + class2.toString());
-				}
-			}else{
-				//field
-				String class1 = field1.getDeclaringClass().toString();
-				String class2 = field2.getDeclaringClass().toString();
-				if(class1.equals(class2)){
-					sb.append("add synchronizations to protect: " + field1.getName().toString() +
-							" in " + class1.toString().substring(class1.indexOf("L")+1, class1.length()-1));
-				}else{
-					sb.append("add common synchronizations to protect: " + field1.getName().toString() +
-							" in " + class1.substring(class1.indexOf("L")+1, class1.length()-1)
-							+ " and " + field2.getName().toString()
-							+ class2.substring(class2.indexOf("L")+1, class2.length()-1));
-				}
-			}
-		}else{
-			//need to find the common pointer
-			System.out.println(" == no suggestion now.");
-			sb.append("no suggestion now.");
-		}
-		return new String(sb);
-	}
-
-
-	private String obtainFixOfDeadlock(TIDEDeadlock bug) {
-		DLockNode l11 = bug.lp1.lock1;
-		DLockNode l12 = bug.lp1.lock2;
-		DLockNode l21 = bug.lp2.lock1;
-		DLockNode l22 = bug.lp2.lock2;
-
-		int line11 = l11.getLine();
-		int line12 = l12.getLine();
-
-		StringBuffer sb = new StringBuffer("Fix Suggestion Of Deadlock: ");
-		sb.append("exchange the lock order between line " + line11 + " in "
-		        + l11.getBelonging().getMethod().getDeclaringClass().getName().toString()
-				+ " and line " + line12 + " in "
-		        + l12.getBelonging().getMethod().getDeclaringClass().getName().toString());
-		return new String(sb);
-	}
-
 
 	private ArrayList<LinkedList<String>> obtainTraceOfRace(TIDERace race) {
 		MemNode rw1 = race.node1;
@@ -659,7 +586,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		attributes.put(IMarker.MESSAGE, msg);
 		IMarker newMarker = file.createMarker(BugMarker.TYPE_SCARIEST);
 		newMarker.setAttributes(attributes);
-		IMarker[] problems = file.findMarkers(BugMarker.TYPE_SCARIEST,true,IResource.DEPTH_INFINITE);
 		return newMarker;
 	}
 
@@ -670,7 +596,6 @@ public class TIDECGModel extends WalaProjectCGModel {
 		attributes.put(IMarker.MESSAGE,msg);
 		IMarker newMarker = file.createMarker(BugMarker.TYPE_SCARY);
 		newMarker.setAttributes(attributes);
-		IMarker[] problems = file.findMarkers(BugMarker.TYPE_SCARY,true,IResource.DEPTH_INFINITE);
 		return newMarker;
 	}
 

@@ -729,7 +729,6 @@ public class TIDEEngine{
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
-					Trace subTrace0 = traverseNode(node);
 					shb.includeTidForKidTraces(node, curTID);
 					shb.addEdge(m, node);
 					if(node.getMethod().isSynchronized()){
@@ -786,8 +785,7 @@ public class TIDEEngine{
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
-						Trace subTrace1 = traverseNode(node);
-						shb.includeTidForKidTraces(node,curTID);
+					shb.includeTidForKidTraces(node,curTID);
 					shb.addEdge(m, node);
 					if(lockedObjects.size() > 0){
 						if(node.getMethod().isSynchronized()){
@@ -1079,7 +1077,6 @@ public class TIDEEngine{
 				if(catchinsts.contains(inst)){
 					continue;
 				}
-				IMethod method = n.getMethod() ;
 				int sourceLineNum = 0;
 				IFile file = null;
 				try{//get source code line number of this inst
