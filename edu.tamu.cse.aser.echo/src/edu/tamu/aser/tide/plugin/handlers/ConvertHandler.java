@@ -118,6 +118,8 @@ public class ConvertHandler extends AbstractHandler {
 	public void init(ICompilationUnit cu, IStructuredSelection selection){
 		try{
 			IJavaProject javaProject = cu.getJavaProject();
+			// the main function of target file
+			// e.g. Test.main([Ljava/lang/String;)V
 			String mainSig = getSignature(cu);
 			// exclude some common library
 			// add new exclusion file in data/EclipseDefaultExclusions.txt

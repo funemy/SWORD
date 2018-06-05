@@ -18,7 +18,6 @@ public class SHBGraph{
 
 	private HashMap<String, CGNode> id2CGNode = new HashMap<>();
 	private HashMap<String, Trace> traceMapping = new HashMap<>();
-	private HashMap<String, Trace> traceMapping_removed = new HashMap<>();
 
 	public EdgeManager edgeManager = new EdgeManager();
 	public String main;

@@ -27,6 +27,7 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
+import com.ibm.wala.ipa.callgraph.propagation.NormalAllocationInNode;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationGraph;
@@ -177,6 +178,9 @@ public class TIDEEngine{
 	public HashSet<ITIDEBug> detectBothBugs(PrintStream ps) {
 		long start = System.currentTimeMillis();
 
+		if(mainEntryNodes.size() >1 )
+			System.err.println("MORE THAN 1 MAIN ENTRY!");
+
 		for(CGNode main: mainEntryNodes){
 			twiceProcessedNodes.clear();
 			alreadyProcessedNodes.clear();//a new tid
@@ -197,9 +201,6 @@ public class TIDEEngine{
 			astCGNode_ntid_map.clear();
 
 			shb = new SHBGraph();
-			if(mainEntryNodes.size() >1 )
-				System.err.println("MORE THAN 1 MAIN ENTRY!");
-
 			//start from the main method
 			threadNodes.add(main);
 			int mainTID = main.getGraphNodeId();
@@ -285,7 +286,6 @@ public class TIDEEngine{
 			//organize variable read/write map
 			System.out.println("-----race detection start");
 			organizeRWMaps();
-			System.out.println(wsig_tid_num_map);
 			System.out.println("-----find shared variables");
 			//1. find shared variables
 			if(wsig_tid_num_map.size() >= 10){
@@ -345,7 +345,6 @@ public class TIDEEngine{
 	 */
 	private void organizeRWMaps() {
 		ArrayList<Trace> alltraces = shb.getAllTraces();
-		System.out.println("----All traces: " + alltraces);
 		for (Trace trace : alltraces) {
 			singleOrganizeRWMaps(trace);
 		}
@@ -1551,6 +1550,12 @@ public class TIDEEngine{
 			ReadNode readNode;
 			if(key != null){
 				for (InstanceKey instanceKey : instances) {
+					// same as write
+					String rootSig = ((NormalAllocationInNode) instanceKey).getNode().getMethod().getSignature();
+					if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+						String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
+						sigs.add(sig2);
+					}
 					String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
 					sigs.add(sig2);
 				}
@@ -1572,8 +1577,15 @@ public class TIDEEngine{
 			WriteNode writeNode;
 			if(key != null){
 				for (InstanceKey instanceKey : instances) {
-					String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
-					sigs.add(sig2);
+					// liyz:
+					// avoid repeated computation
+					// fakeroot of callgraph will also include run()V function in Thread objects
+					// which will cause memory access inside those functions being computed repeatedly
+					String rootSig = ((NormalAllocationInNode) instanceKey).getNode().getMethod().getSignature();
+					if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+						String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
+						sigs.add(sig2);
+					}
 				}
 				writeNode = new WriteNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
 				writeNode.setObjSigs(sigs);
