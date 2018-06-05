@@ -13,5 +13,3 @@ org\/netbeans\/.*
 org\/openide\/.*
 org\/apache\/xerces\/.*
 jdbm\/.*
-
-avrora\/sim\/.*

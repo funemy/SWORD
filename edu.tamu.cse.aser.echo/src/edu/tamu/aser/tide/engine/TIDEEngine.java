@@ -535,6 +535,7 @@ public class TIDEEngine{
 					IMethod imethod = callGraph.getClassHierarchy().resolveMethod(mr);
 					if(imethod != null){
 						String sig = imethod.getSignature();
+						System.out.println("++++++++++++++++++++++++++++++++++++" + sig);
 						if(sig.contains("java.util.concurrent") && sig.contains(".submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future")){
 							//Future runnable
 							PointerKey key = pointerAnalysis.getHeapModel().getPointerKeyForLocal(n, ((SSAAbstractInvokeInstruction) inst).getReceiver());
