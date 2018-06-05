@@ -141,6 +141,8 @@ public class TIDEEngine{
 	private static String HASHMAP = "<Primordial,Ljava/util/HashMap>";
 	private static String ARRAYS = "<Primordial,Ljava/util/Arrays>";
 	private static String STRING = "<Primordial,Ljava/util/String>";
+	
+	public List<Integer> unrolledThreads = new ArrayList<Integer>();
 
 
 	public TIDEEngine(String entrySignature,CallGraph callGraph, PropagationGraph flowgraph, PointerAnalysis<InstanceKey> pointerAnalysis, ActorRef bughub){
@@ -283,6 +285,7 @@ public class TIDEEngine{
 			//organize variable read/write map
 			System.out.println("-----race detection start");
 			organizeRWMaps();
+			System.out.println(wsig_tid_num_map);
 			System.out.println("-----find shared variables");
 			//1. find shared variables
 			if(wsig_tid_num_map.size() >= 10){
@@ -342,6 +345,7 @@ public class TIDEEngine{
 	 */
 	private void organizeRWMaps() {
 		ArrayList<Trace> alltraces = shb.getAllTraces();
+		System.out.println("----All traces: " + alltraces);
 		for (Trace trace : alltraces) {
 			singleOrganizeRWMaps(trace);
 		}
@@ -927,6 +931,7 @@ public class TIDEEngine{
 				AstCGNodeEcho node2 = new AstCGNodeEcho(node.getMethod(),node.getContext());
 				threadNodes.add(node2);
 				int newID = ++maxGraphNodeID;
+				unrolledThreads.add(newID);
 				astCGNode_ntid_map.put(node, newID);
 				StartNode duplicate = new StartNode(curTID,newID, n, node2,sourceLineNum, file);
 				curTrace.add2S(duplicate, inst, newID);//thread id +1

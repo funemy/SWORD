@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -144,6 +145,7 @@ public class BugWorker extends UntypedActor{
 		System.out.println("all writes: " + writes + "[" + self().path().name() + "]");
 		System.out.println("all reads: " + reads + "[" + self().path().name() + "]");
 		SHBGraph shb = engine.shb;
+		List<Integer>  unrolledThreads = engine.unrolledThreads;
 	    	// check read & write
 		WriteNode[] writes_array = writes.toArray(new WriteNode[writes.size()]);
 		for (int i = 0; i < writes_array.length; i++ ) {
@@ -156,18 +158,21 @@ public class BugWorker extends UntypedActor{
 				// write->read
 	    			for(ReadNode read : reads){
 	    				MemNode xnode = read;
-					System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+//					System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
 
 	    				Trace xTrace = shb.getTrace(xnode.getBelonging());
 	    				if (xTrace == null) continue;
 
 					ArrayList<Integer> xtids = xTrace.getTraceTids();
 					for (int wtid : wtids) {
+						if (unrolledThreads.contains(wtid)) continue;
 						for (int xtid : xtids) {
+							// memory access in same thread don't need to be checked
 							if (wtid == xtid) continue;
+
 //							System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 							if(checkLockSetAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
-								System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
+//								System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 								TIDERace race = new TIDERace(sig,xnode,xtid,wnode, wtid);
 								bugs.add(race);
 //								System.out.println("bugs: " + bugs);
@@ -179,19 +184,20 @@ public class BugWorker extends UntypedActor{
 	    		// write->write
 	    		for (int j = i; j < writes_array.length; j++) {
 	    			WriteNode xnode = writes_array[j];
-				System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
+//				System.err.println("---pair: " + xnode + "|" + wnode + "[" +self().path().name() + "]");
 
 	    			Trace xTrace = shb.getTrace(xnode.getBelonging());
 	    			if (xTrace == null) continue;
 
 				ArrayList<Integer> xtids = xTrace.getTraceTids();
 				for (int wtid : wtids) {
+					if (unrolledThreads.contains(wtid)) continue;
 					for (int xtid : xtids) {
 						// memory access in same thread don't need to be checked
 						if (wtid == xtid) continue;
 //						System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
 						if(checkLockSetAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
-							System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
+//							System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 							TIDERace race = new TIDERace(sig,xnode, xtid, wnode, wtid);
 							bugs.add(race);
 //							System.out.println("bugs: " + bugs);
