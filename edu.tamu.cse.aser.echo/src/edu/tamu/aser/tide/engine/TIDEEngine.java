@@ -25,7 +25,9 @@ import com.ibm.wala.classLoader.IMethod.SourcePosition;
 import com.ibm.wala.ide.util.JdtPosition;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.propagation.AbstractTypeInNode;
 import com.ibm.wala.ipa.callgraph.propagation.AllocationSiteInNode;
+import com.ibm.wala.ipa.callgraph.propagation.ConcreteTypeKey;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.NormalAllocationInNode;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
@@ -714,6 +716,7 @@ public class TIDEEngine{
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
+					traverseNode(node);
 					shb.includeTidForKidTraces(node, curTID);
 					shb.addEdge(m, node);
 					if(node.getMethod().isSynchronized()){
@@ -761,6 +764,7 @@ public class TIDEEngine{
 					}
 					MethodNode m = new MethodNode(n, node, curTID, sourceLineNum, file, (SSAAbstractInvokeInstruction) inst);
 					curTrace.add(m);
+					traverseNode(node);
 					shb.includeTidForKidTraces(node,curTID);
 					shb.addEdge(m, node);
 					if(lockedObjects.size() > 0){
@@ -1552,13 +1556,16 @@ public class TIDEEngine{
 			if(key != null){
 				for (InstanceKey instanceKey : instances) {
 					// same as write
-					String rootSig = ((NormalAllocationInNode) instanceKey).getNode().getMethod().getSignature();
-					if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+					if (instanceKey instanceof AbstractTypeInNode) {
+						String rootSig = ((AbstractTypeInNode) instanceKey).getNode().getMethod().getSignature();
+						if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+							String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
+							sigs.add(sig2);
+						}
+					} else {
 						String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
 						sigs.add(sig2);
 					}
-					String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
-					sigs.add(sig2);
 				}
 				readNode = new ReadNode(curTID,instSig,sourceLineNum,key, sig, n, inst, file);
 				readNode.setObjSigs(sigs);
@@ -1582,8 +1589,13 @@ public class TIDEEngine{
 					// avoid repeated computation
 					// fakeroot of callgraph will also include run()V function in Thread objects
 					// which will cause memory access inside those functions being computed repeatedly
-					String rootSig = ((NormalAllocationInNode) instanceKey).getNode().getMethod().getSignature();
-					if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+					if (instanceKey instanceof AbstractTypeInNode) {
+						String rootSig = ((AbstractTypeInNode) instanceKey).getNode().getMethod().getSignature();
+						if (!rootSig.equals("com.ibm.wala.FakeRootClass.fakeRootMethod()V")) {
+							String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
+							sigs.add(sig2);
+						}
+					} else {
 						String sig2 = sig+"."+String.valueOf(instanceKey.hashCode());
 						sigs.add(sig2);
 					}
@@ -1683,7 +1695,7 @@ public class TIDEEngine{
 				if(!iscontain){
 					bugs.add(_bug);
 //					addedbugs.add(_bug);
-					System.err.println("all bugs: " + bugs);
+//					System.err.println("all bugs: " + bugs);
 				}
 			}
 		}

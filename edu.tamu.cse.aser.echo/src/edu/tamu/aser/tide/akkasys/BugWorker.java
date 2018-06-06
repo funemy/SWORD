@@ -291,11 +291,8 @@ public class BugWorker extends UntypedActor{
 
 	//ReachabilityEngine reachEngine,
 	private boolean checkLockSetAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {
-		if(wtid != xtid){
-			if(!haveCommonLock(xtid, xnode, wtid, wnode)){
-//				System.err.println("-Have no common lock!");
-				return hasHBRelation(wtid, wnode, xtid, xnode);
-			}
+		if(!haveCommonLock(xtid, xnode, wtid, wnode)){
+			return hasHBRelation(wtid, wnode, xtid, xnode);
 		}
 		return false;
 	}
@@ -416,8 +413,10 @@ public class BugWorker extends UntypedActor{
 		return null;
 	}
 
-	private boolean hasHBRelation(int erTID, INode comper, int eeTID, INode compee){
+	// determine if two nodes have Happens-Before relation or not
+	private boolean hasHBRelation(int comperTID, INode comper, int compeeTID, INode compee){
 		boolean donothave = false;
+		boolean HBRelation = false;
 		TIDEEngine engine;
 		if(DEBUG){
 			engine = Test.engine;
@@ -426,33 +425,36 @@ public class BugWorker extends UntypedActor{
 		}
 		SHBGraph shb = engine.shb;
 		CallGraph cg = engine.callGraph;
-		StartNode erStartNode = engine.mapOfStartNode.get(erTID);
-		StartNode eeStartNode = engine.mapOfStartNode.get(eeTID);
-		JoinNode erJoinNode = engine.mapOfJoinNode.get(erTID);
-		JoinNode eeJoinNode = engine.mapOfJoinNode.get(eeTID);
+		StartNode comperStartNode = engine.mapOfStartNode.get(comperTID);
+		StartNode compeeStartNode = engine.mapOfStartNode.get(compeeTID);
+		JoinNode comperJoinNode = engine.mapOfJoinNode.get(comperTID);
+		JoinNode compeeJoinNode = engine.mapOfJoinNode.get(compeeTID);
 
-		if (erStartNode == null || eeStartNode == null) {
-			return false;//should not be?? the startnode has been removed, but the rwnode still got collected.
-		}
-		MutableIntSet erkids = erStartNode.getTID_Child();
-		MutableIntSet eekids = eeStartNode.getTID_Child();
+		// should not happen
+		if (comperStartNode == null || compeeStartNode == null)
+			return false;
+
+		MutableIntSet comperkids = comperStartNode.getTID_Child();
+		MutableIntSet compeekids = compeeStartNode.getTID_Child();
 		// -1: sync -> comper; 1: comper -> sync; 0: ?
-		if(erkids.contains(eeTID)){
+		if(comperkids.contains(compeeTID)){
 			//wtid is parent of xtid, wtid = comper
-			if(shb.compareParent(eeStartNode, comper, eeTID, erTID) < 0){//trace.indexOf(xStartNode) < trace.indexOf(comper)
-				if (eeJoinNode != null) {
-					if (shb.compareParent(eeJoinNode, comper, eeTID, erTID) > 0) {//trace.indexof(xjoinnode) > trace.indexof(comper)
+			// comper is the parent of compee
+			if(shb.compareParent(compeeStartNode, comper, compeeTID, comperTID) < 0){//trace.indexOf(xStartNode) < trace.indexOf(comper)
+				if (compeeJoinNode != null) {
+					if (shb.compareParent(compeeJoinNode, comper, compeeTID, comperTID) > 0) {//trace.indexof(xjoinnode) > trace.indexof(comper)
 						donothave = true; //for multipaths: what if the paths compared above are different?
 					}
 				}else{
 					donothave = true;
 				}
 			}
-		}else if(eekids.contains(erTID)){
+		}else if(compeekids.contains(comperTID)){
 			//xtid is parent of wtid, xtid = compee
-			if(shb.compareParent(erStartNode, compee, eeTID, erTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(compee)
-				if (erJoinNode != null) {
-					if(shb.compareParent(erJoinNode, compee, eeTID, erTID) > 0){////trace.indexof(wjoinnode) > trace.indexof(compee)
+			// compee is the parent of comper
+			if(shb.compareParent(comperStartNode, compee, compeeTID, comperTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(compee)
+				if (comperJoinNode != null) {
+					if(shb.compareParent(comperJoinNode, compee, compeeTID, comperTID) > 0){////trace.indexof(wjoinnode) > trace.indexof(compee)
 						donothave = true;
 					}
 				}else {
@@ -460,7 +462,7 @@ public class BugWorker extends UntypedActor{
 				}
 			}
 		}else{
-			StartNode sNode = sameParent(erTID, eeTID);
+			StartNode sNode = sameParent(comperTID, compeeTID);
 			if(sNode != null){
 				CGNode parent;
 				if (sNode.getParentTID() == -1) {
@@ -469,38 +471,38 @@ public class BugWorker extends UntypedActor{
 					parent = sNode.getBelonging();
 				}
 				//same parent
-				if(erJoinNode == null && eeJoinNode == null){
+				if(comperJoinNode == null && compeeJoinNode == null){
 					//should check the distance
 					Trace ptTrace = shb.getTrace(parent);//maybe mark the relation??
-					int erS = ptTrace.indexOf(erStartNode);
-					int eeS = ptTrace.indexOf(eeStartNode);
+					int erS = ptTrace.indexOf(comperStartNode);
+					int eeS = ptTrace.indexOf(compeeStartNode);
 					if (Math.abs(erS - eeS) <= 1000) {//adjust??
 						donothave = true;
 					}
-				}else if(erJoinNode == null){//-1: start -> join; 1: join -> start;
-					if(shb.compareStartJoin(erStartNode, eeJoinNode, parent, cg) < 0){//trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)
+				}else if(comperJoinNode == null){//-1: start -> join; 1: join -> start;
+					if(shb.compareStartJoin(comperStartNode, compeeJoinNode, parent, cg) < 0){//trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)
 						donothave = true;
 					}
-				}else if(eeJoinNode == null){
-					if(shb.compareStartJoin(eeStartNode, erJoinNode, parent, cg) < 0){//trace.indexOf(wJoinNode) > trace.indexOf(xStartNode)
+				}else if(compeeJoinNode == null){
+					if(shb.compareStartJoin(compeeStartNode, comperJoinNode, parent, cg) < 0){//trace.indexOf(wJoinNode) > trace.indexOf(xStartNode)
 						donothave = true;
 					}
 				}else{
-					if(shb.compareStartJoin(erStartNode, eeJoinNode, parent, cg) < 0
-							&& shb.compareStartJoin(eeStartNode, erJoinNode, parent, cg) < 0){//(trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)) && (trace.indexOf(wJoinNode) > trace.indexOf(xStartNode))
+					if(shb.compareStartJoin(comperStartNode, compeeJoinNode, parent, cg) < 0
+							&& shb.compareStartJoin(compeeStartNode, comperJoinNode, parent, cg) < 0){//(trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)) && (trace.indexOf(wJoinNode) > trace.indexOf(xStartNode))
 						donothave = true;
 					}
 				}
 			}else{
 				//other conditions??wtid = comper; xtid = compee
-				if(shb.whoHappensFirst(erStartNode, eeStartNode, eeTID, erTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(xStartNode)
+				if(shb.whoHappensFirst(comperStartNode, compeeStartNode, compeeTID, comperTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(xStartNode)
 					//wtid starts early
-					if(shb.whoHappensFirst(erStartNode, comper, eeTID, erTID) < 0){
+					if(shb.whoHappensFirst(comperStartNode, comper, compeeTID, comperTID) < 0){
 						donothave = true;
 					}
 				}else{
 					//xtid starts early
-					if(shb.whoHappensFirst(eeStartNode, compee, eeTID, erTID) < 0){
+					if(shb.whoHappensFirst(compeeStartNode, compee, compeeTID, comperTID) < 0){
 						donothave = true;
 					}
 				}
