@@ -416,7 +416,7 @@ public class BugWorker extends UntypedActor{
 	// determine if two nodes have Happens-Before relation or not
 	private boolean hasHBRelation(int comperTID, INode comper, int compeeTID, INode compee){
 		boolean donothave = false;
-		boolean HBRelation = false;
+//		boolean HBRelation = false;
 		TIDEEngine engine;
 		if(DEBUG){
 			engine = Test.engine;
@@ -436,7 +436,6 @@ public class BugWorker extends UntypedActor{
 
 		MutableIntSet comperkids = comperStartNode.getTID_Child();
 		MutableIntSet compeekids = compeeStartNode.getTID_Child();
-		// -1: sync -> comper; 1: comper -> sync; 0: ?
 		if(comperkids.contains(compeeTID)){
 			//wtid is parent of xtid, wtid = comper
 			// comper is the parent of compee

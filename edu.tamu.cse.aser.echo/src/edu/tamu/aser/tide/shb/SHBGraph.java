@@ -125,8 +125,9 @@ public class SHBGraph{
 		return traceMapping.get(node);
 	}
 
+	// syncNode -> inode: -1
+	// inode -> syncNode: 1
 	public int compareParent(SyncNode syncNode, INode inode, int sTID, int iTID) {//inode stays in parent thread
-		// -1: sync -> comper; 1: comper -> sync; 0: ?
 		CGNode iCgNode = inode.getBelonging();
 		ArrayList<INode> list = getTrace(iCgNode).getContent();
 		int idxI = list.indexOf(inode);
