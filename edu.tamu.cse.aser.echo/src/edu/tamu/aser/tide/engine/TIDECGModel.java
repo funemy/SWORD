@@ -87,7 +87,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 	private Iterable<Entrypoint> entryPoints;
 
 	//start bug akka system
-	int nrOfWorkers = 8;
+	int nrOfWorkers = 1;
 	public ActorSystem akkasys;
 	public ActorRef bughub;
 	public static TIDEEngine bugEngine;
@@ -160,12 +160,22 @@ public class TIDECGModel extends WalaProjectCGModel {
 				if(bugs.isEmpty())
 					System.err.println(" _________________NO BUGS ________________");
 
+				HashSet<String> alertAccesses = new HashSet<String>();
 				for(ITIDEBug bug:bugs){
-					if(bug instanceof TIDERace)
+					if(bug instanceof TIDERace) {
 						showRace(fullPath, (TIDERace) bug);
-					else
+						if (!alertAccesses.contains(((TIDERace) bug).node1.getSig())) {
+							System.out.println(((TIDERace) bug).node1.getSig());
+							alertAccesses.add(((TIDERace) bug).node1.getSig());
+						}
+						if (!alertAccesses.contains(((TIDERace) bug).node2.getSig())) {
+							System.out.println(((TIDERace) bug).node2.getSig());
+							alertAccesses.add(((TIDERace) bug).node2.getSig());
+						}
+					} else
 						showDeadlock(fullPath,(TIDEDeadlock) bug);
 				}
+				System.out.println("-----------ALL BUGGY MEMORY ACCESSES: " + alertAccesses.size());
 				initialEchoView(bugs);
 			}
 		}catch (Exception e) {
@@ -567,7 +577,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 			IClass klass = classIterator.next();
 			if (!AnalysisUtils.isJDKClass(klass)) {
 				for (IMethod method : klass.getDeclaredMethods()) {
-					System.out.println(klass.toString()+ "   " + method.toString());
+//					System.out.println(klass.toString()+ "   " + method.toString());
 					try {
 						if(method.isStatic()&&method.isPublic()
 								&&method.getName().toString().equals("main")

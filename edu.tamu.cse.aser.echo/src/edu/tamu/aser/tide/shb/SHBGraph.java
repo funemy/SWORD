@@ -149,12 +149,13 @@ public class SHBGraph{
 			start = false;
 		}
 		// -1: sync -> comper; 1: comper -> sync; 0: ?
-		System.err.println("start to find top");
-		long starttime = System.currentTimeMillis();
+//		find top has high overhead
+//		System.err.println("start to find top");
+//		long starttime = System.currentTimeMillis();
 		HashSet<INode> stops = findTheTopNode(sync, stid);
 		HashSet<INode> itops = findTheTopNode(inode, itid);
-		long endtime = System.currentTimeMillis() -starttime;
-		System.err.println("find top time: " + endtime);
+//		long endtime = System.currentTimeMillis() -starttime;
+//		System.err.println("find top time: " + endtime);
 		if(stops.containsAll(itops) && itops.containsAll(stops)){
 			//same origins
 			Object[] origins = stops.toArray();

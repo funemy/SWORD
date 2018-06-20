@@ -72,8 +72,9 @@ public class StandardSolver extends AbstractPointsToSolver {
     final PropagationSystem system = getSystem();
     final PropagationCallGraphBuilder builder = getBuilder();
 
-
     do {
+      System.out.println("worklist size: " + system.getWorklist().size());
+      long start = System.currentTimeMillis();
       i++;
 
       if (DEBUG_PHASES) {
@@ -81,7 +82,7 @@ public class StandardSolver extends AbstractPointsToSolver {
       }
 
       system.solve(monitor);
-
+      
       if (DEBUG_PHASES) {
         System.err.println("Solved " + i);
       }
@@ -104,27 +105,29 @@ public class StandardSolver extends AbstractPointsToSolver {
 
       // getBuilder().callGraph.summarizeByPackage();
 
-      if (DEBUG_PHASES) {
-        System.err.println("handling reflection");
-      }
-
-      if (i <= builder.getOptions().getReflectionOptions().getNumFlowToCastIterations()) {
-        getReflectionHandler().updateForReflection(monitor);
-      }
+      // liyz: disable reflection for now
+//      if (DEBUG_PHASES) {
+//        System.err.println("handling reflection");
+//      }
+//
+//      if (i <= builder.getOptions().getReflectionOptions().getNumFlowToCastIterations()) {
+//        getReflectionHandler().updateForReflection(monitor);
+//      }
 
       // Handling reflection may have discovered new nodes!
       // Therefore we need to add constraints twice
-      if (DEBUG_PHASES) {
-        System.err.println("adding constraints again");
-      }
-
-      builder.addConstraintsFromNewNodes(monitor);
+//      if (DEBUG_PHASES) {
+//        System.err.println("adding constraints again");
+//      }
+//
+//      builder.addConstraintsFromNewNodes(monitor);
 
 
       if (monitor != null) { monitor.worked(i); }
 
       // Note that we may have added stuff to the
       // worklist; so,
+      System.out.println("Iteration " + i + ": " + (System.currentTimeMillis() - start ));
     } while (!system.emptyWorkList());
 
   }

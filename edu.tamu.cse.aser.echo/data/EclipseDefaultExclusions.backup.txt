@@ -8,6 +8,11 @@ com\/apple\/.*
 com\/oracle\/.*
 com\/vividsolutions\/.*
 apple\/.*
-org\/.*
+org\/xml\/.*
+org\/netbeans\/.*
+org\/openide\/.*
+org\/apache\/xerces\/.*
 jdbm\/.*
 com\/ibm\/wala\/.*
+
+org\/apache\/.*

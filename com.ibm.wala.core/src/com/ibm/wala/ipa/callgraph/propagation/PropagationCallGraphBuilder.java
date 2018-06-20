@@ -10,7 +10,9 @@
  *******************************************************************************/
 package com.ibm.wala.ipa.callgraph.propagation;
 
+import java.io.FileWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,7 +89,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
   private final static boolean DEBUG_PUT = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_ENTRYPOINTS = DEBUG_ALL | false;
+  private final static boolean DEBUG_ENTRYPOINTS = DEBUG_ALL | true;
 
 
   /**
@@ -511,12 +513,15 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         System.err.println("Entrypoint: " + E);
       }
 
-      SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
+      // liyz: reduce the call graph entries from fake root
+      if (!E.getMethod().getDeclaringClass().getClassLoader().toString().equals("Extension")) {
+        SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 
-      if (call == null) {
-        Warnings.add(EntrypointResolutionWarning.create(E));
-      } else {
-        entrypointCallSites.add(call.getCallSite());
+        if (call == null) {
+          Warnings.add(EntrypointResolutionWarning.create(E));
+        } else {
+          entrypointCallSites.add(call.getCallSite());
+        }
       }
     }
 
@@ -1121,20 +1126,20 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
   //JEFF - change to public
   // only used by echo
-  public void markChanged(CGNode node) {
-    alreadyVisited.remove(node);
-    discoveredNodes.add(node);
-
-    try {
-      solver.solve(null);
-    } catch (IllegalArgumentException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (CancelException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
+//  public void markChanged(CGNode node) {
+//    alreadyVisited.remove(node);
+//    discoveredNodes.add(node);
+//
+//    try {
+//      solver.solve(null);
+//    } catch (IllegalArgumentException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    } catch (CancelException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    }
+//  }
 
   protected boolean wasChanged(CGNode node) {
     return discoveredNodes.contains(node) && !alreadyVisited.contains(node);

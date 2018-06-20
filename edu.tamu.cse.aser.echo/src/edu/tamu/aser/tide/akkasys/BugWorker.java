@@ -434,23 +434,23 @@ public class BugWorker extends UntypedActor{
 		if (comperStartNode == null || compeeStartNode == null)
 			return false;
 
-		MutableIntSet comperkids = comperStartNode.getTID_Child();
-		MutableIntSet compeekids = compeeStartNode.getTID_Child();
-		if(comperkids.contains(compeeTID)){
-			//wtid is parent of xtid, wtid = comper
-			// comper is the parent of compee
+		MutableIntSet comperKidThreads = comperStartNode.getTID_Child();
+		MutableIntSet compeeKidThreads = compeeStartNode.getTID_Child();
+		if(comperKidThreads.contains(compeeTID)){
+			// comper's thread is the parent of compee's
 			if(shb.compareParent(compeeStartNode, comper, compeeTID, comperTID) < 0){//trace.indexOf(xStartNode) < trace.indexOf(comper)
 				if (compeeJoinNode != null) {
 					if (shb.compareParent(compeeJoinNode, comper, compeeTID, comperTID) > 0) {//trace.indexof(xjoinnode) > trace.indexof(comper)
 						donothave = true; //for multipaths: what if the paths compared above are different?
 					}
 				}else{
+					// compee's thread started after comper node
+					// no race
 					donothave = true;
 				}
 			}
-		}else if(compeekids.contains(comperTID)){
-			//xtid is parent of wtid, xtid = compee
-			// compee is the parent of comper
+		}else if(compeeKidThreads.contains(comperTID)){
+			// compee's thread is the parent of comper's
 			if(shb.compareParent(comperStartNode, compee, compeeTID, comperTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(compee)
 				if (comperJoinNode != null) {
 					if(shb.compareParent(comperJoinNode, compee, compeeTID, comperTID) > 0){////trace.indexof(wjoinnode) > trace.indexof(compee)

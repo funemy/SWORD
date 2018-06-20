@@ -168,15 +168,15 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
       // duplicate insertion detection
       AbstractStatement s = workList.takeStatement();
 //        countforTotalWL++;
-//      counterWL++;
       if (DEBUG) {
-        System.err.println(("Before evaluation " + s));
+        System.err.println(("Before evaluation " + s + s.getClass()));
       }
-//      try{
-//      if(s.toString().contains("Application"))
-//        System.out.println();
-//      }catch(Exception e){}
+
+//      long before_eva = System.currentTimeMillis();
       byte code = s.evaluate();
+//      long after_eva = System.currentTimeMillis();
+//      System.out.println("evaluation: " + s.getClass() + "[" + (after_eva - before_eva));
+
       if (verbose) {
         nEvaluated++;
         if (nEvaluated % getVerboseInterval() == 0) {
@@ -191,9 +191,6 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
         System.err.println(("After evaluation  " + s + " " + isChanged(code)));
       }
       if (isChanged(code)) {
-//        if(isChange&&!changes.contains(s.getLHS())){
-//          changes.add(s.getLHS());
-//        }
         globalChange = true;
         updateWorkList(s);
       }
@@ -209,7 +206,6 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
         removeStatement(s);
       }
     }
-//    System.out.println("worklist num: " + counterWL);
     return globalChange;
   }
 
@@ -257,56 +253,6 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
 //    System.out.println("worklist num: " + counterWL);
     return globalChange;
   }
-
-//  public boolean solveAkka(IProgressMonitor monitor) throws CancelException {
-//
-//  boolean globalChange = false;
-//
-////  System.out.println("Num of Statement in Worklist: " + workListAkka.size());
-//  while (!workListAkka.isEmpty()) {
-//    MonitorUtil.throwExceptionIfCanceled(monitor);
-//    orderStatements();
-//
-//    // duplicate insertion detection
-//    AbstractStatement s = workListAkka.takeStatement();
-//    if (DEBUG) {
-//      System.err.println(("Before evaluation " + s));
-//    }
-////    try{
-////    if(s.toString().contains("Application"))
-////      System.out.println();
-////    }catch(Exception e){}
-//
-//    byte code = s.evaluate();
-////    System.err.println(i++);
-//    if (verbose) {
-//      nEvaluated++;
-//      if (nEvaluated % getVerboseInterval() == 0) {
-//        performVerboseAction();
-//      }
-//      if (nEvaluated % getPeriodicMaintainInterval() == 0) {
-//        periodicMaintenance();
-//      }
-//
-//    }
-//    if (DEBUG) {
-//      System.err.println(("After evaluation  " + s + " " + isChanged(code)));
-//    }
-//    if (isChanged(code)) {
-//      if(isChange&&!changes.contains(s.getLHS())){
-//        changes.add(s.getLHS());
-////        System.out.println("---------"+s.toString());
-//      }
-//      globalChange = true;
-//      updateWorkListAkka(s);
-//    }
-//    if (isFixed(code)) {
-//      removeStatement(s);
-//    }
-//  }
-//  return globalChange;
-//}
-
 
   @Override
   public void performVerboseAction() {
@@ -617,12 +563,11 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
   public void changedVariable(T v) {
     for (Iterator it = getFixedPointSystem().getStatementsThatUse(v); it.hasNext();) {
       AbstractStatement s = (AbstractStatement) it.next();
-      if(isChange)
-        addToWorklistAkka(s);
-      else
-        addToWorkList(s);
 //      if(isChange)
-//        System.out.println("add to task" + s.toString());
+//        addToWorklistAkka(s);
+//      else
+//        addToWorkList(s);
+      addToWorkList(s);
     }
   }
 
