@@ -233,210 +233,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
     return makeCallGraph(options, null);
   }
 
-
-  //for experiments only
-  public static long totaltime = 0;
-
-  /**
-   * for incremental pta check
-   * @param n
-   */
-  public void testChange(CGNode node) {
-    system.setChange(true);
-    IR ir = node.getIR();
-    if(ir==null)
-      return;
-
-    DefUse du = new DefUse(ir);
-    ConstraintVisitor v = ((SSAPropagationCallGraphBuilder)this).makeVisitor(node);
-    v.setIR(ir);
-    v.setDefUse(du);
-
-    ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = ir.getControlFlowGraph();
-    SSAInstruction[] insts = ir.getInstructions();
-    int size = insts.length;
-
-    for(int i=size;i>0;i--){
-      SSAInstruction inst = insts[i-1];
-
-      if(inst==null)
-        continue;//skip null
-
-      ISSABasicBlock bb = cfg.getBlockForInstruction(inst.iindex);
-      //delete
-      try{
-        System.out.println("........ Deleting SSAInstruction:      "+ inst.toString());
-        this.setDelete(true);
-        system.setFirstDel(true);
-        v.setBasicBlock(bb);
-        long delete_start_time = System.currentTimeMillis();
-
-        inst.visit(v);
-        system.setFirstDel(false);
-        do{
-          system.solveAkkaDel(null);
-        }while(!system.emptyWorkListAkka());
-        system.clearTheRoot();
-        system.makeWorkListAkkaEmpty();
-        setDelete(false);
-
-        long delete_end_time = System.currentTimeMillis();
-        long delete_time = (delete_end_time-delete_start_time);
-
-        HashSet<IVariable> resultsDelete = system.changes;
-        int deletesize = resultsDelete.size();
-        system.clearChanges();
-
-        //add
-        System.out.println("........ Adding SSAInstruction:      "+ inst.toString());
-        long add_start_time = System.currentTimeMillis();
-        inst.visit(v);
-        do{
-          system.solveAkkaAdd(null);
-          addConstraintsFromNewNodes(null);
-        } while (!system.emptyWorkListAkka());
-        system.makeWorkListAkkaEmpty();
-
-        long add_end_time = System.currentTimeMillis();
-        long add_time = (add_end_time-add_start_time);
-
-        HashSet<IVariable> results = system.changes;
-        int addsize = results.size();
-        if(addsize == deletesize){
-          System.out.println(".......... the same points-to sets changed in deleting and adding instruction. ");
-        }
-
-        boolean nochange = true;
-        Iterator<IVariable> it = results.iterator();
-        while(it.hasNext()){
-          PointsToSetVariable var = (PointsToSetVariable) it.next();
-          MutableIntSet update = var.getValue();
-          MutableIntSet origin = system.var_pts_map.get(var);
-          if(var != null && update != null){
-            if(!update.sameValue(origin)){
-              nochange = false;
-            }
-          }
-        }
-
-        if(nochange){
-          System.out.println(".......... points-to sets are the same before deleting inst and after adding back inst. ");
-        }else{
-          System.err.println("********** points-to sets are the changed before deleting inst and after adding back inst. ");
-        }
-
-        system.clearChanges();
-
-        System.out.println();
-        totaltime = totaltime+ delete_time + add_time;
-
-      }catch(Exception e)
-      {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  /**
-   * for experiment
-   * @param node
-   * @param ps
-   */
-  public void testChange(CGNode node, PrintStream ps){
-    system.setChange(true);
-    IR ir = node.getIR();
-    if(ir==null)
-      return;
-
-    DefUse du = new DefUse(ir);
-    ConstraintVisitor v = ((SSAPropagationCallGraphBuilder)this).makeVisitor(node);
-    v.setIR(ir);
-    v.setDefUse(du);
-
-    ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = ir.getControlFlowGraph();
-    SSAInstruction[] insts = ir.getInstructions();
-    int size = insts.length;
-    for(int i=size;i>0;i--){
-
-      SSAInstruction inst = insts[i-1];
-
-      if(inst==null)
-        continue;//skip null
-
-      System.out.println("INST:      "+ inst.toString());
-      ISSABasicBlock bb = cfg.getBlockForInstruction(inst.iindex);
-      //delete
-      try{
-
-        this.setDelete(true);
-        system.setFirstDel(true);
-        v.setBasicBlock(bb);
-        long delete_start_time = System.currentTimeMillis();
-
-        inst.visit(v);
-
-        system.setFirstDel(false);
-        do{
-          system.solveAkkaDel(null);
-        }while(!system.emptyWorkListAkka());
-        system.clearTheRoot();
-        system.makeWorkListAkkaEmpty();
-        setDelete(false);
-
-        long delete_end_time = System.currentTimeMillis();
-        long delete_time = (delete_end_time-delete_start_time);
-
-        HashSet<IVariable> resultsDelete = system.changes;
-        Iterator<IVariable> itDelete = resultsDelete.iterator();
-        while(itDelete.hasNext()){
-          System.out.println(((PointsToSetVariable)itDelete.next()).getPointerKey().toString());
-        }
-        int delsize = resultsDelete.size();
-        System.out.println("num of deletion changes seq: " + resultsDelete.size());
-
-        system.clearChanges();
-
-        long add_start_time = System.currentTimeMillis();
-        inst.visit(v);
-        do{
-          system.solveAkkaAdd(null);
-          addConstraintsFromNewNodes(null);
-        } while (!system.emptyWorkListAkka());
-        system.makeWorkListAkkaEmpty();
-
-        long add_end_time = System.currentTimeMillis();
-        long add_time = (add_end_time-add_start_time);
-
-        HashSet<IVariable> results = system.changes;
-        Iterator<IVariable> it = results.iterator();
-        while(it.hasNext()){
-          System.out.println(((PointsToSetVariable)it.next()).getPointerKey().toString());
-        }
-        int addsize = results.size();
-        System.out.println("num of addition changes seq: " +results.size());
-
-//        if(delsize != addsize)
-//          System.err.println("NOT MATCH ");
-        System.out.println("PARALLEL INCREMENTAL DELETE TIME: " +delete_time + ";  PARALLEL INCREMEMTAL ADDITION TIME: " + add_time);
-
-        system.clearChanges();
-        //          ps.print(delete_time+" "+add_time+" ");
-
-        if(delete_time > 3000){
-          System.err.println("BAD NODE: "+ node.toString() + "\n --- INST: "+inst.toString());
-        }
-
-        System.out.println();
-        totaltime = totaltime+ delete_time + add_time;
-
-      }catch(Exception e)
-      {
-        e.printStackTrace();
-      }
-    }
-    ps.println();
-  }
-
   ////**** do not forget to change this function to handle IDE
   @Override
   public void updatePointerAnalaysis(CGNode node, Map added, Map deleted,
@@ -1126,20 +922,20 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
 
   //JEFF - change to public
   // only used by echo
-//  public void markChanged(CGNode node) {
-//    alreadyVisited.remove(node);
-//    discoveredNodes.add(node);
-//
-//    try {
-//      solver.solve(null);
-//    } catch (IllegalArgumentException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    } catch (CancelException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
-//  }
+  public void markChanged(CGNode node) {
+    alreadyVisited.remove(node);
+    discoveredNodes.add(node);
+
+    try {
+      solver.solve(null);
+    } catch (IllegalArgumentException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (CancelException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
 
   protected boolean wasChanged(CGNode node) {
     return discoveredNodes.contains(node) && !alreadyVisited.contains(node);
@@ -1176,7 +972,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       if (rhs.size() == 0) {
         return NOT_CHANGED;
       }
-      final PointerKey object = rhs.getPointerKey();
 
       PointsToSetVariable def = getFixedSet();
       final PointerKey dVal = def.getPointerKey();
@@ -1206,50 +1001,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         }
       };
 
-      final ArrayList<PointsToSetVariable> rhss = new ArrayList<>();
-      IntSetAction action2 = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!I.getConcreteType().isArrayClass()) {
-            return;
-          }
-          TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-          if (C.isPrimitiveType()) {
-            return;
-          }
-          PointerKey p = getPointerKeyForArrayContents(I);
-          if (p == null) {
-            return;
-          }
-
-          if (DEBUG_ARRAY_LOAD) {
-            System.err.println("ArrayLoad add assign: " + dVal + " " + p);
-          }
-          sideEffect.b |= system.newConstraint(dVal, assignOperator, p);
-          PointsToSetVariable rhs = system.findOrCreatePointsToSet(p);
-          if(rhs.getValue() != null)
-            rhss.add(rhs);
-        }
-      };
-
       MutableIntSet value = rhs.getValue();
-      if(system.isChange && rhss.size() > 1000){
-        if (priorInstances != null) {
-          value.foreachExcluding(priorInstances, action2);
-          priorInstances.addAll(rhs.getValue());
-        } else {
-          value.foreach(action2);
-        }
-        if(rhss.size() != 0)
-          system.addConstraintHasMultiR(dVal, assignOperator, rhss);//change
-      }else{
-        if (priorInstances != null) {
-          value.foreachExcluding(priorInstances, action);
-          priorInstances.addAll(rhs.getValue());
-        } else {
-          value.foreach(action);
-        }
+      if (priorInstances != null) {
+        value.foreachExcluding(priorInstances, action);
+        priorInstances.addAll(rhs.getValue());
+      } else {
+        value.foreach(action);
       }
       byte sideEffectMask = sideEffect.b ? (byte) SIDE_EFFECT_MASK : 0;
       return (byte) (NOT_CHANGED | sideEffectMask);
@@ -1513,7 +1270,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       if (ref.size() == 0) {
         return NOT_CHANGED;
       }
-      final PointerKey object = ref.getPointerKey();
       PointsToSetVariable def = getFixedSet();
       final PointerKey dVal = def.getPointerKey();
 
@@ -1537,53 +1293,18 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
                 String S = "Getfield add constraint " + dVal + " " + p;
                 System.err.println(S);
               }
-              //              sideEffect.b |= system.newFieldRead(dVal, assignOperator, p, object);
               sideEffect.b |= system.newConstraint(dVal, assignOperator, p);
             }
           }
         }
       };
 
-      final ArrayList<PointsToSetVariable> rhss = new ArrayList<>();
-      IntSetAction action2 = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!representsNullType(I)) {
-            PointerKey p = getPointerKeyForInstanceField(I, getField());
-
-            if (p != null) {
-              if (DEBUG_GET) {
-                String S = "Getfield add constraint " + dVal + " " + p;
-                System.err.println(S);
-              }
-              rhss.add(system.findOrCreatePointsToSet(p));
-            }
-          }
-        }
-      };
-
-      int size = rhs.getValue().size();
-
-      if(system.isChange && rhss.size() > 600){
-        if (priorInstances != null) {
-          value.foreachExcluding(priorInstances, action2);
-          priorInstances.addAll(value);
-        } else {
-          value.foreach(action2);
-        }
-        if(rhss.size() != 0)
-          system.anotherWay(def, assignOperator, rhss, true);
-      }else{
-        if (priorInstances != null) {
-          value.foreachExcluding(priorInstances, action);
-          priorInstances.addAll(value);
-        } else {
-          value.foreach(action);
-        }
+      if (priorInstances != null) {
+        value.foreachExcluding(priorInstances, action);
+        priorInstances.addAll(value);
+      } else {
+        value.foreach(action);
       }
-      //        }
-      //      }
       byte sideEffectMask = sideEffect.b ? (byte) SIDE_EFFECT_MASK : 0;
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
@@ -1730,7 +1451,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       if (rhs.size() == 0) {
         return NOT_CHANGED;
       }
-      final PointerKey object = rhs.getPointerKey();
 
       PointsToSetVariable val = getFixedSet();
       final PointerKey pVal = val.getPointerKey();
@@ -1756,62 +1476,17 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
                 String S = "Putfield add constraint " + p + " " + pVal;
                 System.err.println(S);
               }
-              //              sideEffect.b |= system.newFieldWrite(p, assign, pVal, object);
               sideEffect.b |= system.newConstraint(p, assign, pVal);
             }
           }
         }
       };
 
-      final ArrayList<PointsToSetVariable> lhss = new ArrayList<>();
-      IntSetAction action2 = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!representsNullType(I)) {
-            PointerKey p = getPointerKeyForInstanceField(I, getField());
-            if(p != null){
-              PointsToSetVariable pptv = system.findOrCreatePointsToSet(p);
-              if (p != null) {
-                lhss.add(pptv);
-              }
-            }
-          }
-        }
-      };
-
-      if(system.isChange){//incremental
-        if (priorInstances != null) {
-          int size = value.size() - priorInstances.size();
-          if(size < 1000){
-            value.foreachExcluding(priorInstances, action);
-          }else{
-            if(val.getValue() != null){
-              value.foreachExcluding(priorInstances, action2);
-              MutableIntSet targets = IntSetUtil.makeMutableCopy(val.getValue());
-              system.addConstraintHasMultiL(lhss, assignOperator, val, targets);
-            }
-          }
-          priorInstances.addAll(value);
-        } else {
-          int size = value.size();
-          if(size < 60){
-            value.foreach(action);
-          }else{
-            if(val.getValue() != null){
-              value.foreach(action2);
-              MutableIntSet targets = IntSetUtil.makeMutableCopy(val.getValue());
-              system.addConstraintHasMultiL(lhss, assignOperator, val, targets);
-            }
-          }
-        }
-      }else{//whole compute
-        if (priorInstances != null) {
-          value.foreachExcluding(priorInstances, action);
-          priorInstances.addAll(value);
-        }else{
-          value.foreach(action);
-        }
+      if (priorInstances != null) {
+        value.foreachExcluding(priorInstances, action);
+        priorInstances.addAll(value);
+      }else{
+        value.foreach(action);
       }
 
       byte sideEffectMask = sideEffect.b ? (byte) SIDE_EFFECT_MASK : 0;
@@ -2292,11 +1967,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
    */
   public void addConstraintsFromChangedNode(CGNode node, IProgressMonitor monitor) throws CancelException {
     SSAInstruction[] instructions = node.getIR().getInstructions();
-//    System.out.println("**** Update Call Graph, Add Inst: ");
-//    for (SSAInstruction ssaInstruction : instructions) {
-//      if(ssaInstruction != null)
-//        System.out.println("          " + ssaInstruction.toString());
-//    }
     unconditionallyAddConstraintsFromNode(node, monitor);
   }
 
