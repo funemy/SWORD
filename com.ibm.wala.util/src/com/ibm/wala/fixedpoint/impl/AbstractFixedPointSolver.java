@@ -195,13 +195,6 @@ public abstract class AbstractFixedPointSolver<T extends IVariable<?>> implement
         updateWorkList(s);
       }
 
-   // sz: since I didn't see it's called anywhere
-      //*** do NOT delete any infor inside data flow graph
-//      if (isFixed(code)) {
-//        removeStatement(s);
-//      }
-
-
       if (isFixed(code)) {
         removeStatement(s);
       }

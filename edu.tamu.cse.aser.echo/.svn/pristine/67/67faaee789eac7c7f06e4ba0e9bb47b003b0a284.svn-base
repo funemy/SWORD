@@ -1,5 +1,0 @@
-package edu.tamu.aser.tide.trace;
-
-public abstract class SyncNode implements INode {
-public abstract String toString();
-}
