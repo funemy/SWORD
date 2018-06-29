@@ -171,7 +171,7 @@
           id="edu.tamu.aser.tide.views.echoraceview"
           class="edu.tamu.aser.tide.views.EchoRaceView"
           icon="icons/circle-running-icon.png"
-          name="D4 Race List" />
+          name="ECHO Race List" />
         <view 
           id="edu.tamu.aser.tide.views.echodlview"
           class="edu.tamu.aser.tide.views.EchoDLView"
@@ -181,7 +181,7 @@
 		  class="edu.tamu.aser.tide.views.EchoReadWriteView"
 		  icon="icons/parallel.png"
 		  id="edu.tamu.aser.tide.views.echotableview"
-		  name="D4 Concurrent Relations" />
+		  name="ECHO Concurrent Relations" />
    </extension>
    
 

@@ -1,85 +1,42 @@
-Iteration 1
-Solved 1
-adding constraints
-Iteration 1: 1806
-Iteration 2
-Solved 2
-adding constraints
-Iteration 3
-Iteration 2: 1823
-Solved 3
-adding constraints
-Iteration 3: 2137
-Iteration 4
-Solved 4
-adding constraints
-Iteration 4: 4015
-Iteration 5
-Solved 5
-adding constraints
-Iteration 5: 2342
-Iteration 6
-Solved 6
-adding constraints
-Iteration 6: 11912
-Iteration 7
-Solved 7
-adding constraints
-Iteration 7: 12383
-Iteration 8
-Solved 8
-adding constraints
-Iteration 8: 71443
-Iteration 9
-Solved 9
-adding constraints
-Iteration 9: 130510
-Iteration 10
-Solved 10
-adding constraints
-Iteration 11
-Iteration 10: 213501
-Solved 11
-adding constraints
-Iteration 11: 230902
-Iteration 12
-Solved 12
-adding constraints
-Iteration 12: 182327
-Iteration 13
-Solved 13
-adding constraints
-Iteration 13: 107744
-Iteration 14
-Solved 14
-adding constraints
-Iteration 14: 30787
-Iteration 15
-Solved 15
-adding constraints
-Iteration 15: 53925
-Iteration 16
-Solved 16
-adding constraints
-Iteration 16: 37846
-Iteration 17
-Solved 17
-adding constraints
-Iteration 17: 15239
-Iteration 18
-Solved 18
-adding constraints
-Iteration 18: 8987
-Iteration 19
-Solved 19
-adding constraints
-Iteration 19: 16999
-Iteration 20
-Solved 20
-adding constraints
-Iteration 20: 7365
-Iteration 21
-Solved 21
-adding constraints
-Iteration 21: 3321
-Call Graph Construction Time: 1148716
+worklist size: 0
+Iteration 1: 1480
+worklist size: 3933
+Iteration 2: 1101
+worklist size: 2151
+Iteration 3: 1465
+worklist size: 1909
+Iteration 4: 2938
+worklist size: 1579
+Iteration 5: 1497
+worklist size: 2911
+Iteration 6: 8241
+worklist size: 4019
+Iteration 7: 11672
+worklist size: 4042
+Iteration 8: 61231
+worklist size: 7116
+Iteration 9: 16442
+worklist size: 9965
+Iteration 10: 115894
+worklist size: 4854
+Iteration 11: 70630
+worklist size: 4636
+Iteration 12: 278058
+worklist size: 4338
+Iteration 13: 79223
+worklist size: 1708
+Iteration 14: 9902
+worklist size: 1141
+Iteration 15: 48324
+worklist size: 700
+Iteration 16: 31706
+worklist size: 361
+Iteration 17: 16005
+worklist size: 195
+Iteration 18: 8287
+worklist size: 95
+Iteration 19: 12661
+worklist size: 243
+Iteration 20: 4831
+worklist size: 47
+Iteration 21: 3234

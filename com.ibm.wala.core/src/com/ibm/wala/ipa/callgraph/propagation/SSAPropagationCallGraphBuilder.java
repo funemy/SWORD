@@ -2787,7 +2787,11 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
     InterestingVisitor v = makeInterestingVisitor(node, vn);
     for (Iterator it = du.getUses(v.vn); it.hasNext();) {
       SSAInstruction s = (SSAInstruction) it.next();
-      s.visit(v);
+      try {
+        s.visit(v);
+      } catch (java.lang.ClassCastException e) {
+        e.printStackTrace();
+      }
       if (v.bingo) {
         return false;
       }

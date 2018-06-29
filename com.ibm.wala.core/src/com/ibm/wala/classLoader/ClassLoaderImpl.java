@@ -265,7 +265,7 @@ public class ClassLoaderImpl implements IClassLoader {
         }
         //TEST include java.string and java.util
         if(!className.startsWith("java/lang")&&!className.startsWith("java/util"))
-            continue;
+          continue;
       }
 
       ShrikeClassReaderHandle entryReader = new ShrikeClassReaderHandle(entry);

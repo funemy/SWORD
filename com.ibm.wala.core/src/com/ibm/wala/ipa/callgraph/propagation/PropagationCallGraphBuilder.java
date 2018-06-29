@@ -130,7 +130,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
   /**
    * Set of calls (CallSiteReferences) that are created by entrypoints
    */
-  final protected Set<CallSiteReference> entrypointCallSites = HashSetFactory.make();
+  protected Set<CallSiteReference> entrypointCallSites = HashSetFactory.make();
 
   /**
    * The system of constraints used to build this graph
@@ -303,6 +303,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
     discoveredNodes.add(callGraph.getFakeRootNode());
 
     // Set up the initially reachable methods and classes
+//    Set<CallSiteReference> conservativeEntries = new HashSet<CallSiteReference>();
     for (Iterator it = options.getEntrypoints().iterator(); it.hasNext();) {
       Entrypoint E = (Entrypoint) it.next();
       if (DEBUG_ENTRYPOINTS) {
@@ -310,7 +311,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       }
 
       // liyz: reduce the call graph entries from fake root
-      if (!E.getMethod().getDeclaringClass().getClassLoader().toString().equals("Extension")) {
+      if (E.getMethod().getName().toString().equals("main")) {
         SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 
         if (call == null) {
@@ -319,7 +320,15 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
           entrypointCallSites.add(call.getCallSite());
         }
       }
+//      } else if (E.getMethod().getName().toString().equals("main")) {
+//        SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
+//        if (call != null)
+//          conservativeEntries.add(call.getCallSite());
+//      }
     }
+//    if (entrypointCallSites.isEmpty()) {
+//      entrypointCallSites = conservativeEntries;
+//    }
 
     /** BEGIN Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
     if (entrypointCallSites.isEmpty()) {
@@ -688,23 +697,23 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       boolean changed = false;
       FilteredPointerKey.TypeFilter filter = pk.getTypeFilter();
 
-      int orl = lhs.getOrderNumber();
-      int orr = rhs.getOrderNumber();
-      PointsToSetVariable first;
-      PointsToSetVariable sec;
-      if(orl<orr){
-        first = lhs;
-        sec = rhs;
-      }else{
-        first =rhs;
-        sec = lhs;
-      }
-
-      synchronized(first){
-        synchronized (sec) {
+//      int orl = lhs.getOrderNumber();
+//      int orr = rhs.getOrderNumber();
+//      PointsToSetVariable first;
+//      PointsToSetVariable sec;
+//      if(orl<orr){
+//        first = lhs;
+//        sec = rhs;
+//      }else{
+//        first =rhs;
+//        sec = lhs;
+//      }
+//
+//      synchronized(first){
+//        synchronized (sec) {
           changed = filter.addFiltered(system, lhs, rhs);
-        }
-      }
+//        }
+//      }
       //      changed = filter.addFiltered(system, lhs, rhs);
 
       if (DEBUG_FILTER) {

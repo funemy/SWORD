@@ -145,9 +145,9 @@ public abstract class JavaSourceLoaderImpl extends ClassLoaderImpl {
         Assertions.UNREACHABLE("Cannot find super class for " + this + " in " + superTypeNames);
       }
 
-      if (excludedSupertype){
-        System.err.println("Not tracking calls through excluded superclass of " + getName() + " extends " + superTypeNames);
-      }
+//      if (excludedSupertype){
+//        System.err.println("Not tracking calls through excluded superclass of " + getName() + " extends " + superTypeNames);
+//      }
 
       return null;
     }

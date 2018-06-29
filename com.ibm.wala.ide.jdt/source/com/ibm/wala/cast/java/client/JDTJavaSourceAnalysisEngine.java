@@ -43,6 +43,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.ibm.wala.cast.ir.cfg.Util;
 import com.ibm.wala.cast.ir.ssa.AstIRFactory;
 import com.ibm.wala.cast.java.client.impl.ZeroCFABuilderFactory;
 import com.ibm.wala.cast.java.client.impl.ZeroOneContainerCFABuilderFactory;
@@ -58,6 +59,10 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.ContextSelector;
+import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.OneLevelSiteContextSelector;
+import com.ibm.wala.ipa.callgraph.propagation.cfa.ZeroXContainerCFABuilder;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.config.SetOfClasses;
@@ -104,8 +109,10 @@ public class JDTJavaSourceAnalysisEngine extends EclipseProjectSourceAnalysisEng
 		  AnalysisOptions options, AnalysisCache cache) {
 	    return new ZeroCFABuilderFactory().make(options, cache, cha, scope, false);//JEFF
 //	    return new ZeroOneContainerCFABuilderFactory().make(options, cache, cha, scope, false);
-//    return new ZeroXContainerCFABuilder(cha, options, cache, null, null, ZeroXInstanceKeys.ALLOCATIONS | ZeroXInstanceKeys.SMUSH_MANY | ZeroXInstanceKeys.SMUSH_PRIMITIVE_HOLDERS
-//        | ZeroXInstanceKeys.SMUSH_STRINGS | ZeroXInstanceKeys.SMUSH_THROWABLES);
+//    return com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneContainerCFABuilder(options, cache, cha, scope);
+//    return com.ibm.wala.ipa.callgraph.impl.Util.makeVanillaZeroOneCFABuilder(options, cache, cha, scope);
+//	    return new ZeroOneContainerCFABuilderFactory().make(options, cache, cha, scope, false);
+//    return com.ibm.wala.ipa.callgraph.impl.Util.makeZeroOneContainerCFABuilder(options, cache, cha, scope);
   }
 
 }

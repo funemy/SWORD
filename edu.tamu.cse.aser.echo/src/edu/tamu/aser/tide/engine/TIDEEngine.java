@@ -166,12 +166,19 @@ public class TIDEEngine{
 		for(CGNode n: cgnodes){
 			String sig = n.getMethod().getSignature();
 			//find the main node
-			if(sig.contains(entrySignature)){
+			String entryName = n.getMethod().getName().toString();
+			if (entryName.equals("main")) {
 				mainEntryNodes.add(n);
-			}else{
+			} else {
 				TypeName name  = n.getMethod().getDeclaringClass().getName();
 				threadSigNodeMap.put(name, n);
 			}
+//			if(sig.contains(entrySignature)){
+//				mainEntryNodes.add(n);
+//			}else{
+//				TypeName name  = n.getMethod().getDeclaringClass().getName();
+//				threadSigNodeMap.put(name, n);
+//			}
 		}
 
 	}
@@ -702,6 +709,9 @@ public class TIDEEngine{
 					}
 					DLockNode will = null;
 					//if synchronized method, add lock/unlock
+//					System.out.println("----------------------------");
+//					System.out.println("method: " + node.getMethod());
+//					System.out.println("is sync: " + node.getMethod().isSynchronized());
 					if(node.getMethod().isSynchronized()){
 						syncMethods.add(node);
 						// for deadlock
@@ -1418,6 +1428,9 @@ public class TIDEEngine{
 				creation = keyCGNode.getDU().getDef(param);
 				useNode = keyCGNode;
 			}
+			
+			if (creation == null)
+				return null;
 
 			if(creation instanceof SSAGetInstruction){
 				name = ((SSAGetInstruction) creation).getDeclaredField().getDeclaringClass().getName();

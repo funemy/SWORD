@@ -1,5 +1,4 @@
 java\/.*
-javax\/.*
 sun\/.*
 sunw\/.*
 com\/sun\/.*
@@ -8,6 +7,5 @@ com\/apple\/.*
 com\/oracle\/.*
 com\/vividsolutions\/.*
 apple\/.*
-org\/.*
 jdbm\/.*
 com\/ibm\/wala\/.*

@@ -87,7 +87,7 @@ public class TIDECGModel extends WalaProjectCGModel {
 	private Iterable<Entrypoint> entryPoints;
 
 	//start bug akka system
-	int nrOfWorkers = 1;
+	int nrOfWorkers = 8;
 	public ActorSystem akkasys;
 	public ActorRef bughub;
 	public static TIDEEngine bugEngine;
