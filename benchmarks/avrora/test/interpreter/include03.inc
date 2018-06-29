@@ -1,1 +1,0 @@
-.equ value = 3

@@ -1,3 +1,0 @@
-global proc sunflowDeleteMenu(){
-	if ( `menu -exists sunflowMainWindowMenu` ) deleteUI sunflowMainWindowMenu;
-}
