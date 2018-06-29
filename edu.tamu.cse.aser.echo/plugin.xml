@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            name="ECHO"
+            name="SWORD"
             id="edu.tamu.aser.tide.plugin.convert">
       </command>
       
@@ -148,13 +148,6 @@
                   							type="org.eclipse.core.resources.IResource">
                   							<test property="org.eclipse.core.resources.contentTypeId"
                   							value="org.eclipse.jdt.core.javaSource"/>
-                  							<!-- org.eclipse.jdt.core.ICompilationUnit -->
-                  							<!-- <test property="org.eclipse.core.resources.name"
-                								value="*.java"/>-->
-                							<!-- <test   forcePluginActivation="true"
-            										property="edu.tamu.aser.tide.plugin.checkMain"
-             										value="true">
-     										</test>	-->
                   						</adapt>
                   				</iterate>
                   				</and>
