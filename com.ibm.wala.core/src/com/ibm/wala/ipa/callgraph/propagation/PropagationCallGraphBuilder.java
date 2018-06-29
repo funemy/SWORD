@@ -311,7 +311,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
       }
 
       // liyz: reduce the call graph entries from fake root
-      if (E.getMethod().getName().toString().equals("main")) {
+//      if (E.getMethod().getName().toString().equals("main")) {
         SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 
         if (call == null) {
@@ -319,7 +319,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder {
         } else {
           entrypointCallSites.add(call.getCallSite());
         }
-      }
+//      }
 //      } else if (E.getMethod().getName().toString().equals("main")) {
 //        SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 //        if (call != null)

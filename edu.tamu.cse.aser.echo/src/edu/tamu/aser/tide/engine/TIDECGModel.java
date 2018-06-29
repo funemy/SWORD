@@ -165,11 +165,11 @@ public class TIDECGModel extends WalaProjectCGModel {
 					if(bug instanceof TIDERace) {
 						showRace(fullPath, (TIDERace) bug);
 						if (!alertAccesses.contains(((TIDERace) bug).node1.getSig())) {
-							System.out.println(((TIDERace) bug).node1.getSig());
+//							System.out.println(((TIDERace) bug).node1.getSig());
 							alertAccesses.add(((TIDERace) bug).node1.getSig());
 						}
 						if (!alertAccesses.contains(((TIDERace) bug).node2.getSig())) {
-							System.out.println(((TIDERace) bug).node2.getSig());
+//							System.out.println(((TIDERace) bug).node2.getSig());
 							alertAccesses.add(((TIDERace) bug).node2.getSig());
 						}
 					} else

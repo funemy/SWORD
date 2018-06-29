@@ -3,6 +3,7 @@ package edu.tamu.aser.tide.tests;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -62,7 +63,7 @@ public class Test {
 	public static void main(String[] args) {
 		try{
 			boolean includeAllMainEntryPoints = true;
-			String mainClassName ="rasterizer/Main";
+			String mainClassName ="Benchmark";
 			// avrora: Main
 			// batik: rasterizer/Main
 			// eclipse: EclipseStarter
@@ -146,20 +147,30 @@ public class Test {
 			System.out.println("Total Nodes in SHB graph: " + engine.shb.getNumOfNodes());
 
 			System.err.println("INITIAL DETECTION >>>");
+			System.out.println("detection time: " + (System.currentTimeMillis() - start_time));
 			int race = 0;
 			int dl = 0;
+			HashSet<String> alertAccesses = new HashSet<String>();
 			for(ITIDEBug bug : bugs){
 				if(bug instanceof TIDERace){
 					race++;
-					showUpRaces((TIDERace) bug);
+//					showUpRaces((TIDERace) bug);
+					if (!alertAccesses.contains(((TIDERace) bug).node1.getSig())) {
+//						System.out.println(((TIDERace) bug).node1.getSig());
+						alertAccesses.add(((TIDERace) bug).node1.getSig());
+					}
+					if (!alertAccesses.contains(((TIDERace) bug).node2.getSig())) {
+//						System.out.println(((TIDERace) bug).node2.getSig());
+						alertAccesses.add(((TIDERace) bug).node2.getSig());
+					}
 				}else if (bug instanceof TIDEDeadlock){
-					showUpDeadlocks((TIDEDeadlock) bug);
+//					showUpDeadlocks((TIDEDeadlock) bug);
 					dl++;
 				}
 			}
-			System.out.println();
-			System.out.println("detection time: " + (System.currentTimeMillis() - start_time));
+			System.out.println("-----------ALL BUGGY MEMORY ACCESSES: " + alertAccesses.size());
 			System.out.println("num of race: " + race + "  dl: " + dl);
+			System.out.println();
 
 		}catch(Exception e){
 			e.printStackTrace();

@@ -171,17 +171,17 @@
           id="edu.tamu.aser.tide.views.echoraceview"
           class="edu.tamu.aser.tide.views.EchoRaceView"
           icon="icons/circle-running-icon.png"
-          name="ECHO Race List" />
+          name="SWORD Race List" />
         <view 
           id="edu.tamu.aser.tide.views.echodlview"
           class="edu.tamu.aser.tide.views.EchoDLView"
           icon="icons/Lock-icon.png"
-          name="D4 Deadlock List" />
+          name="SWORD Deadlock List" />
         <view
 		  class="edu.tamu.aser.tide.views.EchoReadWriteView"
 		  icon="icons/parallel.png"
 		  id="edu.tamu.aser.tide.views.echotableview"
-		  name="ECHO Concurrent Relations" />
+		  name="SWORD Concurrent Relations" />
    </extension>
    
 

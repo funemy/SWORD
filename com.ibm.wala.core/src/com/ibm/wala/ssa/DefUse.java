@@ -136,6 +136,9 @@ public class DefUse {
    * @return the {@link SSAInstruction} that defines the variable with value number v.
    */
   public SSAInstruction getDef(int v) {
+    if(v == -1 ) {
+      System.out.println();
+    }
     return (v < defs.length) ? defs[v] : null;
   }
 

@@ -142,8 +142,8 @@ public class BugWorker extends UntypedActor{
 		}else{
 			engine = TIDECGModel.bugEngine;
 		}
-		System.out.println("all writes: " + writes + "[" + self().path().name() + "]");
-		System.out.println("all reads: " + reads + "[" + self().path().name() + "]");
+//		System.out.println("all writes: " + writes + "[" + self().path().name() + "]");
+//		System.out.println("all reads: " + reads + "[" + self().path().name() + "]");
 		SHBGraph shb = engine.shb;
 		List<Integer>  unrolledThreads = engine.unrolledThreads;
 	    	// check read & write

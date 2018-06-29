@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.eclipse.core.resources.IFile;
+import org.w3c.dom.css.ElementCSSInlineStyle;
 
 import com.ibm.wala.cast.java.loader.JavaSourceLoaderImpl.ConcreteJavaMethod;
 import com.ibm.wala.cast.loader.AstMethod.DebuggingInformation;
@@ -1429,8 +1430,8 @@ public class TIDEEngine{
 				useNode = keyCGNode;
 			}
 			
-			if (creation == null)
-				return null;
+//			if (creation == null)
+//				return null;
 
 			if(creation instanceof SSAGetInstruction){
 				name = ((SSAGetInstruction) creation).getDeclaredField().getDeclaringClass().getName();
@@ -1492,7 +1493,11 @@ public class TIDEEngine{
 				}
 				while (node == null){
 					new_param = findDefsInDataFlowFor(useNode, new_param, creation.iindex);
-					node = handleRunnable(instKey, new_param, useNode);
+					if (new_param != -1) {
+						node = handleRunnable(instKey, new_param, useNode);
+					} else {
+						break;
+					}
 				}
 				return node;
 			}

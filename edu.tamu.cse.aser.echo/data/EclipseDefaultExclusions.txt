@@ -9,3 +9,5 @@ com\/vividsolutions\/.*
 apple\/.*
 jdbm\/.*
 com\/ibm\/wala\/.*
+org\/apache\/.*
+junit\/.*
