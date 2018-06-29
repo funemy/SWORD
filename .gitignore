@@ -3,6 +3,12 @@
 *.class
 .metadata/*
 .recommenders/*
+pta-each-iter
+pta-origin-each-iter
+traces.txt
+com.ibm.wala.cast.test/
+com.ibm.wala.core.testdata/
+com.ibm.wala.core.tests/
 edu.tamu.cse.aser.echo/bin/
 com.ibm.wala.cast/bin/
 com.ibm.wala.cast.java/bin/
