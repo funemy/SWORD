@@ -9,6 +9,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.routing.BalancingPool;
+import akka.routing.RandomPool;
 import edu.tamu.aser.tide.engine.TIDECGModel;
 import edu.tamu.aser.tide.engine.TIDEEngine;
 import edu.tamu.aser.tide.nodes.DLPair;
@@ -28,6 +29,7 @@ public class BugHub extends UntypedActor{
 	private final ActorRef workerRouter;
 
 	public BugHub(final int nrOfWorkers) {
+		System.out.print("!!!!!!!!!!!!!!!!!!!!!!!!!" + nrOfWorkers);
 		Props props = Props.create(BugWorker.class).withRouter(new BalancingPool(nrOfWorkers));
 	    workerRouter = this.getContext().actorOf(props, "bugWorkerRouter");
 	}

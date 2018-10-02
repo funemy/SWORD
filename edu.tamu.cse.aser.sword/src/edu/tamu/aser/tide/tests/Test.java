@@ -43,27 +43,26 @@ import edu.tamu.aser.tide.plugin.handlers.ConvertHandler;
 
 public class Test {
 	static PrintStream ps;
-	private static long totaltime;
 	public static TIDEEngine engine;
 	static void print(String msg, boolean printErr)
 	{
 		try{
 			if(ps==null)
-				ps = new PrintStream(new FileOutputStream("log_d4_tradesoap"));
+				ps = new PrintStream(new FileOutputStream("log_sword_sunflow"));
 
 			ps.println(msg);
 
 			if(printErr)
 				System.err.println(msg);
-		}catch(Exception e)
-		{
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	public static void main(String[] args) {
 		try{
-			boolean includeAllMainEntryPoints = true;
-			String mainClassName ="Benchmark";
+			boolean includeAllMainEntryPoints = false;
+			String mainClassName ="TextSpider";
 			// avrora: Main
 			// batik: rasterizer/Main
 			// eclipse: EclipseStarter
@@ -105,12 +104,13 @@ public class Test {
 
 		    //parallel incremental experiment ->
 			SSAPropagationCallGraphBuilder builder = Util.makeZeroOneContainerCFABuilder(options, new AnalysisCache(), cha, scope);
+//			SSAPropagationCallGraphBuilder builder = Util.makeZeroCFABuilder(options, new AnalysisCache(), cha, scope);
 			long start_time = System.currentTimeMillis();
 			CallGraph cg  = builder.makeCallGraph(options, null);
 			PointerAnalysis<InstanceKey> pta = builder.getPointerAnalysis();
 			System.out.println("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time));
 
-			print("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time),true);
+//			print("Call Graph Construction Time: "+(System.currentTimeMillis()-start_time),true);
 			int numofCGNodes = cg.getNumberOfNodes();
 
 			int totalInstanceKey = pta.getInstanceKeys().size();
@@ -124,14 +124,20 @@ public class Test {
 				totalPointerEdge+=size;
 			}
 
-			print("Total Pointer Keys: "+totalPointerKey,true);
-			print("Total Instance Keys: "+totalInstanceKey,true);
-			print("Total Pointer Edges: "+totalPointerEdge,true);
-			print("Total Classes: "+totalClass,true);
-			print("Total Methods: "+numofCGNodes,true);
-			ps.println();
+			System.out.println("Total Pointer Keys: " + totalPointerKey);
+			System.out.println("Total Instance Keys: " + totalInstanceKey);
+			System.out.println("Total Pointer Edges: " + totalPointerEdge);
+			System.out.println("Total Classes: " + totalClass);
+			System.out.println("Total Methods: "+ numofCGNodes);
 
-			System.out.println();
+//			print("Total Pointer Keys: "+totalPointerKey,true);
+//			print("Total Instance Keys: "+totalInstanceKey,true);
+//			print("Total Pointer Edges: "+totalPointerEdge,true);
+//			print("Total Classes: "+totalClass,true);
+//			print("Total Methods: "+numofCGNodes,true);
+//			ps.println();
+
+//			System.out.println();
 			System.out.println();
 
 //			//initial start bug akka system
@@ -171,11 +177,33 @@ public class Test {
 			System.out.println("-----------ALL BUGGY MEMORY ACCESSES: " + alertAccesses.size());
 			System.out.println("num of race: " + race + "  dl: " + dl);
 			System.out.println();
+			
+			for (String alert : alertAccesses) {
+				System.out.println(alert);
+			}
+			
+			for(ITIDEBug bug : bugs){
+				System.out.println("------------------------");
+				System.out.println(((TIDERace) bug).node1);
+				System.out.println(((TIDERace) bug).node2);
+			}
+			
+//			PrintStream p = new PrintStream(new FileOutputStream("avrora_traver_cls"));
+//			for (Object cls : engine.traversedClass) {
+//				p.println(cls);
+//			}
+//			p.close();
+//
+//			PrintStream p1 = new PrintStream(new FileOutputStream("avrora_report"));
+//			for (String alert : alertAccesses) {
+//				p1.println(alert);
+//			}
+//			p1.close();
 
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		ps.close();
+//		ps.close();
 
 	}
 
@@ -221,9 +249,12 @@ public class Test {
 								&&method.getDescriptor().toString().equals(ConvertHandler.DESC_MAIN))
 						{
 							//Test: accept only one main entryPoint
+							System.out.println(method);
 							if(includeAll
-									||klass.getName().toString().contains(mainClassName))
+									||klass.getName().toString().contains(mainClassName)) {
 								result.add(new DefaultEntrypoint(method, classHierarchy));
+								System.out.println("!!!!!!!!!!!!!!!!!!!!!!");
+							}
 						}
 						else if(method.isPublic()&&!method.isStatic()
 								&&method.getName().toString().equals("run")

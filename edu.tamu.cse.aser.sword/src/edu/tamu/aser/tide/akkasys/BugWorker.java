@@ -13,7 +13,6 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.util.intset.MutableIntSet;
 
 import akka.actor.UntypedActor;
-import akka.io.Tcp.Write;
 import edu.tamu.aser.tide.engine.AstCGNodeEcho;
 import edu.tamu.aser.tide.engine.ITIDEBug;
 import edu.tamu.aser.tide.engine.TIDECGModel;
@@ -67,7 +66,7 @@ public class BugWorker extends UntypedActor{
 		HashSet<String> l22sig = dllp2.lock2.getLockSig();
 		if(containAny(l11sig, l22sig) && containAny(l21sig, l12sig)){
 			//check reachability
-			boolean reached = hasHBRelation(tid1, dllp1.lock1, tid2, dllp2.lock1);
+			boolean reached = !hasHBRelation(tid1, dllp1.lock1, tid2, dllp2.lock1);
 			if(reached){
 				TIDEDeadlock dl = new TIDEDeadlock(tid1,dllp1, tid2,dllp2);
 				boolean isReentrant = false;
@@ -171,7 +170,8 @@ public class BugWorker extends UntypedActor{
 							if (wtid == xtid) continue;
 
 //							System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
-							if(checkLockSetAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
+							// have no common locks nor HB relation
+							if(!checkCommonLockAndHappensBeforeRelation(wtid, wnode, xtid, xnode)){
 //								System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 								TIDERace race = new TIDERace(sig,xnode,xtid,wnode, wtid);
 								bugs.add(race);
@@ -196,7 +196,7 @@ public class BugWorker extends UntypedActor{
 						// memory access in same thread don't need to be checked
 						if (wtid == xtid) continue;
 //						System.err.println("---pair: " + xnode + "." + xtid + "||" + wnode + "." + wtid + "[" +self().path().name() + "]");
-						if(checkLockSetAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
+						if(!checkCommonLockAndHappensBeforeRelation(xtid, xnode, wtid, wnode)){
 //							System.out.println("[" +self().path().name() + "]" + "race detected: " + xnode +"." + xtid + "||" + wnode + "." + wtid);
 							TIDERace race = new TIDERace(sig,xnode, xtid, wnode, wtid);
 							bugs.add(race);
@@ -290,11 +290,11 @@ public class BugWorker extends UntypedActor{
 	}
 
 	//ReachabilityEngine reachEngine,
-	private boolean checkLockSetAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {
+	private boolean checkCommonLockAndHappensBeforeRelation(Integer wtid, WriteNode wnode, Integer xtid, MemNode xnode) {
 		if(!haveCommonLock(xtid, xnode, wtid, wnode)){
 			return hasHBRelation(wtid, wnode, xtid, xnode);
 		}
-		return false;
+		return true;
 	}
 
 	private boolean haveCommonLock(int xtid, INode xnode, int wtid, INode wnode) {
@@ -415,8 +415,7 @@ public class BugWorker extends UntypedActor{
 
 	// determine if two nodes have Happens-Before relation or not
 	private boolean hasHBRelation(int comperTID, INode comper, int compeeTID, INode compee){
-		boolean donothave = false;
-//		boolean HBRelation = false;
+		boolean HBRelation = true;
 		TIDEEngine engine;
 		if(DEBUG){
 			engine = Test.engine;
@@ -432,7 +431,7 @@ public class BugWorker extends UntypedActor{
 
 		// should not happen
 		if (comperStartNode == null || compeeStartNode == null)
-			return false;
+			return HBRelation;
 
 		MutableIntSet comperKidThreads = comperStartNode.getTID_Child();
 		MutableIntSet compeeKidThreads = compeeStartNode.getTID_Child();
@@ -441,12 +440,12 @@ public class BugWorker extends UntypedActor{
 			if(shb.compareParent(compeeStartNode, comper, compeeTID, comperTID) < 0){//trace.indexOf(xStartNode) < trace.indexOf(comper)
 				if (compeeJoinNode != null) {
 					if (shb.compareParent(compeeJoinNode, comper, compeeTID, comperTID) > 0) {//trace.indexof(xjoinnode) > trace.indexof(comper)
-						donothave = true; //for multipaths: what if the paths compared above are different?
+						HBRelation = false; //for multipaths: what if the paths compared above are different?
 					}
 				}else{
 					// compee's thread started after comper node
 					// no race
-					donothave = true;
+					HBRelation = false;
 				}
 			}
 		}else if(compeeKidThreads.contains(comperTID)){
@@ -454,10 +453,10 @@ public class BugWorker extends UntypedActor{
 			if(shb.compareParent(comperStartNode, compee, compeeTID, comperTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(compee)
 				if (comperJoinNode != null) {
 					if(shb.compareParent(comperJoinNode, compee, compeeTID, comperTID) > 0){////trace.indexof(wjoinnode) > trace.indexof(compee)
-						donothave = true;
+						HBRelation = false;
 					}
 				}else {
-					donothave = true;
+					HBRelation = false;
 				}
 			}
 		}else{
@@ -476,20 +475,20 @@ public class BugWorker extends UntypedActor{
 					int erS = ptTrace.indexOf(comperStartNode);
 					int eeS = ptTrace.indexOf(compeeStartNode);
 					if (Math.abs(erS - eeS) <= 1000) {//adjust??
-						donothave = true;
+						HBRelation = false;
 					}
 				}else if(comperJoinNode == null){//-1: start -> join; 1: join -> start;
 					if(shb.compareStartJoin(comperStartNode, compeeJoinNode, parent, cg) < 0){//trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)
-						donothave = true;
+						HBRelation = false;
 					}
 				}else if(compeeJoinNode == null){
 					if(shb.compareStartJoin(compeeStartNode, comperJoinNode, parent, cg) < 0){//trace.indexOf(wJoinNode) > trace.indexOf(xStartNode)
-						donothave = true;
+						HBRelation = false;
 					}
 				}else{
 					if(shb.compareStartJoin(comperStartNode, compeeJoinNode, parent, cg) < 0
 							&& shb.compareStartJoin(compeeStartNode, comperJoinNode, parent, cg) < 0){//(trace.indexOf(xJoinNode) > trace.indexOf(wStartNode)) && (trace.indexOf(wJoinNode) > trace.indexOf(xStartNode))
-						donothave = true;
+						HBRelation = false;
 					}
 				}
 			}else{
@@ -497,17 +496,17 @@ public class BugWorker extends UntypedActor{
 				if(shb.whoHappensFirst(comperStartNode, compeeStartNode, compeeTID, comperTID) < 0){//trace.indexOf(wStartNode) < trace.indexOf(xStartNode)
 					//wtid starts early
 					if(shb.whoHappensFirst(comperStartNode, comper, compeeTID, comperTID) < 0){
-						donothave = true;
+						HBRelation = false;
 					}
 				}else{
 					//xtid starts early
 					if(shb.whoHappensFirst(compeeStartNode, compee, compeeTID, comperTID) < 0){
-						donothave = true;
+						HBRelation = false;
 					}
 				}
 			}
 		}
-		return donothave;
+		return HBRelation;
 	}
 
 }

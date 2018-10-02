@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="4.5"?>
+<?eclipse version="4.7"?>
 <plugin>
    <extension
          point="org.eclipse.ui.commands">
@@ -7,7 +7,6 @@
             name="SWORD"
             id="edu.tamu.aser.tide.plugin.convert">
       </command>
-      
    </extension>
 
    <extension
@@ -142,15 +141,15 @@
                   	checkEnabled="false">
                   		<with variable="activeMenuSelection">
                   			<and>
-		                  	<count value="1"> </count>
+								<count value="1"> </count>
                   				<iterate ifEmpty="false" operator="or">
-                  						<adapt
-                  							type="org.eclipse.core.resources.IResource">
-                  							<test property="org.eclipse.core.resources.contentTypeId"
-                  							value="org.eclipse.jdt.core.javaSource"/>
-                  						</adapt>
+									  <adapt
+										  type="org.eclipse.core.resources.IResource">
+										  <test property="org.eclipse.core.resources.contentTypeId"
+										  value="org.eclipse.jdt.core.javaSource"/>
+									  </adapt>
                   				</iterate>
-                  				</and>
+							</and>
                   		</with>
                   </visibleWhen>
             </command>

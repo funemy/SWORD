@@ -138,6 +138,7 @@ public class TIDEEngine{
 
 	//hard write
 	private static Set<String> consideredJDKCollectionClass = HashSetFactory.make();
+	public static Set<Object> traversedClass = HashSetFactory.make();
 	//currently considered jdk class
 	private static String ARRAYLIST = "<Primordial,Ljava/util/ArrayList>";
 	private static String LINKEDLIST = "<Primordial,Ljava/util/LinkedList>";
@@ -168,18 +169,12 @@ public class TIDEEngine{
 			String sig = n.getMethod().getSignature();
 			//find the main node
 			String entryName = n.getMethod().getName().toString();
-			if (entryName.equals("main")) {
+			if(sig.contains(entrySignature)){
 				mainEntryNodes.add(n);
-			} else {
+			}else{
 				TypeName name  = n.getMethod().getDeclaringClass().getName();
 				threadSigNodeMap.put(name, n);
 			}
-//			if(sig.contains(entrySignature)){
-//				mainEntryNodes.add(n);
-//			}else{
-//				TypeName name  = n.getMethod().getDeclaringClass().getName();
-//				threadSigNodeMap.put(name, n);
-//			}
 		}
 
 	}
@@ -470,6 +465,12 @@ public class TIDEEngine{
 
 	private Trace traverseNode(CGNode n) {
 		Trace curTrace = shb.getTrace(n);
+		
+//		System.out.println("-----------------------------");
+//		System.out.println(n);
+//		System.out.println(n.getMethod().getDeclaringClass());
+		traversedClass.add(n.getMethod().getDeclaringClass());
+		
 		if(alreadyProcessedNodes.contains(n)){
 			//allow multiple entries of a method if there exist sync in between
 			if(!hasSyncBetween){
@@ -942,6 +943,7 @@ public class TIDEEngine{
 
 			boolean isInLoop = isInLoop(n,inst);
 			if(isInLoop){
+				System.err.println("cg node is in loop: " + n);
 				AstCGNodeEcho node2 = new AstCGNodeEcho(node.getMethod(),node.getContext());
 				threadNodes.add(node2);
 				int newID = ++maxGraphNodeID;

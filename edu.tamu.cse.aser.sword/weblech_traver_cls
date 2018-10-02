@@ -1,0 +1,9 @@
+<Application,Lweblech/ui/TextSpider>
+<Application,Lweblech/spider/SpiderConfig>
+<Application,Lweblech/util/Logger>
+<Application,Lweblech/spider/Spider>
+<Application,Lweblech/spider/DownloadQueue>
+<Application,Lweblech/spider/URLToDownload>
+<Application,Lweblech/spider/HTMLParser>
+<Application,Lweblech/spider/URLGetter>
+<Application,Lweblech/spider/URLObject>
