@@ -27,3 +27,6 @@ Goto _Windows_ -> _Show View_ -> _Others_ to open the ECHO views (i.e., _ECHO Ra
 The github repo includes 6 large, real-world Java projects. To test the practicality of SWORD on these projects, you can import them into your target workspace. 
 
 Some large benchmarks are available [here](https://github.com/funemy/echo-benchmark)
+
+### License
+[MIT](LICENSE)
