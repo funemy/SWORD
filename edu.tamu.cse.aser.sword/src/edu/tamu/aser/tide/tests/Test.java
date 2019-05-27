@@ -62,7 +62,7 @@ public class Test {
 	public static void main(String[] args) {
 		try{
 			boolean includeAllMainEntryPoints = false;
-			String mainClassName ="TextSpider";
+			String mainClassName ="Tsp";
 			// avrora: Main
 			// batik: rasterizer/Main
 			// eclipse: EclipseStarter

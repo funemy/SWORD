@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="scala-library-2.12.1.jar"/>
 	<classpathentry kind="lib" path="swt.jar"/>
 	<classpathentry kind="lib" path="jface-3.6.1.M20100825-0800.jar"/>
+	<classpathentry kind="lib" path="/Users/liyanze/code/SWORD/edu.tamu.cse.aser.sword/commons-cli-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
