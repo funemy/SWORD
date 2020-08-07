@@ -1,5 +1,5 @@
 # SWORD: A Fast Concurrency Bug Detection for The Whole Program
-**This project is no longer under maintainance, apologies for the terrible code quality. There are a lot of follow-ups going on, if you have any specific question regarding this project, [email me](liyzunique@gmail.com).**
+**This project is no longer under maintainance, apologies for the terrible code quality. There are a lot of follow-ups going on, if you have any specific question regarding this project, [email me](mailto:liyzunique@gmail.com).**
 
 ## Introduction
 SWORD is an interactive Eclipse Plugin to detect data races and deadlocks in Java programs. The fundamental techniques (i.e., points-to analysis and static happens-before analysis) that SWORD adopts are in: 
