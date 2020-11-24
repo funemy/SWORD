@@ -41,7 +41,7 @@ public class Main {
 			}
 
 		} catch (ParseException e) {
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
 		}
 		
 		
