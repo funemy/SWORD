@@ -1,4 +1,4 @@
-# SWORD: A Fast Concurrency Bug Detection for The Whole Program
+# SWORD: A Scalable Whole Program Race Detector for Java
 **This project is no longer under maintainance, apologies for the terrible code quality. There are a lot of follow-ups going on, if you have any specific question regarding this project, [email me](mailto:liyzunique@gmail.com).**
 
 ## Introduction
